@@ -1,7 +1,12 @@
 using Test
 
+using StaticArrays
 using SatelliteToolboxPropagators
 
-@testset "J2 orbit propagator" begin
+@testset "J2 Orbit Propagator" begin
     include("./j2.jl")
+end
+
+@testset "Orbit Propagator API" begin
+    include("./api.jl")
 end
