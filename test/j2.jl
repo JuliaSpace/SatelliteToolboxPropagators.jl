@@ -48,13 +48,36 @@
             jd₀,
             T(8000e3),
             T(0.015),
-            T(28.5) |>deg2rad,
-            T(100) |>deg2rad,
-            T(200) |>deg2rad,
-            T(45) |> deg2rad
+            T(28.5) |> deg2rad,
+            T(100)  |> deg2rad,
+            T(200)  |> deg2rad,
+            T(45)   |> deg2rad
         )
 
         orbp = init_orbit_propagator(Val(:J2), orb; j2c = j2c_egm08)
+
+        orbk = get_mean_elements(orbp)
+        @test orbk isa KeplerianElements{Float64, Float64}
+        @test orbk.t ≈ orb.t
+        @test orbk.a ≈ orb.a
+        @test orbk.e ≈ orb.e
+        @test orbk.i ≈ orb.i
+        @test orbk.Ω ≈ orb.Ω
+        @test orbk.ω ≈ orb.ω
+        @test orbk.f ≈ orb.f
+
+        r, v = step!(orbp, (jd₁ - jd₀) * 86400)
+
+        @test r[1] / 1000 ≈ -6849.654348 atol = 5e-3
+        @test r[2] / 1000 ≈ -2253.059809 atol = 5e-3
+        @test r[3] / 1000 ≈ +3574.529667 atol = 5e-3
+        @test eltype(r) == T
+
+        @test v[1] / 1000 ≈ +1.656142 atol = 1e-5
+        @test v[2] / 1000 ≈ -6.699518 atol = 1e-5
+        @test v[3] / 1000 ≈ -1.266334 atol = 1e-5
+        @test eltype(v) == T
+
         r, v = propagate_to_epoch!(orbp, jd₁)
 
         @test r[1] / 1000 ≈ -6849.654348 atol = 5e-3
@@ -68,18 +91,44 @@
         @test eltype(v) == T
     end
 
+    # Float32
+    # ======================================================================================
+
     let T = Float32
         orb = KeplerianElements(
             jd₀,
             T(8000e3),
             T(0.015),
-            T(28.5) |>deg2rad,
-            T(100) |>deg2rad,
-            T(200) |>deg2rad,
-            T(45) |> deg2rad
+            T(28.5) |> deg2rad,
+            T(100)  |> deg2rad,
+            T(200)  |> deg2rad,
+            T(45)   |> deg2rad
         )
 
         orbp = init_orbit_propagator(Val(:J2), orb; j2c = j2c_egm08_f32)
+
+        orbk = get_mean_elements(orbp)
+        @test orbk isa KeplerianElements{Float64, Float32}
+        @test orbk.t ≈ orb.t
+        @test orbk.a ≈ orb.a
+        @test orbk.e ≈ orb.e
+        @test orbk.i ≈ orb.i
+        @test orbk.Ω ≈ orb.Ω
+        @test orbk.ω ≈ orb.ω
+        @test orbk.f ≈ orb.f
+
+        r, v = step!(orbp, (jd₁ - jd₀) * 86400)
+
+        @test r[1] / 1000 ≈ -6849.654348 atol = 5e-1
+        @test r[2] / 1000 ≈ -2253.059809 atol = 5e-1
+        @test r[3] / 1000 ≈ +3574.529667 atol = 5e-1
+        @test eltype(r) == T
+
+        @test v[1] / 1000 ≈ +1.656142 atol = 1e-3
+        @test v[2] / 1000 ≈ -6.699518 atol = 1e-3
+        @test v[3] / 1000 ≈ -1.266334 atol = 1e-3
+        @test eltype(v) == T
+
         r, v = propagate_to_epoch!(orbp, jd₁)
 
         @test r[1] / 1000 ≈ -6849.654348 atol = 5e-1
