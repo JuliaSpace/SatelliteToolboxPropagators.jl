@@ -37,6 +37,9 @@ const _B = crayon"bold"
 ############################################################################################
 
 include("./api/j2.jl")
+include("./api/j4.jl")
+
 include("./propagators/j2.jl")
+include("./propagators/j4.jl")
 
 end # module SatelliteToolboxPropagators

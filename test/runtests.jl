@@ -8,6 +8,10 @@ using SatelliteToolboxPropagators
     include("./j2.jl")
 end
 
+@testset "J4 Orbit Propagator" begin
+    include("./j4.jl")
+end
+
 @testset "Orbit Propagator API" begin
     include("./api.jl")
 end
