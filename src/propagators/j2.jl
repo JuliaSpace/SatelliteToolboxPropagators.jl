@@ -52,7 +52,7 @@ export j2_init, j2!
 
 # These constants were obtained from the GFC files. Remember that:
 #
-#   J_n = -C_n,0 * √(2n+1)
+#   J_n = -C_n,0 * √(2n + 1)
 #
 
 # EGM-08 gravitational constants.
@@ -181,8 +181,8 @@ function j2_init(
     n̄ = n₀ * (1 + T(3 / 4) * J2 / p₀² * √(1 - e₀²) * (2 - 3sin_i₀²))
 
     # First-order time-derivative of the orbital elements.
-    δa = +T(2 / 3) * al₀ * dn / n₀
-    δe = +T(2 / 3) * (1 - T(e₀)) * dn / n₀
+    δa = -T(2 / 3) * al₀ * dn / n₀
+    δe = -T(2 / 3) * (1 - T(e₀)) * dn / n₀
     δΩ = -T(3 / 2) * n̄ * J2 / p₀² * cos_i₀
     δω = +T(3 / 4) * n̄ * J2 / p₀² * (4 - 5sin_i₀²)
 
@@ -253,8 +253,8 @@ function j2!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:
     Δt = T(t)
 
     # Propagate the orbital elements.
-    al_k = al₀ - δa * Δt
-    e_k  = e₀  - δe * Δt
+    al_k = al₀ + δa * Δt
+    e_k  = e₀  + δe * Δt
     i_k  = i₀
     Ω_k  = mod(Ω₀ + δΩ * Δt, T(2π))
     ω_k  = mod(ω₀ + δω * Δt, T(2π))
@@ -279,7 +279,6 @@ function j2!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:
     j2d.Δt   = Δt
     j2d.orbk = orbk
 
-    # Return the position and velocity vector represented in the inertial
-    # reference frame.
+    # Return the position and velocity vector represented in the inertial reference frame.
     return r_i_k, v_i_k
 end
