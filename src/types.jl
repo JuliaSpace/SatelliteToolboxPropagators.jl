@@ -10,6 +10,7 @@
 export J2PropagatorConstants, J2Propagator
 export J4PropagatorConstants, J4Propagator
 export OrbitPropagatorJ2
+export OrbitPropagatorJ4
 
 ############################################################################################
 #                                   J2 Orbit Propagator
