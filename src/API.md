@@ -39,7 +39,7 @@ structure is updated with the latest orbital elements using any representation.
 The propagator should return the vectors preferably in SI. If this is not the case, the
 documentation must state clearly.
 
-This function shall be named as `<propagator identified>!`.
+This function shall be named as `<propagator identifier>!`.
 
 ```julia
 r_i, v_i = j2!(j2d, 10)
@@ -67,7 +67,7 @@ the type used for the internal variables.
 The initialization is performed by the function:
 
 ```julia
-init_orbit_propagator(T, args...; kwargs...)
+Propagators.init(T, args...; kwargs...)
 ```
 
 where `T = Val(<Orbit propagator symbol>)`, and it must return and object of type
@@ -81,17 +81,37 @@ needs to record the instant of the last propagation.
 Each propagator must return the initial element epoch in Julian Day by the function:
 
 ```julia
-get_epoch(orbp)
+Propagators.epoch(orbp)
 ```
 
 Notice that this value must never change during the existence of the object `orbp`.
+
+### Last Instant
+
+Each propagator must return the last propagation instant [s] measured from the epoch. This
+action must be performed by the function:
+
+```julia
+Propagators.last_instant(orbp)
+```
+
+### Name (Optional)
+
+The propagator can overload the function:
+
+```julia
+Propagators.name(orbp)
+```
+
+to return its name. The system uses this information to display the object using the
+function `show`. If the function is not provided, the structure name is used by default.
 
 ### Propagation
 
 The following functions must be overloaded by each propagator.
 
 ```julia
-propagate!(orbp, t)
+Propagators.propagate!(orbp, t)
 ```
 
 Propagate the orbit of propagator `orbp` by `t` [s] from the epoch. This function must
@@ -99,22 +119,29 @@ return the propagated position and velocity represented in the same reference fr
 the initialization. **The output vector must use the SI**.
 
 ```julia
-step!(orbp, dt)
+Propagators.step!(orbp, dt)
 ```
 
 Propagate the orbit of propagator `orbp` by `dt` [s] from the instant of the last
 propagation. This function must return the propagated position and velocity represented in
 the same reference frame used in the initialization. **The output vector must use the SI**.
 
-We also have the function `propagate_to_epoch!`, but the default implementation should work
-for all propagators.
+> **Note**
+> The API provides a default implementation for `Propagators.step!`. Hence, strictly
+> speaking, only the implementation of `Propagators.propagate!` is required for the API.
+> However, there are some cases in which it is more accurate to implement
+> `Propagators.step!` and use this algorithm to build the function `Propagators.propagate!`.
+> In those cases, the user must overload both functions.
 
-### Mean elements (optional)
+We also have the function `Propagators.propagate_to_epoch!`, but the default implementation
+should work for all propagators.
+
+### Mean Elements (Optional)
 
 The function
 
 ```julia
-get_mean_elements(orbp)
+Propagators.mean_elements(orbp)
 ```
 
 should return the mean elements using the structure `KeplerianElements` related to the

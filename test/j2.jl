@@ -40,6 +40,15 @@
     jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
     jd₁ = date_to_jd(2023, 1, 5, 0, 0, 0)
 
+    # General API Functions
+    # ======================================================================================
+
+    let
+        orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
+        orbp = Propagators.init(Val(:J2), orb)
+        @test Propagators.name(orbp) == "J2 Orbit Propagator"
+    end
+
     # Float64
     # ======================================================================================
 
@@ -54,9 +63,9 @@
             T(45)   |> deg2rad
         )
 
-        orbp = init_orbit_propagator(Val(:J2), orb; j2c = j2c_egm08)
+        orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm08)
 
-        orbk = get_mean_elements(orbp)
+        orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{Float64, Float64}
         @test orbk.t ≈ orb.t
         @test orbk.a ≈ orb.a
@@ -66,7 +75,7 @@
         @test orbk.ω ≈ orb.ω
         @test orbk.f ≈ orb.f
 
-        r, v = step!(orbp, (jd₁ - jd₀) * 86400)
+        r, v = Propagators.step!(orbp, (jd₁ - jd₀) * 86400)
 
         @test r[1] / 1000 ≈ -6849.654348 atol = 5e-3
         @test r[2] / 1000 ≈ -2253.059809 atol = 5e-3
@@ -78,7 +87,7 @@
         @test v[3] / 1000 ≈ -1.266334 atol = 1e-5
         @test eltype(v) == T
 
-        r, v = propagate_to_epoch!(orbp, jd₁)
+        r, v = Propagators.propagate_to_epoch!(orbp, jd₁)
 
         @test r[1] / 1000 ≈ -6849.654348 atol = 5e-3
         @test r[2] / 1000 ≈ -2253.059809 atol = 5e-3
@@ -105,9 +114,9 @@
             T(45)   |> deg2rad
         )
 
-        orbp = init_orbit_propagator(Val(:J2), orb; j2c = j2c_egm08_f32)
+        orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm08_f32)
 
-        orbk = get_mean_elements(orbp)
+        orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{Float64, Float32}
         @test orbk.t ≈ orb.t
         @test orbk.a ≈ orb.a
@@ -117,7 +126,7 @@
         @test orbk.ω ≈ orb.ω
         @test orbk.f ≈ orb.f
 
-        r, v = step!(orbp, (jd₁ - jd₀) * 86400)
+        r, v = Propagators.step!(orbp, (jd₁ - jd₀) * 86400)
 
         @test r[1] / 1000 ≈ -6849.654348 atol = 5e-1
         @test r[2] / 1000 ≈ -2253.059809 atol = 5e-1
@@ -129,7 +138,7 @@
         @test v[3] / 1000 ≈ -1.266334 atol = 1e-3
         @test eltype(v) == T
 
-        r, v = propagate_to_epoch!(orbp, jd₁)
+        r, v = Propagators.propagate_to_epoch!(orbp, jd₁)
 
         @test r[1] / 1000 ≈ -6849.654348 atol = 5e-1
         @test r[2] / 1000 ≈ -2253.059809 atol = 5e-1

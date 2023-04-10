@@ -8,8 +8,7 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 export J2PropagatorConstants, J2Propagator
-export OrbitPropagator
-export OrbirPropagatorJ2
+export OrbitPropagatorJ2
 
 ############################################################################################
 #                                   J2 Orbit Propagator
@@ -60,13 +59,6 @@ end
 ############################################################################################
 #                                           API
 ############################################################################################
-
-"""
-    abstract type OrbitPropagator{Tepoch<:Number, T<:Number}
-
-Abstract type for the orbit propagators.
-"""
-abstract type OrbitPropagator{Tepoch<:Number, T<:Number} end
 
 #                                   J2 Orbit Propagator
 # ==========================================================================================
