@@ -7,7 +7,7 @@
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-get_epoch(orbp::OrbitPropagatorJ2) = orbp.j2d.orbk.t
+get_epoch(orbp::OrbitPropagatorJ2) = orbp.j2d.orb₀.t
 get_mean_elements(orbp::OrbitPropagatorJ2) = orbp.j2d.orbk
 
 """
