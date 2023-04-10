@@ -7,6 +7,8 @@
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+struct DummyPropagator{Tepoch, T} <: OrbitPropagator{Tepoch, T} end
+
 @testset "Broadcast" begin
     jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
     jd₁ = date_to_jd(2023, 1, 5, 0, 0, 0)
@@ -80,7 +82,10 @@ end
             T(45)   |> deg2rad
         )
 
-        orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm08)
+        # J2 Orbit Propagator
+        # ==================================================================================
+
+        orbp = Propagators.init(Val(:J2), orb)
 
         expected = "J2 Orbit Propagator (Epoch = $(string(dt₀)), Δt = 0.0 s)"
         result = sprint(show, orbp)
@@ -94,5 +99,28 @@ end
         result = sprint(show, MIME("text/plain"), orbp)
 
         @test result == expected
+
+        # J4 Orbit Propagator
+        # ==================================================================================
+
+        orbp = Propagators.init(Val(:J4), orb)
+
+        expected = "J4 Orbit Propagator (Epoch = $(string(dt₀)), Δt = 0.0 s)"
+        result = sprint(show, orbp)
+        @test result == expected
+
+        expected = """
+        OrbitPropagatorJ4{Float64, Float64}:
+           Propagator name : J4 Orbit Propagator
+          Propagator epoch : $(string(dt₀))
+          Last propagation : $(string(dt₀))"""
+        result = sprint(show, MIME("text/plain"), orbp)
+
+        @test result == expected
     end
+end
+
+@testset "Default Functions in the API" begin
+    orbp = DummyPropagator{Float64, Float64}()
+    @test Propagators.name(orbp) == "DummyPropagator{Float64, Float64}"
 end
