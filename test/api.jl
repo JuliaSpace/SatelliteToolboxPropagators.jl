@@ -123,4 +123,5 @@ end
 @testset "Default Functions in the API" begin
     orbp = DummyPropagator{Float64, Float64}()
     @test Propagators.name(orbp) == "DummyPropagator{Float64, Float64}"
+    @test Propagators.mean_elements(orbp) === nothing
 end
