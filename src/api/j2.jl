@@ -13,7 +13,7 @@ Propagators.mean_elements(orbp::OrbitPropagatorJ2) = orbp.j2d.orbk
 Propagators.name(orbp::OrbitPropagatorJ2)          = "J2 Orbit Propagator"
 
 """
-    init_orbit_propagator(Val(:J2), orb₀::Orbit, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...) -> OrbitPropagatorJ2
+    Propagators.init(Val(:J2), orb₀::Orbit, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...) -> OrbitPropagatorJ2
 
 Initialize the J2 orbit propagator algorithm using the mean Keplerian elements `orb₀`.
 

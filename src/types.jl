@@ -15,7 +15,7 @@ export OrbitPropagatorJ2
 ############################################################################################
 
 """
-    J2PropagatorConstants{T}
+    struct J2PropagatorConstants{T<:Number}
 
 Constants for the J2 orbit propagator.
 
