@@ -2,6 +2,7 @@ SatelliteToolboxPropagators.jl
 ==============================
 
 [![CI](https://github.com/JuliaSpace/SatelliteToolboxPropagators.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/JuliaSpace/SatelliteToolboxPropagators.jl/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/JuliaSpace/SatelliteToolboxPropagators.jl/branch/main/graph/badge.svg?token=WSVR7QYKOD)](https://codecov.io/gh/JuliaSpace/SatelliteToolboxPropagators.jl)
 [![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
 
 This package defines orbit propagators for the **SatelliteToolbox.jl** ecosystem.
