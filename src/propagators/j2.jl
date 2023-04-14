@@ -24,7 +24,7 @@
 
 export j2c_egm08, j2c_egm96, j2c_jgm02, j2c_jgm03
 export j2c_egm08_f32, j2c_egm96_f32, j2c_jgm02_f32, j2c_jgm03_f32
-export j2_init, j2!
+export j2_init, j2_init!, j2!
 
 ############################################################################################
 #                                           TODO
@@ -114,7 +114,8 @@ const j2c_jgm03_f32 = J2PropagatorConstants{Float32}(
 """
     j2_init(orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...) where T<:Number -> J2Propagator
 
-Initialize the J2 orbit propagator algorithm using the mean Keplerian elements `orb₀`.
+Create and initialize the J2 orbit propagator structure using the mean Keplerian elements
+`orb₀`.
 
 !!! note
     The type used in the propagation will be the same as used to define the constants in the
@@ -134,15 +135,51 @@ Initialize the J2 orbit propagator algorithm using the mean Keplerian elements `
   [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm08`)
 """
 function j2_init(
-    orb₀::KeplerianElements,
+    orb₀::KeplerianElements{Tepoch, Tkepler},
     dn_o2::Number = 0,
     ddn_o6::Number = 0;
     j2c::J2PropagatorConstants{T} = j2c_egm08
-) where T<:Number
+) where {Tepoch<:Number, Tkepler<:Number, T<:Number}
+    # Allocate the propagator structure.
+    j2d = J2Propagator{Tepoch, T}()
+
+    # Assign the constants, which are used in the initialization.
+    j2d.j2c = j2c
+
+    # Initialize the propagator and return.
+    j2_init!(j2d, orb₀, dn_o2, ddn_o6)
+
+    return j2d
+end
+
+"""
+    j2_init!(j2d::J2Propagator, orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0) -> Nothing
+
+Initialize the J2 orbit propagator structure `j2d` using the mean Keplerian elements `orb₀`.
+
+!!! warning
+    The propagation constants `j2c::J2PropagatorConstants` in `j2d` will not be changed.
+    Hence, they must be initialized.
+
+# Arguments
+
+- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
+- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
+    (**Default** = 0)
+- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
+    (**Default** = 0)
+"""
+function j2_init!(
+    j2d::J2Propagator{Tepoch, T},
+    orb₀::KeplerianElements,
+    dn_o2::Number = 0,
+    ddn_o6::Number = 0
+) where {Tepoch<:Number, T<:Number}
     # Unpack the gravitational constants to improve code readability.
-    R0 = j2c.R0
-    μm = j2c.μm
-    J2 = j2c.J2
+    j2c = j2d.j2c
+    R0  = j2c.R0
+    μm  = j2c.μm
+    J2  = j2c.J2
 
     # Unpack orbit elements.
     epoch = orb₀.t
@@ -186,25 +223,20 @@ function j2_init(
     δΩ = -T(3 / 2) * n̄ * J2 / p₀² * cos_i₀
     δω = +T(3 / 4) * n̄ * J2 / p₀² * (4 - 5sin_i₀²)
 
-    # Create a new instant of `KeplerianElements` with the converted types.
-    orb = KeplerianElements(epoch, a₀, e₀, i₀, Ω₀, ω₀, f₀)
+    # Initialize the propagator structure with the data.
+    j2d.orb₀   = j2d.orbk = orb₀
+    j2d.dn_o2  = dn_o2
+    j2d.ddn_o6 = ddn_o6
+    j2d.Δt     = 0
+    j2d.al₀    = al₀
+    j2d.M₀     = M₀
+    j2d.δa     = δa
+    j2d.δe     = δe
+    j2d.δΩ     = δΩ
+    j2d.δω     = δω
+    j2d.n̄      = n̄
 
-    # Create the output structure with the data.
-    return J2Propagator(
-        orb,
-        orb,
-        T(dn_o2),
-        T(ddn_o6),
-        j2c,
-        T(0),
-        al₀,
-        M₀,
-        δa,
-        δe,
-        δΩ,
-        δω,
-        n̄
-    )
+    return nothing
 end
 
 """

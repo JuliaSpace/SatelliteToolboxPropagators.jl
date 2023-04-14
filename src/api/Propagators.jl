@@ -27,12 +27,20 @@ Abstract type for the orbit propagators.
 abstract type OrbitPropagator{Tepoch<:Number, T<:Number} end
 
 """
-    init(::Val{:propagator}, args...; kwargs...)
+    init(::Val{:propagator}, args...; kwargs...) -> OrbitPropagator
 
-Initialize the orbit `propagator`. The arguments `args` and keywords `kwargs` depends of the
-propagator type.
+Create and initialize the orbit `propagator`. The arguments `args` and keywords `kwargs`
+depends of the propagator type.
 """
 function init end
+
+"""
+    init!(orbp::OrbitPropagator, args...; kwargs...) -> Nothing
+
+Initialize the orbit propagator `orbp`. The arguments `args` and keywords `kwargs` depends
+of the propagator type.
+"""
+function init! end
 
 """
     epoch(orbp::OrbitPropagator{Tepoch, T}) where {Tepoch<:Number, T<:Number} -> Tepoch

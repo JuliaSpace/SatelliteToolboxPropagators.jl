@@ -20,6 +20,15 @@ This function shall be named as `<propagator identifier>_init`.
 j2d = j2_init(orb; j2c = j2c_egm08)
 ```
 
+The propagator can also implement the in-place initialization, where a structure will be
+provided and must have its values re-initialized:
+
+```julia
+j2_init!(j2d, orb)
+```
+
+This version can be used to reduce the number of allocations.
+
 ## Propagation
 
 Each propagator must have a propagation function that receives the propagator structure and
@@ -75,6 +84,14 @@ where `T = Val(<Orbit propagator symbol>)`, and it must return and object of typ
 must be documented in the docstring. The propagator must record the epoch during the
 initialization, which must be kept constant during the entire object existence. It also
 needs to record the instant of the last propagation.
+
+#### In-place initialization (Optional)
+
+If the propagator supports in-place initialization, it must overload the following function:
+
+```julia
+Propagators.init!(orbp::OrbitPropagator<Propagator name>, args...; kwargs...)
+```
 
 ### Epoch
 

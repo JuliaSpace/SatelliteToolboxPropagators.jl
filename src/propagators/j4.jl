@@ -28,7 +28,7 @@
 
 export j4c_egm08, j4c_egm96, j4c_jgm02, j4c_jgm03
 export j4c_egm08_f32, j4c_egm96_f32, j4c_jgm02_f32, j4c_jgm03_f32
-export j4_init, j4!
+export j4_init, j4_init!, j4!
 
 ############################################################################################
 #                                        Constants
@@ -106,7 +106,8 @@ const j4c_jgm03_f32 = J4PropagatorConstants{Float32}(
 """
     j4_init(orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...) where T<:Number -> J4Propagator
 
-Initialize the J4 orbit propagator algorithm using the mean Keplerian elements `orb₀`.
+Create and initialize the J4 orbit propagator structure using the mean Keplerian elements
+`orb₀`.
 
 !!! note
     The type used in the propagation will be the same as used to define the constants in the
@@ -126,16 +127,52 @@ Initialize the J4 orbit propagator algorithm using the mean Keplerian elements `
   [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm08`)
 """
 function j4_init(
-    orb₀::KeplerianElements,
+    orb₀::KeplerianElements{Tepoch, Tkepler},
     dn_o2::Number = 0,
     ddn_o6::Number = 0;
     j4c::J4PropagatorConstants{T} = j4c_egm08
-) where T<:Number
+) where {Tepoch<:Number, Tkepler<:Number, T<:Number}
+    # Allocate the propagator structure.
+    j4d = J4Propagator{Tepoch, T}()
+
+    # Assign the constants, which are used in the initialization.
+    j4d.j4c = j4c
+
+    # Initialize the propagator and return.
+    j4_init!(j4d, orb₀, dn_o2, ddn_o6)
+
+    return j4d
+end
+
+"""
+    j4_init!(j4d::J4Propagator, orb₀::KeplerianElements, dn_o4::Number = 0, ddn_o6::Number = 0) -> Nothing
+
+Initialize the J4 orbit propagator structure `j4d` using the mean Keplerian elements `orb₀`.
+
+!!! warning
+    The propagation constants `j4c::J4PropagatorConstants` in `j4d` will not be changed.
+    Hence, they must be initialized.
+
+# Arguments
+
+- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
+- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
+    (**Default** = 0)
+- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
+    (**Default** = 0)
+"""
+function j4_init!(
+    j4d::J4Propagator{Tepoch, T},
+    orb₀::KeplerianElements,
+    dn_o2::Number = 0,
+    ddn_o6::Number = 0
+) where {Tepoch<:Number, T<:Number}
     # Unpack the gravitational constants to improve code readability.
-    R0 = j4c.R0
-    μm = j4c.μm
-    J2 = j4c.J2
-    J4 = j4c.J4
+    j4c = j4d.j4c
+    R0  = j4c.R0
+    μm  = j4c.μm
+    J2  = j4c.J2
+    J4  = j4c.J4
 
     # Unpack orbit elements.
     epoch = orb₀.t
@@ -200,25 +237,20 @@ function j4_init(
           T( 9 / 384) * n̄ * J2² / p₀⁴ * (192 + 56e₀² - 192saux + (-172 + 288saux) * sin_i₀² + e₀² * sin_i₀⁴) -
           T(15 / 128) * n̄ * J4  / p₀⁴ * (64 + 72e₀² - (248 + 252e₀²) * sin_i₀² + (196 + 189e₀²) * sin_i₀⁴)
 
-    # Create a new instant of `KeplerianElements` with the converted types.
-    orb = KeplerianElements(epoch, a₀, e₀, i₀, Ω₀, ω₀, f₀)
+    # Initialize the propagator structure with the data.
+    j4d.orb₀   = j4d.orbk = orb₀
+    j4d.dn_o2  = dn_o2
+    j4d.ddn_o6 = ddn_o6
+    j4d.Δt     = 0
+    j4d.al₀    = al₀
+    j4d.M₀     = M₀
+    j4d.δa     = δa
+    j4d.δe     = δe
+    j4d.δΩ     = δΩ
+    j4d.δω     = δω
+    j4d.n̄      = n̄
 
-    # Create the output structure with the data.
-    return J4Propagator(
-        orb,
-        orb,
-        T(dn_o2),
-        T(ddn_o6),
-        j4c,
-        T(0),
-        al₀,
-        M₀,
-        δa,
-        δe,
-        δΩ,
-        δω,
-        n̄
-    )
+    return nothing
 end
 
 """

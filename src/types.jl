@@ -12,6 +12,10 @@ export J4PropagatorConstants, J4Propagator
 export OrbitPropagatorJ2
 export OrbitPropagatorJ4
 
+@generated function __new__(T, args...)
+    return Expr(:splatnew, :T, :args)
+end
+
 ############################################################################################
 #                                   J2 Orbit Propagator
 ############################################################################################
@@ -56,6 +60,11 @@ mutable struct J2Propagator{Tepoch<:Number, T<:Number}
     δΩ::T     # ............................................. RAAN time derivative [rad / s]
     δω::T     # .............................. Argument of perigee time derivative [rad / s]
     n̄::T      # ............................................... "Mean" mean motion [rad / s]
+
+    # Default constructor without arguments to obtain a new structure with uninitialized
+    # fields.
+    J2Propagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
+    J2Propagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
 end
 
 ############################################################################################
@@ -104,6 +113,11 @@ mutable struct J4Propagator{Tepoch, T}
     δΩ::T     # ............................................. RAAN time derivative [rad / s]
     δω::T     # .............................. Argument of perigee time derivative [rad / s]
     n̄::T      # ............................................... "Mean" mean motion [rad / s]
+
+    # Default constructor without arguments to obtain a new structure with uninitialized
+    # fields.
+    J4Propagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
+    J4Propagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
 end
 
 ############################################################################################

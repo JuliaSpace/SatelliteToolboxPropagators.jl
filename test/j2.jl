@@ -98,6 +98,23 @@
         @test v[2] / 1000 ≈ -6.699518 atol = 1e-5
         @test v[3] / 1000 ≈ -1.266334 atol = 1e-5
         @test eltype(v) == T
+
+        # Test in-place initialization.
+        orbp = OrbitPropagatorJ2(J2Propagator{Float64, T}())
+        orbp.j2d.j2c = j2c_egm08
+        Propagators.init!(orbp, orb)
+
+        r, v = Propagators.step!(orbp, (jd₁ - jd₀) * 86400)
+
+        @test r[1] / 1000 ≈ -6849.654348 atol = 5e-3
+        @test r[2] / 1000 ≈ -2253.059809 atol = 5e-3
+        @test r[3] / 1000 ≈ +3574.529667 atol = 5e-3
+        @test eltype(r) == T
+
+        @test v[1] / 1000 ≈ +1.656142 atol = 1e-5
+        @test v[2] / 1000 ≈ -6.699518 atol = 1e-5
+        @test v[3] / 1000 ≈ -1.266334 atol = 1e-5
+        @test eltype(v) == T
     end
 
     # Float32
@@ -139,6 +156,23 @@
         @test eltype(v) == T
 
         r, v = Propagators.propagate_to_epoch!(orbp, jd₁)
+
+        @test r[1] / 1000 ≈ -6849.654348 atol = 5e-1
+        @test r[2] / 1000 ≈ -2253.059809 atol = 5e-1
+        @test r[3] / 1000 ≈ +3574.529667 atol = 5e-1
+        @test eltype(r) == T
+
+        @test v[1] / 1000 ≈ +1.656142 atol = 1e-3
+        @test v[2] / 1000 ≈ -6.699518 atol = 1e-3
+        @test v[3] / 1000 ≈ -1.266334 atol = 1e-3
+        @test eltype(v) == T
+
+        # Test in-place initialization.
+        orbp = OrbitPropagatorJ2(J2Propagator{Float64, T}())
+        orbp.j2d.j2c = j2c_egm08_f32
+        Propagators.init!(orbp, orb)
+
+        r, v = Propagators.step!(orbp, (jd₁ - jd₀) * 86400)
 
         @test r[1] / 1000 ≈ -6849.654348 atol = 5e-1
         @test r[2] / 1000 ≈ -2253.059809 atol = 5e-1
