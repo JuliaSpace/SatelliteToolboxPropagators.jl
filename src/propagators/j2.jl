@@ -24,7 +24,7 @@
 
 export j2c_egm08, j2c_egm96, j2c_jgm02, j2c_jgm03
 export j2c_egm08_f32, j2c_egm96_f32, j2c_jgm02_f32, j2c_jgm03_f32
-export j2_init, j2_init!, j2!
+export j2_init, j2_init!, j2, j2!
 
 ############################################################################################
 #                                           TODO
@@ -237,6 +237,55 @@ function j2_init!(
     j2d.n̄      = n̄
 
     return nothing
+end
+
+"""
+    j2(Δt::Number, orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...)
+
+Initialize the J2 propagator structure using the input elements `orb₀` and propagate the
+orbit until the time Δt [s].
+
+!!! note
+    The type used in the propagation will be the same as used to define the constants in the
+    structure `j2c`.
+
+# Arguments
+
+- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
+- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
+    (**Default** = 0)
+- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
+    (**Default** = 0)
+
+# Keywords
+
+- `j2c::J2PropagatorConstants{T}`: J2 orbit propagator constants (see
+  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm08`)
+
+# Returns
+
+- `SVector{3, T}`: Position vector [m] represented in the inertial frame at propagation
+    instant.
+- `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
+    instant.
+- [`J2Propagator`](@ref): Structure with the initialized parameters.
+
+# Remarks
+
+The inertial frame in which the output is represented depends on which frame it was used to
+generate the orbit parameters. Notice that the perturbation theory requires an inertial
+frame with true equator.
+"""
+function j2(
+    Δt::Number,
+    orb₀::KeplerianElements,
+    dn_o2::Number = 0,
+    ddn_o6::Number = 0;
+    j2c::J2PropagatorConstants{T} = j2c_egm08
+) where T<:Number
+    j2d = j2_init(orb₀, dn_o2, ddn_o6; j2c = j2c)
+    r_i, v_i = j2!(j2d, Δt)
+    return r_i, v_i, j2d
 end
 
 """

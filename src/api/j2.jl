@@ -74,6 +74,49 @@ function Propagators.init!(
     return nothing
 end
 
+"""
+    Propagators.propagate(Val(:J2), Δt::Number, orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...)
+
+Initialize the J2 propagator structure using the input elements `orb₀` and propagate the
+orbit until the time Δt [s].
+
+!!! note
+    The type used in the propagation will be the same as used to define the constants in the
+    structure `j2c`.
+
+# Arguments
+
+- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
+- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
+    (**Default** = 0)
+- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
+    (**Default** = 0)
+
+# Keywords
+
+- `j2c::J2PropagatorConstants{T}`: J2 orbit propagator constants (see
+  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm08`)
+
+# Returns
+
+- `SVector{3, T}`: Position vector [m] represented in the inertial frame at propagation
+    instant.
+- `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
+    instant.
+- [`OrbitPropagatorJ2`](@ref): Structure with the initialized parameters.
+"""
+function Propagators.propagate(
+    ::Val{:J2},
+    Δt::Number,
+    orb₀::KeplerianElements,
+    dn_o2::Number = 0,
+    ddn_o6::Number = 0;
+    j2c::J2PropagatorConstants = j2c_egm08
+)
+    r_i, v_i, j2d = j2(Δt, orb₀, dn_o2, ddn_o6; j2c = j2c)
+    return r_i, v_i, OrbitPropagatorJ2(j2d)
+end
+
 function Propagators.propagate!(orbp::OrbitPropagatorJ2, t::Number)
     # Auxiliary variables.
     j2d = orbp.j2d

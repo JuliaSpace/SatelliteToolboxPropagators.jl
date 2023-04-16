@@ -28,7 +28,7 @@
 
 export j4c_egm08, j4c_egm96, j4c_jgm02, j4c_jgm03
 export j4c_egm08_f32, j4c_egm96_f32, j4c_jgm02_f32, j4c_jgm03_f32
-export j4_init, j4_init!, j4!
+export j4_init, j4_init!, j4, j4!
 
 ############################################################################################
 #                                        Constants
@@ -251,6 +251,55 @@ function j4_init!(
     j4d.n̄      = n̄
 
     return nothing
+end
+
+"""
+    j4(Δt::Number, orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...)
+
+Initialize the J4 propagator structure using the input elements `orb₀` and propagate the
+orbit until the time Δt [s].
+
+!!! note
+    The type used in the propagation will be the same as used to define the constants in the
+    structure `j4c`.
+
+# Arguments
+
+- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
+- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^4].
+    (**Default** = 0)
+- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
+    (**Default** = 0)
+
+# Keywords
+
+- `j4c::J4PropagatorConstants{T}`: J4 orbit propagator constants (see
+  [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm08`)
+
+# Returns
+
+- `SVector{3, T}`: Position vector [m] represented in the inertial frame at propagation
+    instant.
+- `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
+    instant.
+- [`J4Propagator`](@ref): Structure with the initialized parameters.
+
+# Remarks
+
+The inertial frame in which the output is represented depends on which frame it was used to
+generate the orbit parameters. Notice that the perturbation theory requires an inertial
+frame with true equator.
+"""
+function j4(
+    Δt::Number,
+    orb₀::KeplerianElements,
+    dn_o2::Number = 0,
+    ddn_o6::Number = 0;
+    j4c::J4PropagatorConstants{T} = j4c_egm08
+) where T<:Number
+    j4d = j4_init(orb₀, dn_o2, ddn_o6; j4c = j4c)
+    r_i, v_i = j4!(j4d, Δt)
+    return r_i, v_i, j4d
 end
 
 """

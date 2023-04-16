@@ -61,8 +61,9 @@ mutable struct J2Propagator{Tepoch<:Number, T<:Number}
     δω::T     # .............................. Argument of perigee time derivative [rad / s]
     n̄::T      # ............................................... "Mean" mean motion [rad / s]
 
-    # Default constructor without arguments to obtain a new structure with uninitialized
-    # fields.
+    # Constructors
+    # ======================================================================================
+
     J2Propagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
     J2Propagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
 end
@@ -114,8 +115,9 @@ mutable struct J4Propagator{Tepoch, T}
     δω::T     # .............................. Argument of perigee time derivative [rad / s]
     n̄::T      # ............................................... "Mean" mean motion [rad / s]
 
-    # Default constructor without arguments to obtain a new structure with uninitialized
-    # fields.
+    # Constructors
+    # ======================================================================================
+
     J4Propagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
     J4Propagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
 end

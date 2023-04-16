@@ -122,6 +122,39 @@
         @test orbk.f |> rad2deg ≈  245.617459 (atol = 4e-3)
 
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
+
+        # Test simultaneous initialization and propagation.
+        r, v, orbp = Propagators.propagate(Val(:J4), (jd₁ - jd₀) * 86400, orb)
+
+        @test eltype(r) == T
+        @test eltype(v) == T
+
+        orbk = Propagators.mean_elements(orbp)
+        M_k  = true_to_mean_anomaly(orbk.e, orbk.f)
+
+        @test orbk.a            ≈ 8000.0e3    (atol = 1e-3)
+        @test orbk.e            ≈    0.015    (atol = 1e-6)
+        @test orbk.i |> rad2deg ≈   28.5      (atol = 1e-6)
+        @test orbk.ω |> rad2deg ≈  225.864212 (atol = 4e-3)
+        @test orbk.f |> rad2deg ≈  245.617459 (atol = 4e-3)
+
+        @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
+
+        r, v, orbp = Propagators.propagate_to_epoch(Val(:J4), jd₁, orb)
+
+        @test eltype(r) == T
+        @test eltype(v) == T
+
+        orbk = Propagators.mean_elements(orbp)
+        M_k  = true_to_mean_anomaly(orbk.e, orbk.f)
+
+        @test orbk.a            ≈ 8000.0e3    (atol = 1e-3)
+        @test orbk.e            ≈    0.015    (atol = 1e-6)
+        @test orbk.i |> rad2deg ≈   28.5      (atol = 1e-6)
+        @test orbk.ω |> rad2deg ≈  225.864212 (atol = 4e-3)
+        @test orbk.f |> rad2deg ≈  245.617459 (atol = 4e-3)
+
+        @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
     end
 
     let T = Float32
@@ -158,6 +191,39 @@
         Propagators.init!(orbp, orb)
 
         r, v = Propagators.propagate_to_epoch!(orbp, jd₁)
+
+        @test eltype(r) == T
+        @test eltype(v) == T
+
+        orbk = Propagators.mean_elements(orbp)
+        M_k  = true_to_mean_anomaly(orbk.e, orbk.f)
+
+        @test orbk.a            ≈ 8000.0e3    (atol = 1e-1)
+        @test orbk.e            ≈    0.015    (atol = 1e-6)
+        @test orbk.i |> rad2deg ≈   28.5      (atol = 2e-6)
+        @test orbk.ω |> rad2deg ≈  225.864212 (atol = 4e-3)
+        @test orbk.f |> rad2deg ≈  245.617459 (atol = 4e-3)
+
+        @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
+
+        # Test simultaneous initialization and propagation.
+        r, v, orbp = Propagators.propagate(Val(:J4), (jd₁ - jd₀) * 86400, orb; j4c = j4c_egm08_f32)
+
+        @test eltype(r) == T
+        @test eltype(v) == T
+
+        orbk = Propagators.mean_elements(orbp)
+        M_k  = true_to_mean_anomaly(orbk.e, orbk.f)
+
+        @test orbk.a            ≈ 8000.0e3    (atol = 1e-1)
+        @test orbk.e            ≈    0.015    (atol = 1e-6)
+        @test orbk.i |> rad2deg ≈   28.5      (atol = 2e-6)
+        @test orbk.ω |> rad2deg ≈  225.864212 (atol = 4e-3)
+        @test orbk.f |> rad2deg ≈  245.617459 (atol = 4e-3)
+
+        @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
+
+        r, v, orbp = Propagators.propagate_to_epoch(Val(:J4), jd₁, orb; j4c = j4c_egm08_f32)
 
         @test eltype(r) == T
         @test eltype(v) == T

@@ -75,6 +75,23 @@ structure name is used: `typeof(orbp) |> string`.
 name(orbp::OrbitPropagator) = typeof(orbp) |> string
 
 """
+    propagate(::Val{:propagator}, Δt::Number, args...; kwargs...)
+
+Initialize the orbit `propagator` and propagate the orbit by `t` [s] from the initial orbit
+epoch. The initialization arguments `args...` and `kwargs...` are the same as in the
+initialization function [`Propagators.init`](@ref).
+
+# Returns
+
+- `SVector{3, T}`: Position vector [m] represented in the inertial frame at propagation
+    instant.
+- `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
+    instant.
+- [`OrbitPropagator`](@ref): Structure with the initialized parameters.
+"""
+function propagate end
+
+"""
     propagate!(orbp::OrbitPropagator{Tepoch, T}, t::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
 
 Propagate the orbit using `orbp` by `t` [s] from the initial orbit epoch.
@@ -89,9 +106,30 @@ Propagate the orbit using `orbp` by `t` [s] from the initial orbit epoch.
 function propagate! end
 
 """
-    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, t::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    propagate_to_epoch(::Val{:propagator}, jd::Number, args...; kwargs...)
 
-Propagate the orbit using `orbp` until the epoch `JD` [Julian Day].
+Initialize the orbit `propagator` and propagate the orbit until the epoch `jd` [s] from the
+initial orbit epoch. The initialization arguments `args...` and `kwargs...` are the same as
+in the initialization function [`Propagators.init`](@ref).
+
+# Returns
+
+- `SVector{3, T}`: Position vector [m] represented in the inertial frame at propagation
+    instant.
+- `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
+    instant.
+- [`OrbitPropagator`](@ref): Structure with the initialized parameters.
+"""
+function propagate_to_epoch(T::Val, jd::Number, args...; kwargs...)
+    orbp = init(T, args...; kwargs...)
+    r_i, v_i = propagate_to_epoch!(orbp, jd)
+    return r_i, v_i, orbp
+end
+
+"""
+    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, jd::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+
+Propagate the orbit using `orbp` until the epoch `jd` [Julian Day].
 
 # Returns
 

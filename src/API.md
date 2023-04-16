@@ -54,6 +54,22 @@ This function shall be named as `<propagator identifier>!`.
 r_i, v_i = j2!(j2d, 10)
 ```
 
+## Simultaneous Initialization and Propagation (Optional)
+
+The propagator can defined the following function to simultaneously initialize the
+propagator and propagate the orbit: `<propagator identifier>`. Its first argument must be
+the elapsed time from the epoch associated with the input elements, and the others must be
+exaclty the same as the initialization function.
+
+All the considerations related to the propagation function also apply here.
+
+This function must return the same result as the propagator function and also the
+initialized propagator structure.
+
+```julia
+r_i, v_i, j2d = j2(10, orb; j2c = j2c_egm08)
+```
+
 ## API
 
 **SatelliteToolboxPropagators.jl** has a propagator API to improve the usability. This API
@@ -85,14 +101,6 @@ must be documented in the docstring. The propagator must record the epoch during
 initialization, which must be kept constant during the entire object existence. It also
 needs to record the instant of the last propagation.
 
-#### In-place initialization (Optional)
-
-If the propagator supports in-place initialization, it must overload the following function:
-
-```julia
-Propagators.init!(orbp::OrbitPropagator<Propagator name>, args...; kwargs...)
-```
-
 ### Epoch
 
 Each propagator must return the initial element epoch in Julian Day by the function:
@@ -111,17 +119,6 @@ action must be performed by the function:
 ```julia
 Propagators.last_instant(orbp)
 ```
-
-### Name (Optional)
-
-The propagator can overload the function:
-
-```julia
-Propagators.name(orbp)
-```
-
-to return its name. The system uses this information to display the object using the
-function `show`. If the function is not provided, the structure name is used by default.
 
 ### Propagation
 
@@ -153,6 +150,14 @@ the same reference frame used in the initialization. **The output vector must us
 We also have the function `Propagators.propagate_to_epoch!`, but the default implementation
 should work for all propagators.
 
+#### In-place initialization (Optional)
+
+If the propagator supports in-place initialization, it must overload the following function:
+
+```julia
+Propagators.init!(orbp::OrbitPropagator<Propagator name>, args...; kwargs...)
+```
+
 ### Mean Elements (Optional)
 
 The function
@@ -164,3 +169,26 @@ Propagators.mean_elements(orbp)
 should return the mean elements using the structure `KeplerianElements` related to the
 latest propagation. Notice that this is an **optional** feature. If the propagator does not
 implement it, it will return `nothing`.
+
+### Name (Optional)
+
+The propagator can overload the function:
+
+```julia
+Propagators.name(orbp)
+```
+
+to return its name. The system uses this information to display the object using the
+function `show`. If the function is not provided, the structure name is used by default.
+
+## Simultaneous Initialization and Propagation (Optional)
+
+If the propagator supports, it can overload the functions:
+
+```julia
+Propagators.propagate(t, args...; kwargs...)
+```
+
+that simultaneously initialize and propagate the orbit to the instant `t` [s] after the
+input elements. `args...` and `kwargs...` must be the same as the initialization function
+`Propagators.init`.
