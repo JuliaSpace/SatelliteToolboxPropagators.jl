@@ -12,6 +12,10 @@ end
     include("./j4.jl")
 end
 
+@testset "SGP4 Orbit Propagator" begin
+    include("./sgp4.jl")
+end
+
 @testset "Orbit Propagator API" begin
     include("./api.jl")
 end

@@ -11,6 +11,7 @@ export J2PropagatorConstants, J2Propagator
 export J4PropagatorConstants, J4Propagator
 export OrbitPropagatorJ2
 export OrbitPropagatorJ4
+export OrbitPropagatorSgp4
 
 @generated function __new__(T, args...)
     return Expr(:splatnew, :T, :args)
@@ -156,4 +157,20 @@ J4 orbit propagator.
 """
 struct OrbitPropagatorJ4{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T}
     j4d::J4Propagator{Tepoch, T}
+end
+
+#                                  SGP4 Orbit Propagator
+# ==========================================================================================
+
+"""
+    OrbitPropagatorSgp4{Tepoch, T} <: OrbitPropagator{Tepoch, T}
+
+SGP4 orbit propagator.
+
+# Fields
+
+- `sgp4d`: Structure that stores the SGP4 orbit propagator data.
+"""
+struct OrbitPropagatorSgp4{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T}
+    sgp4d::Sgp4Propagator{Tepoch, T}
 end
