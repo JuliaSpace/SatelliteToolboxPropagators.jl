@@ -11,9 +11,11 @@ This package defines orbit propagators for the **SatelliteToolbox.jl** ecosystem
 
 We currently support the following propagators:
 
-| **Symbol**     | **Description**                |
-|:---------------|:-------------------------------|
-| `Val(:J2)`     | J2 orbit propagator algorithm. |
+| **Symbol**     | **Description**                  |
+|:---------------|:---------------------------------|
+| `Val(:J2)`     | J2 orbit propagator algorithm.   |
+| `Val(:J4)`     | J4 orbit propagator algorithm.   |
+| `Val(:SGP4)`   | SGP4 orbit propagator algorithm. |
 
 ## Installation
 
