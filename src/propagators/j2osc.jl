@@ -235,7 +235,7 @@ function j2osc!(j2oscd::J2OsculatingPropagator{Tepoch, T}, t::Number) where {Tep
         aux3 * (2aux2 / (1 + e_cos_f_k) + e_cos_f_k / (1 + aux2)) - sin_i_k² * cos_2u_k
     )
 
-    δṙsp_k = +KJ2 * √μm / (4√(p_k^5)) * (
+    δṙsp_k = +KJ2 * √μm / (4 * √(p_k^5)) * (
         aux3 * e_sin_f_k * (aux2 + (1 + e_cos_f_k)^2 / (1 + aux2)) -
         sin_i_k² * (1 - e_cos_f_k)^2 * sin_2u_k
     )
