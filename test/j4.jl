@@ -62,6 +62,20 @@
     jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
     jd₁ = date_to_jd(2023, 1, 5, 0, 0, 0)
 
+    # Constructor
+    # ======================================================================================
+
+    @testset "Constructor" begin
+        orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
+        j4d = J4Propagator{Float64, Float64}(orb, orb, 0, 0, j4c_egm08, 0, 0, 0, 0, 0, 0, 0, 0)
+
+        # Test some random fields.
+        @test j4d.Δt  == 0
+        @test j4d.al₀ == 0
+        @test j4d.n̄   == 0
+        @test j4d.j4c == j4c_egm08
+    end
+
     # General API Functions
     # ======================================================================================
 
