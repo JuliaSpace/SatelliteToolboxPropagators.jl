@@ -66,6 +66,32 @@ mutable struct J2Propagator{Tepoch<:Number, T<:Number}
 end
 
 ############################################################################################
+#                              J2 Osculating Orbit Propagator
+############################################################################################
+
+"""
+    mutable struct J2OsculatingPropagator{Tepoch<:Number, T<:Number}
+
+J2 osculating orbit propagator structure.
+"""
+mutable struct J2OsculatingPropagator{Tepoch<:Number, T<:Number}
+    # J2 orbit propagator to propagate the mean elements.
+    j2d::J2Propagator{Tepoch, T}
+
+    # Propagation time from epoch.
+    Δt::T
+
+    # Current osculating Keplerian elements.
+    orbk::KeplerianElements{Tepoch, T}
+
+    # Constructors
+    # ======================================================================================
+
+    J2OsculatingPropagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
+    J2OsculatingPropagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
+end
+
+############################################################################################
 #                                   J4 Orbit Propagator
 ############################################################################################
 
@@ -138,6 +164,11 @@ J2 orbit propagator.
 struct OrbitPropagatorJ2{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T}
     j2d::J2Propagator{Tepoch, T}
 end
+
+#                              J2 Osculating Orbit Propagator
+# ==========================================================================================
+
+
 
 #                                   J4 Orbit Propagator
 # ==========================================================================================

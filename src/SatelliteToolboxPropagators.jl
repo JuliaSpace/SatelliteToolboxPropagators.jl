@@ -41,6 +41,7 @@ include("./api/j4.jl")
 include("./api/sgp4.jl")
 
 include("./propagators/j2.jl")
+include("./propagators/j2osc.jl")
 include("./propagators/j4.jl")
 
 end # module SatelliteToolboxPropagators
