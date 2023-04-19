@@ -13,10 +13,6 @@ export OrbitPropagatorJ2
 export OrbitPropagatorJ4
 export OrbitPropagatorSgp4
 
-@generated function __new__(T, args...)
-    return Expr(:splatnew, :T, :args)
-end
-
 ############################################################################################
 #                                   J2 Orbit Propagator
 ############################################################################################
