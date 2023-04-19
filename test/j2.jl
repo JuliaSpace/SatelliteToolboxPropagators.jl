@@ -16,7 +16,7 @@
 #
 # Source: https://github.com/JuliaSpace/SatelliteToolbox.jl/issues/91
 #
-# The STK provided the following result for the J2Perturbation orbit propagator.
+# The STK provided the following result for the J2 orbit propagator.
 #
 # Initial mean orbital elements:
 #
