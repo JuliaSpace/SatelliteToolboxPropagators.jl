@@ -36,14 +36,14 @@
 #
 ############################################################################################
 
-@testset "J2 Orbit Propagator" begin
+@testset "J2 Orbit Propagator" verbose = true begin
     jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
     jd₁ = date_to_jd(2023, 1, 5, 0, 0, 0)
 
     # General API Functions
     # ======================================================================================
 
-    let
+    @testset "General API Functions" begin
         orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
         orbp = Propagators.init(Val(:J2), orb)
         @test Propagators.name(orbp) == "J2 Orbit Propagator"
@@ -52,7 +52,9 @@
     # Float64
     # ======================================================================================
 
-    let T = Float64
+    @testset "Float64" begin
+        T = Float64
+
         orb = KeplerianElements(
             jd₀,
             T(8000e3),
@@ -151,7 +153,9 @@
     # Float32
     # ======================================================================================
 
-    let T = Float32
+    @testset "Float32" verbose = true begin
+        T = Float32
+
         orb = KeplerianElements(
             jd₀,
             T(8000e3),

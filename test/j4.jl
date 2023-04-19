@@ -58,14 +58,14 @@
 #
 ############################################################################################
 
-@testset "J4 orbit propagator" begin
+@testset "J4 Orbit Propagator" verbose = true begin
     jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
     jd₁ = date_to_jd(2023, 1, 5, 0, 0, 0)
 
     # General API Functions
     # ======================================================================================
 
-    let
+    @testset "General API Functions" begin
         orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
         orbp = Propagators.init(Val(:J4), orb)
         @test Propagators.name(orbp) == "J4 Orbit Propagator"
@@ -74,15 +74,16 @@
     # Float64
     # ======================================================================================
 
-    let T = Float64
+    @testset "Float64" begin
+        T = Float64
         orb = KeplerianElements(
             jd₀,
             T(8000e3),
             T(0.015),
-            T(28.5) |>deg2rad,
-            T(100) |>deg2rad,
-            T(200) |>deg2rad,
-            T(45) |> deg2rad
+            T(28.5) |> deg2rad,
+            T(100)  |> deg2rad,
+            T(200)  |> deg2rad,
+            T(45)   |> deg2rad
         )
 
         orbp = Propagators.init(Val(:J4), orb; j4c = j4c_egm08)
@@ -157,15 +158,19 @@
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
     end
 
-    let T = Float32
+    # Float32
+    # ======================================================================================
+
+    @testset "Float32" begin
+        T = Float32
         orb = KeplerianElements(
             jd₀,
             T(8000e3),
             T(0.015),
-            T(28.5) |>deg2rad,
-            T(100) |>deg2rad,
-            T(200) |>deg2rad,
-            T(45) |> deg2rad
+            T(28.5) |> deg2rad,
+            T(100)  |> deg2rad,
+            T(200)  |> deg2rad,
+            T(45)   |> deg2rad
         )
 
         orbp = Propagators.init(Val(:J4), orb; j4c = j4c_egm08_f32)
