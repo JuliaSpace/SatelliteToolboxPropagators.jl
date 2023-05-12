@@ -8,6 +8,10 @@ using SatelliteToolboxPropagators
     include("./j2.jl")
 end
 
+@testset "J2 Osculating Orbit Propagator" verbose = true begin
+    include("./j2osc.jl")
+end
+
 @testset "J4 Orbit Propagator" verbose = true begin
     include("./j4.jl")
 end
