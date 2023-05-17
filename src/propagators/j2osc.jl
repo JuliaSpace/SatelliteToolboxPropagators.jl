@@ -148,7 +148,7 @@ function j2osc(
     j2c::J2PropagatorConstants{T} = j2c_egm08
 ) where T<:Number
     j2oscd = j2osc_init(orb₀, dn_o2, ddn_o6; j2c = j2c)
-    r_i, v_i = j2osc!(j2osc.j2d, Δt)
+    r_i, v_i = j2osc!(j2oscd, Δt)
     return r_i, v_i, j2oscd
 end
 
@@ -192,7 +192,7 @@ function j2osc!(j2oscd::J2OsculatingPropagator{Tepoch, T}, t::Number) where {Tep
     # Obtain the mean elements at this time instant.
     mean_orbk = j2d.orbk
 
-    a_k = mean_orbk.a
+    a_k  = mean_orbk.a
     e_k  = mean_orbk.e
     e_k² = e_k * e_k
     i_k  = mean_orbk.i
@@ -221,6 +221,7 @@ function j2osc!(j2oscd::J2OsculatingPropagator{Tepoch, T}, t::Number) where {Tep
     aux1 = 3cos_2u_k + 3e_k * cos_2ω_f_k + e_k * cos_2ω_3f_k
     aux2 = √(1 - e_k²)
     aux3 = 3cos_i_k² - 1
+    aux4 = -aux3 / (1 + aux2)
 
     # Compute the short-periodic perturbations considering only the J2 gravitational term.
     δisp_k = +KJ2 * sin_i_k * cos_i_k / (4p_k²) * aux1
@@ -228,29 +229,29 @@ function j2osc!(j2oscd::J2OsculatingPropagator{Tepoch, T}, t::Number) where {Tep
     δpsp_k = +KJ2 * sin_i_k² / (2p_k) * aux1
 
     δΩsp_k = -KJ2 * cos_i_k / (4p_k²) * (
-        6 * (f_k - M_k + e_sin_f_k) - 2sin_2u_k - 3e_k * sin_2ω_f_k - e_k * sin_2ω_3f_k
+        6 * (f_k - M_k + e_sin_f_k) - 3sin_2u_k - 3e_k * sin_2ω_f_k - e_k * sin_2ω_3f_k
     )
 
     δrsp_k = -KJ2 / (4p_k) * (
-        aux3 * (2aux2 / (1 + e_cos_f_k) + e_cos_f_k / (1 + aux2)) - sin_i_k² * cos_2u_k
+        aux3 * (2aux2 / (1 + e_cos_f_k) + e_cos_f_k / (1 + aux2) + 1) - sin_i_k² * cos_2u_k
     )
 
     δṙsp_k = +KJ2 * √μm / (4 * √(p_k^5)) * (
-        aux3 * e_sin_f_k * (aux2 + (1 + e_cos_f_k)^2 / (1 + aux2)) -
-        sin_i_k² * (1 - e_cos_f_k)^2 * sin_2u_k
+        aux3 * e_sin_f_k * (aux2 + ((1 + e_cos_f_k)^2) / (1 + aux2)) -
+        2sin_i_k² * (1 - e_cos_f_k)^2 * sin_2u_k
     )
 
     δusp_k = +KJ2 / (8p_k²) * (
         (6 - 30cos_i_k²) * (f_k - M_k) +
-        4e_k * sin_f_k * ((1 - 6cos_i_k²) - aux3 / (1 + aux2)) -
-        aux3 / (1 + aux2) * e_k² * sin(2f_k) +
+        4e_sin_f_k * (1 - 6cos_i_k² + aux4) +
+        aux4 * e_k² * sin(2f_k) +
         (5cos_i_k² - 2) * (2e_k) * sin_2ω_f_k +
         (7cos_i_k² - 1) * sin_2u_k +
         2cos_i_k² * e_k * sin_2ω_3f_k
     )
 
-    r_k = p_k / (1 + e_k * cos_f_k)
-    ṙ_k = √(μm / p_k) * e_k * cos_f_k
+    r_k = p_k / (1 + e_cos_f_k)
+    ṙ_k = √(μm / p_k) * e_sin_f_k
 
     r_osc_k = r_k + δrsp_k
     ṙ_osc_k = ṙ_k + δṙsp_k
