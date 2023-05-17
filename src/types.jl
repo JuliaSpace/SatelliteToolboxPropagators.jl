@@ -7,9 +7,10 @@
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-export J2PropagatorConstants, J2Propagator
+export J2PropagatorConstants, J2Propagator, J2OsculatingPropagator
 export J4PropagatorConstants, J4Propagator
 export OrbitPropagatorJ2
+export OrbitPropagatorJ2Osculating
 export OrbitPropagatorJ4
 export OrbitPropagatorSgp4
 
@@ -168,7 +169,19 @@ end
 #                              J2 Osculating Orbit Propagator
 # ==========================================================================================
 
+"""
+    OrbitPropagatorJ2Osculating{Tepoch, T} <: OrbitPropagator{Tepoch, T}
 
+J2 osculating orbit propagator.
+
+# Fields
+
+- `j2oscd`: Structure that stores the J2 osculating orbit propagator data (see
+    [`J2OsculatingPropagator`](@ref)).
+"""
+struct OrbitPropagatorJ2Osculating{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T}
+    j2oscd::J2OsculatingPropagator{Tepoch, T}
+end
 
 #                                   J4 Orbit Propagator
 # ==========================================================================================

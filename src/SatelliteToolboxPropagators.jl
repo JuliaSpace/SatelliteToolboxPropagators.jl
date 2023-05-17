@@ -37,6 +37,7 @@ const _B = crayon"bold"
 ############################################################################################
 
 include("./api/j2.jl")
+include("./api/j2osc.jl")
 include("./api/j4.jl")
 include("./api/sgp4.jl")
 

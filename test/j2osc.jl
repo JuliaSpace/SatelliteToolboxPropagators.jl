@@ -52,41 +52,287 @@
 @testset "J2 Osculating Orbit Propagator" verbose = true begin
     # Create a matrix with the results.
     results = [
-           0.0  -952.620 -3037.855 -6443.618 -0.461  6.746 -3.118
-         600.0 -1034.200  1321.180 -6993.631  0.197  7.315  1.341
-        1200.0  -731.196  5189.310 -4936.498  0.780  5.164  5.294
-        1800.0  -156.377  7128.140 -1039.726  1.074  1.091  7.276
-        2400.0   476.608  6416.382  3244.734  0.968 -3.386  6.545
-        3000.0   932.662  3321.458  6321.676  0.503 -6.598  3.382
-        3600.0  1042.884 -1005.263  7048.743 -0.148 -7.361 -1.037
-        4200.0   765.950 -4957.911  5152.573 -0.746 -5.388 -5.082
-        4800.0   203.574 -7060.998  1331.479 -1.068 -1.392 -7.243
-        5400.0  -434.906 -6521.068 -2988.582 -0.991  3.134 -6.689
-        6000.0  -910.694 -3540.162 -6187.882 -0.544  6.479 -3.631
+           0.0  -952.883 -3038.438 -6444.903 -0.460  6.745 -3.116
+         600.0 -1034.273  1320.078 -6994.339  0.197  7.315  1.342
+        1200.0  -731.130  5188.074 -4936.895  0.781  5.164  5.295
+        1800.0  -156.143  7126.675 -1039.300  1.074  1.090  7.277
+        2400.0   476.947  6413.653  3245.983  0.968 -3.389  6.546
+        3000.0   932.852  3316.764  6322.415  0.503 -6.601  3.379
+        3600.0  1042.661 -1010.960  7047.367 -0.149 -7.361 -1.041
+        4200.0   765.306 -4962.529  5148.982 -0.747 -5.385 -5.085
+        4800.0   202.796 -7063.290  1327.333 -1.068 -1.388 -7.242
+        5400.0  -435.494 -6521.701 -2991.520 -0.991  3.135 -6.686
+        6000.0  -910.991 -3540.650 -6189.318 -0.543  6.478 -3.629
     ]
 
-    # Initialize the propagator.
-    jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
-    orb = KeplerianElements(
-        jd₀,
-        7190.982e3,
-        0.001111,
-        98.405 |> deg2rad,
-        90     |> deg2rad,
-        200    |> deg2rad,
-        45     |> deg2rad
-    )
-    j2d = j2osc_init(orb)
+    # Constructor
+    # ======================================================================================
 
-    # Compare the results.
-    for k in size(results, 1)
-        r, v = j2osc!(j2d, results[k, 1])
+    @testset "Constructor" begin
+        orb    = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
+        j2d    = J2Propagator{Float64, Float64}(orb, orb, 0, 0, j2c_egm08, 0, 0, 0, 0, 0, 0, 0, 0)
+        j2oscd = J2OsculatingPropagator{Float64, Float64}(j2d, 0, orb)
 
-        @test results[k, 2] ≈ r[1] / 1000 atol = 2e-1
-        @test results[k, 3] ≈ r[2] / 1000 atol = 2e-1
-        @test results[k, 4] ≈ r[3] / 1000 atol = 2e-1
-        @test results[k, 5] ≈ v[1] / 1000 atol = 1e-3
-        @test results[k, 6] ≈ v[2] / 1000 atol = 1e-3
-        @test results[k, 7] ≈ v[3] / 1000 atol = 1e-3
+        # Test some random fields.
+        @test j2oscd.j2d == j2d
+        @test j2oscd.Δt  == 0
+        @test j2d.orbk   == orb
+    end
+
+    # General API Functions
+    # ======================================================================================
+
+    @testset "General API Functions" begin
+        orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
+        orbp = Propagators.init(Val(:J2osc), orb)
+        @test Propagators.name(orbp) == "J2 Osculating Orbit Propagator"
+    end
+
+    # Float64
+    # ======================================================================================
+
+    @testset "Float64" begin
+        T = Float64
+
+        # Initialize the propagator.
+        jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+        orb = KeplerianElements(
+            jd₀,
+            T(7190.982e3),
+            T(0.001111),
+            T(98.405) |> deg2rad,
+            T(90)     |> deg2rad,
+            T(200)    |> deg2rad,
+            T(45)     |> deg2rad
+        )
+
+        # Test all the results.
+        orbp = Propagators.init(Val(:J2osc), orb; j2c = j2c_egm08)
+
+        for k in size(results, 1)
+            r, v = Propagators.propagate!(orbp, results[k, 1])
+
+            @test results[k, 2] ≈ r[1] / 1000 atol = 2e-1
+            @test results[k, 3] ≈ r[2] / 1000 atol = 2e-1
+            @test results[k, 4] ≈ r[3] / 1000 atol = 2e-1
+            @test results[k, 5] ≈ v[1] / 1000 atol = 1e-3
+            @test results[k, 6] ≈ v[2] / 1000 atol = 1e-3
+            @test results[k, 7] ≈ v[3] / 1000 atol = 1e-3
+            @test eltype(r) == T
+            @test eltype(v) == T
+        end
+
+        # Re-initialize the propagator.
+        orbp = Propagators.init(Val(:J2osc), orb; j2c = j2c_egm08)
+
+        orbk = Propagators.mean_elements(orbp)
+        @test orbk isa KeplerianElements{Float64, Float64}
+        @test orbk.t ≈ orb.t
+        @test orbk.a ≈ orb.a
+        @test orbk.e ≈ orb.e
+        @test orbk.i ≈ orb.i
+        @test orbk.Ω ≈ orb.Ω
+        @test orbk.ω ≈ orb.ω
+        @test orbk.f ≈ orb.f
+
+        r, v = Propagators.step!(orbp, results[end, 1])
+
+        @test results[end, 2] ≈ r[1] / 1000 atol = 2e-1
+        @test results[end, 3] ≈ r[2] / 1000 atol = 2e-1
+        @test results[end, 4] ≈ r[3] / 1000 atol = 2e-1
+        @test results[end, 5] ≈ v[1] / 1000 atol = 1e-3
+        @test results[end, 6] ≈ v[2] / 1000 atol = 1e-3
+        @test results[end, 7] ≈ v[3] / 1000 atol = 1e-3
+        @test eltype(r) == T
+        @test eltype(v) == T
+
+        r, v = Propagators.propagate_to_epoch!(orbp, jd₀ + results[end, 1] / 86400)
+
+        @test results[end, 2] ≈ r[1] / 1000 atol = 2e-1
+        @test results[end, 3] ≈ r[2] / 1000 atol = 2e-1
+        @test results[end, 4] ≈ r[3] / 1000 atol = 2e-1
+        @test results[end, 5] ≈ v[1] / 1000 atol = 1e-3
+        @test results[end, 6] ≈ v[2] / 1000 atol = 1e-3
+        @test results[end, 7] ≈ v[3] / 1000 atol = 1e-3
+        @test eltype(r) == T
+        @test eltype(v) == T
+
+        # Test in-place initialization.
+        orbp = OrbitPropagatorJ2Osculating(J2OsculatingPropagator{Float64, T}())
+        j2d = J2Propagator{Float64, T}()
+        j2d.j2c = j2c_egm08
+        orbp.j2oscd.j2d = j2d
+        Propagators.init!(orbp, orb)
+
+        r, v = Propagators.step!(orbp, results[end, 1])
+
+        @test results[end, 2] ≈ r[1] / 1000 atol = 2e-1
+        @test results[end, 3] ≈ r[2] / 1000 atol = 2e-1
+        @test results[end, 4] ≈ r[3] / 1000 atol = 2e-1
+        @test results[end, 5] ≈ v[1] / 1000 atol = 1e-3
+        @test results[end, 6] ≈ v[2] / 1000 atol = 1e-3
+        @test results[end, 7] ≈ v[3] / 1000 atol = 1e-3
+        @test eltype(r) == T
+        @test eltype(v) == T
+
+        # Test simultaneous initialization and propagation.
+        r, v, orbp = Propagators.propagate(Val(:J2osc), results[end, 1], orb)
+
+        orbk = Propagators.mean_elements(orbp)
+        @test orbk isa KeplerianElements{Float64, Float64}
+
+        @test results[end, 2] ≈ r[1] / 1000 atol = 2e-1
+        @test results[end, 3] ≈ r[2] / 1000 atol = 2e-1
+        @test results[end, 4] ≈ r[3] / 1000 atol = 2e-1
+        @test results[end, 5] ≈ v[1] / 1000 atol = 1e-3
+        @test results[end, 6] ≈ v[2] / 1000 atol = 1e-3
+        @test results[end, 7] ≈ v[3] / 1000 atol = 1e-3
+        @test eltype(r) == T
+        @test eltype(v) == T
+
+        r, v, orbp = Propagators.propagate_to_epoch(
+            Val(:J2osc),
+            jd₀ + results[end, 1] / 86400,
+            orb
+        )
+
+        orbk = Propagators.mean_elements(orbp)
+        @test orbk isa KeplerianElements{Float64, Float64}
+
+        @test results[end, 2] ≈ r[1] / 1000 atol = 2e-1
+        @test results[end, 3] ≈ r[2] / 1000 atol = 2e-1
+        @test results[end, 4] ≈ r[3] / 1000 atol = 2e-1
+        @test results[end, 5] ≈ v[1] / 1000 atol = 1e-3
+        @test results[end, 6] ≈ v[2] / 1000 atol = 1e-3
+        @test results[end, 7] ≈ v[3] / 1000 atol = 1e-3
+        @test eltype(r) == T
+        @test eltype(v) == T
+    end
+
+    # Float32
+    # ======================================================================================
+
+    @testset "Float32" begin
+        T = Float32
+
+        # Initialize the propagator.
+        jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+        orb = KeplerianElements(
+            jd₀,
+            T(7190.982e3),
+            T(0.001111),
+            T(98.405) |> deg2rad,
+            T(90)     |> deg2rad,
+            T(200)    |> deg2rad,
+            T(45)     |> deg2rad
+        )
+
+        # Test all the results.
+        orbp = Propagators.init(Val(:J2osc), orb; j2c = j2c_egm08_f32)
+
+        for k in size(results, 1)
+            r, v = Propagators.propagate!(orbp, results[k, 1])
+
+            @test results[k, 2] ≈ r[1] / 1000 atol = 2e-1
+            @test results[k, 3] ≈ r[2] / 1000 atol = 2e-1
+            @test results[k, 4] ≈ r[3] / 1000 atol = 2e-1
+            @test results[k, 5] ≈ v[1] / 1000 atol = 1e-3
+            @test results[k, 6] ≈ v[2] / 1000 atol = 1e-3
+            @test results[k, 7] ≈ v[3] / 1000 atol = 1e-3
+            @test eltype(r) == T
+            @test eltype(v) == T
+        end
+
+        # Re-initialize the propagator.
+        orbp = Propagators.init(Val(:J2osc), orb; j2c = j2c_egm08_f32)
+
+        orbk = Propagators.mean_elements(orbp)
+        @test orbk isa KeplerianElements{Float64, Float32}
+        @test orbk.t ≈ orb.t
+        @test orbk.a ≈ orb.a
+        @test orbk.e ≈ orb.e
+        @test orbk.i ≈ orb.i
+        @test orbk.Ω ≈ orb.Ω
+        @test orbk.ω ≈ orb.ω
+        @test orbk.f ≈ orb.f
+
+        r, v = Propagators.step!(orbp, results[end, 1])
+
+        @test results[end, 2] ≈ r[1] / 1000 atol = 2e-1
+        @test results[end, 3] ≈ r[2] / 1000 atol = 2e-1
+        @test results[end, 4] ≈ r[3] / 1000 atol = 2e-1
+        @test results[end, 5] ≈ v[1] / 1000 atol = 1e-3
+        @test results[end, 6] ≈ v[2] / 1000 atol = 1e-3
+        @test results[end, 7] ≈ v[3] / 1000 atol = 1e-3
+        @test eltype(r) == T
+        @test eltype(v) == T
+
+        r, v = Propagators.propagate_to_epoch!(orbp, jd₀ + results[end, 1] / 86400)
+
+        @test results[end, 2] ≈ r[1] / 1000 atol = 2e-1
+        @test results[end, 3] ≈ r[2] / 1000 atol = 2e-1
+        @test results[end, 4] ≈ r[3] / 1000 atol = 2e-1
+        @test results[end, 5] ≈ v[1] / 1000 atol = 1e-3
+        @test results[end, 6] ≈ v[2] / 1000 atol = 1e-3
+        @test results[end, 7] ≈ v[3] / 1000 atol = 1e-3
+        @test eltype(r) == T
+        @test eltype(v) == T
+
+        # Test in-place initialization.
+        orbp = OrbitPropagatorJ2Osculating(J2OsculatingPropagator{Float64, T}())
+        j2d = J2Propagator{Float64, T}()
+        j2d.j2c = j2c_egm08_f32
+        orbp.j2oscd.j2d = j2d
+        Propagators.init!(orbp, orb)
+
+        r, v = Propagators.step!(orbp, results[end, 1])
+
+        @test results[end, 2] ≈ r[1] / 1000 atol = 2e-1
+        @test results[end, 3] ≈ r[2] / 1000 atol = 2e-1
+        @test results[end, 4] ≈ r[3] / 1000 atol = 2e-1
+        @test results[end, 5] ≈ v[1] / 1000 atol = 1e-3
+        @test results[end, 6] ≈ v[2] / 1000 atol = 1e-3
+        @test results[end, 7] ≈ v[3] / 1000 atol = 1e-3
+        @test eltype(r) == T
+        @test eltype(v) == T
+
+        # Test simultaneous initialization and propagation.
+        r, v, orbp = Propagators.propagate(
+            Val(:J2osc),
+            results[end, 1],
+            orb;
+            j2c = j2c_egm08_f32
+        )
+
+        orbk = Propagators.mean_elements(orbp)
+        @test orbk isa KeplerianElements{Float64, Float32}
+
+        @test results[end, 2] ≈ r[1] / 1000 atol = 2e-1
+        @test results[end, 3] ≈ r[2] / 1000 atol = 2e-1
+        @test results[end, 4] ≈ r[3] / 1000 atol = 2e-1
+        @test results[end, 5] ≈ v[1] / 1000 atol = 1e-3
+        @test results[end, 6] ≈ v[2] / 1000 atol = 1e-3
+        @test results[end, 7] ≈ v[3] / 1000 atol = 1e-3
+        @test eltype(r) == T
+        @test eltype(v) == T
+
+        r, v, orbp = Propagators.propagate_to_epoch(
+            Val(:J2osc),
+            jd₀ + results[end, 1] / 86400,
+            orb;
+            j2c = j2c_egm08_f32
+        )
+
+        orbk = Propagators.mean_elements(orbp)
+        @test orbk isa KeplerianElements{Float64, Float32}
+
+        @test results[end, 2] ≈ r[1] / 1000 atol = 2e-1
+        @test results[end, 3] ≈ r[2] / 1000 atol = 2e-1
+        @test results[end, 4] ≈ r[3] / 1000 atol = 2e-1
+        @test results[end, 5] ≈ v[1] / 1000 atol = 1e-3
+        @test results[end, 6] ≈ v[2] / 1000 atol = 1e-3
+        @test results[end, 7] ≈ v[3] / 1000 atol = 1e-3
+        @test eltype(r) == T
+        @test eltype(v) == T
     end
 end
