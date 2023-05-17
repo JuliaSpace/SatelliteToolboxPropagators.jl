@@ -97,6 +97,15 @@
     @testset "General API Functions" begin
         orbp = Propagators.init(Val(:SGP4), tle)
         @test Propagators.name(orbp) == "SGP4 Orbit Propagator"
+
+        orbk = Propagators.mean_elements(orbp)
+        @test orbk.t == Propagators.epoch(orbp)
+        @test orbk.a == orbp.sgp4d.a_k * orbp.sgp4d.sgp4c.R0
+        @test orbk.e == orbp.sgp4d.e_k
+        @test orbk.i == orbp.sgp4d.i_k
+        @test orbk.Ω == orbp.sgp4d.Ω_k
+        @test orbk.ω == orbp.sgp4d.ω_k
+        @test orbk.f == mean_to_true_anomaly(orbp.sgp4d.e_k, orbp.sgp4d.M_k)
     end
 
     # Float64
