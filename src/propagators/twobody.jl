@@ -3,7 +3,7 @@
 # Description
 # ==========================================================================================
 #
-#   Two Body orbit propagator.
+#   Two-Body orbit propagator.
 #
 #   This algorithm considers a perfect Keplerian orbit. In other words, no perturbation is
 #   considered during the propagation and the Earth is modeled as a perfect sphere.
@@ -36,7 +36,7 @@ const tbc_m0_f32 = 3.986004415f14
 """
     twobody_init(orb₀::KeplerianElements; kwargs...) -> TwoBodyPropagator
 
-Create and initialize the two body propagator structure using the mean Keplerian elements
+Create and initialize the two-body propagator structure using the mean Keplerian elements
 `orb₀`.
 
 !!! note
@@ -71,7 +71,7 @@ end
 """
     twobody_init!(tbd::TwoBodyPropagator, orb₀::KeplerianElements; kwargs...) -> Nothing
 
-Initialize the two body propagator structure `tbd` using the mean Keplerian elements `orb₀`.
+Initialize the two-body propagator structure `tbd` using the mean Keplerian elements `orb₀`.
 
 !!! warning
     The propagation constant `μ::Number` in `tbd` will not be changed. Hence, it must be
@@ -91,7 +91,7 @@ function twobody_init!(
     # Compute the initial mean anomaly.
     M₀ = true_to_mean_anomaly(T(orb₀.e), T(orb₀.f))
 
-    # Create and return the Two Body orbit propagator structure.
+    # Create and return the two-body orbit propagator structure.
     tbd.orb₀ = orb₀
     tbd.orbk = orb₀
     tbd.Δt   = 0
@@ -104,7 +104,7 @@ end
 """
     twobody(Δt::Number, orb₀::KeplerianElements; kwargs...)
 
-Initialize the two body propagator structure using the input elements `orb₀` and propagate
+Initialize the two-body propagator structure using the input elements `orb₀` and propagate
 the orbit until the time Δt [s].
 
 !!! note

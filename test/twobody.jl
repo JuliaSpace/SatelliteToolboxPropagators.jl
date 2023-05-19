@@ -3,7 +3,7 @@
 # Description
 # ==========================================================================================
 #
-#   Tests related to the two body orbit propagator.
+#   Tests related to the two-body orbit propagator.
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #
@@ -37,7 +37,7 @@
 #
 ############################################################################################
 
-@testset "Two Body Orbit Propagator" verbose = true begin
+@testset "Two-Body Orbit Propagator" verbose = true begin
     jd₀ = date_to_jd(1986, 6, 19, 18, 35, 0)
     jd₁ = date_to_jd(1986, 6, 19, 19, 15, 0)
 
@@ -64,7 +64,7 @@
     @testset "General API Functions" begin
         orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
         orbp = Propagators.init(Val(:TwoBody), orb)
-        @test Propagators.name(orbp) == "Two Body Orbit Propagator"
+        @test Propagators.name(orbp) == "Two-Body Orbit Propagator"
     end
 
     # Float64

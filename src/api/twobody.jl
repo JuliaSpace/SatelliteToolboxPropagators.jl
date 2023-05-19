@@ -3,19 +3,19 @@
 # Description
 # ==========================================================================================
 #
-#    API implementation for two body orbit propagator.
+#    API implementation for two-body orbit propagator.
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 Propagators.epoch(orbp::OrbitPropagatorTwoBody)         = orbp.tbd.orb₀.t
 Propagators.last_instant(orbp::OrbitPropagatorTwoBody)  = orbp.tbd.Δt
 Propagators.mean_elements(orbp::OrbitPropagatorTwoBody) = orbp.tbd.orbk
-Propagators.name(orbp::OrbitPropagatorTwoBody)          = "Two Body Orbit Propagator"
+Propagators.name(orbp::OrbitPropagatorTwoBody)          = "Two-Body Orbit Propagator"
 
 """
     Propagators.init(Val(:TwoBody), orb₀::KeplerianElements; kwargs...) -> OrbitPropagatorTwoBody
 
-Create and initialize the two body orbit propagator structure using the mean Keplerian
+Create and initialize the two-body orbit propagator structure using the mean Keplerian
 elements `orb₀`.
 
 !!! note
@@ -39,7 +39,7 @@ end
 """
     Propagators.init!(orbp::OrbitPropagatorTwoBody, orb₀::KeplerianElements) -> Nothing
 
-Initialize the two body orbit propagator structure `orbp` using the mean Keplerian elements
+Initialize the two-body orbit propagator structure `orbp` using the mean Keplerian elements
 `orb₀`.
 
 !!! warning
@@ -58,7 +58,7 @@ end
 """
     Propagators.propagate(Val(:TwoBody), Δt::Number, orb₀::KeplerianElements; kwargs...)
 
-Initialize the two body propagator structure using the input elements `orb₀` and propagate
+Initialize the two-body propagator structure using the input elements `orb₀` and propagate
 the orbit until the time Δt [s].
 
 !!! note
