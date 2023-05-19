@@ -25,12 +25,13 @@ function Propagators.init(::Val{:propagator}, args...; kwargs...)
 It initializes a propagator of type `:propagator` using the arguments `args...` and keywords
 `kwargs...` supported by it. Currently, the following algorithms are available:
 
-| **Propagator Name**                       | **Symbol** |
+|                       **Propagator Name** | **Symbol** |
 |------------------------------------------:|:-----------|
-| J2 analytical orbit propagator            | `:J2`      |
+|            J2 analytical orbit propagator | `:J2`      |
 | J2 osculating analytical orbit propagator | `:J2osc`   |
-| J4 analytical orbit propagator            | `:J4`      |
-| SGP4/SDP4 orbit propagator                | `:SGP4`    |
+|            J4 analytical orbit propagator | `:J4`      |
+|                SGP4/SDP4 orbit propagator | `:SGP4`    |
+|      Two body analytical orbit propagator | `:TwoBody` |
 
 See the documentation of each algorithm to verify the supported arguments and keywords.
 

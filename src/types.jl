@@ -9,10 +9,12 @@
 
 export J2PropagatorConstants, J2Propagator, J2OsculatingPropagator
 export J4PropagatorConstants, J4Propagator
+export TwoBodyPropagator
 export OrbitPropagatorJ2
 export OrbitPropagatorJ2Osculating
 export OrbitPropagatorJ4
 export OrbitPropagatorSgp4
+export OrbitPropagatorTwoBody
 
 ############################################################################################
 #                                   J2 Orbit Propagator
@@ -147,6 +149,34 @@ mutable struct J4Propagator{Tepoch, T}
 end
 
 ############################################################################################
+#                                   Two Body Propagator
+############################################################################################
+
+"""
+    mutable struct TwoBodyPropagator{Tepoch<:Number, T<:Number}
+
+Two body orbit propagator structure.
+"""
+mutable struct TwoBodyPropagator{Tepoch<:Number, T<:Number}
+    orb₀::KeplerianElements{Tepoch, T} # ............ Initial mean orbit elements [SI units]
+    orbk::KeplerianElements{Tepoch, T} # ............ Current mean orbit elements [SI units]
+    μ::T                               # . Central body std. gravitational parameter [m³/s²]
+    Δt::T                              # ..... Timespan from the initial elements' epoch [s]
+
+    # Auxiliary Variables
+    # ======================================================================================
+
+    M₀::T  # ............................................... Initial mean mean anomaly [rad]
+    n₀::T  # ........................................................  Mean motion [rad / s]
+
+    # Constructors
+    # ======================================================================================
+
+    TwoBodyPropagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
+    TwoBodyPropagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
+end
+
+############################################################################################
 #                                           API
 ############################################################################################
 
@@ -213,4 +243,21 @@ SGP4 orbit propagator.
 """
 struct OrbitPropagatorSgp4{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T}
     sgp4d::Sgp4Propagator{Tepoch, T}
+end
+
+#                                  Two Orbit Propagator
+# ==========================================================================================
+
+"""
+    OrbitPropagatorTwoBody{Tepoch, T} <: OrbitPropagator{Tepoch, T}
+
+Two body orbit propagator.
+
+# Fields
+
+- `tbd`: Structure that stores the two body orbit propagator data (see
+    [`TwoBodyPropagator`](@ref)).
+"""
+struct OrbitPropagatorTwoBody{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T}
+    tbd::TwoBodyPropagator{Tepoch, T}
 end

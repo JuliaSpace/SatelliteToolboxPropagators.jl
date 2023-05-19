@@ -20,6 +20,10 @@ end
     include("./sgp4.jl")
 end
 
+@testset "Two Body Orbit Propagator" verbose = true begin
+    include("./twobody.jl")
+end
+
 @testset "Orbit Propagator API" verbose = true begin
     include("./api.jl")
 end
