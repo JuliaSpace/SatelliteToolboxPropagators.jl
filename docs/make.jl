@@ -13,6 +13,9 @@ makedocs(
         "Home" => "index.md",
         "Quick Start" => "man/quick_start.md",
         "Usage" => "man/usage.md",
+        "Propagators" => [
+            "J2" => "man/propagators/j2.md",
+        ],
         "Library" => "lib/library.md",
     ],
 )
