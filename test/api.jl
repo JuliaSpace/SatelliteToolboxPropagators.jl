@@ -29,7 +29,7 @@ struct DummyPropagator{Tepoch, T} <: OrbitPropagator{Tepoch, T} end
             T(45)   |> deg2rad
         )
 
-        orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm08)
+        orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm2008)
         ret  = Propagators.propagate!.(orbp, 1:1:100)
 
         @test length(ret) == 100
@@ -58,7 +58,7 @@ struct DummyPropagator{Tepoch, T} <: OrbitPropagator{Tepoch, T} end
             T(45)   |> deg2rad
         )
 
-        orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm08_f32)
+        orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm2008_f32)
         ret  = Propagators.propagate!.(orbp, 1:1:100)
 
         @test length(ret) == 100

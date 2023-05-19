@@ -33,14 +33,14 @@ elements `orb₀`.
 # Keywords
 
 - `j2c::J2PropagatorConstants`: J2 orbit propagator constants (see
-  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm08`)
+  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm2008`)
 """
 function Propagators.init(
     ::Val{:J2osc},
     orb₀::KeplerianElements,
     dn_o2::Number = 0,
     ddn_o6::Number = 0;
-    j2c::J2PropagatorConstants = j2c_egm08
+    j2c::J2PropagatorConstants = j2c_egm2008
 )
     j2oscd = j2osc_init(orb₀, dn_o2, ddn_o6; j2c = j2c)
     return OrbitPropagatorJ2Osculating(j2oscd)
@@ -95,7 +95,7 @@ propagate the orbit until the time Δt [s].
 # Keywords
 
 - `j2c::J2PropagatorConstants{T}`: J2 orbit propagator constants (see
-  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm08`)
+  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm2008`)
 
 # Returns
 
@@ -111,7 +111,7 @@ function Propagators.propagate(
     orb₀::KeplerianElements,
     dn_o2::Number = 0,
     ddn_o6::Number = 0;
-    j2c::J2PropagatorConstants = j2c_egm08
+    j2c::J2PropagatorConstants = j2c_egm2008
 )
     r_i, v_i, j2oscd = j2osc(Δt, orb₀, dn_o2, ddn_o6; j2c = j2c)
     return r_i, v_i, OrbitPropagatorJ2Osculating(j2oscd)

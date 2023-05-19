@@ -46,13 +46,13 @@ elements `orb₀`.
 # Keywords
 
 - `j2c::J2PropagatorConstants`: J2 orbit propagator constants (see
-    [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm08`)
+    [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm2008`)
 """
 function j2osc_init(
     orb₀::KeplerianElements{Tepoch, Tkepler},
     dn_o2::Number = 0,
     ddn_o6::Number = 0;
-    j2c::J2PropagatorConstants{T} = j2c_egm08
+    j2c::J2PropagatorConstants{T} = j2c_egm2008
 ) where {Tepoch<:Number, Tkepler<:Number, T<:Number}
     # Allocate the J2 propagator structure that will propagate the mean elements.
     j2d = J2Propagator{Tepoch, T}()
@@ -124,7 +124,7 @@ propagate the orbit until the time Δt [s].
 # Keywords
 
 - `j2c::J2PropagatorConstants{T}`: J2 orbit propagator constants (see
-  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm08`)
+  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm2008`)
 
 # Returns
 
@@ -145,7 +145,7 @@ function j2osc(
     orb₀::KeplerianElements,
     dn_o2::Number = 0,
     ddn_o6::Number = 0;
-    j2c::J2PropagatorConstants{T} = j2c_egm08
+    j2c::J2PropagatorConstants{T} = j2c_egm2008
 ) where T<:Number
     j2oscd = j2osc_init(orb₀, dn_o2, ddn_o6; j2c = j2c)
     r_i, v_i = j2osc!(j2oscd, Δt)

@@ -22,8 +22,8 @@
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-export j2c_egm08, j2c_egm96, j2c_jgm02, j2c_jgm03
-export j2c_egm08_f32, j2c_egm96_f32, j2c_jgm02_f32, j2c_jgm03_f32
+export j2c_egm2008, j2c_egm1996, j2c_jgm02, j2c_jgm03
+export j2c_egm2008_f32, j2c_egm1996_f32, j2c_jgm02_f32, j2c_jgm03_f32
 export j2_init, j2_init!, j2, j2!
 
 ############################################################################################
@@ -56,26 +56,26 @@ export j2_init, j2_init!, j2, j2!
 #
 
 # EGM-08 gravitational constants.
-const j2c_egm08 = J2PropagatorConstants(
+const j2c_egm2008 = J2PropagatorConstants(
     6378137.0,
     √(3.986004415e14 / 6378137.0^3),
     0.0010826261738522227
 )
 
-const j2c_egm08_f32 = J2PropagatorConstants{Float32}(
+const j2c_egm2008_f32 = J2PropagatorConstants{Float32}(
     6378137.0,
     √(3.986004415e14 / 6378137.0^3),
     0.0010826261738522227
 )
 
 # EGM-96 gravitational constants.
-const j2c_egm96 = J2PropagatorConstants(
+const j2c_egm1996 = J2PropagatorConstants(
     6378136.3,
     √(3.986004415e14 / 6378136.3^3),
     0.0010826266835531513
 )
 
-const j2c_egm96_f32 = J2PropagatorConstants{Float32}(
+const j2c_egm1996_f32 = J2PropagatorConstants{Float32}(
     6378136.3,
     √(3.986004415e14 / 6378136.3^3),
     0.0010826266835531513
@@ -132,13 +132,13 @@ Create and initialize the J2 orbit propagator structure using the mean Keplerian
 # Keywords
 
 - `j2c::J2PropagatorConstants`: J2 orbit propagator constants (see
-  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm08`)
+  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm2008`)
 """
 function j2_init(
     orb₀::KeplerianElements{Tepoch, Tkepler},
     dn_o2::Number = 0,
     ddn_o6::Number = 0;
-    j2c::J2PropagatorConstants{T} = j2c_egm08
+    j2c::J2PropagatorConstants{T} = j2c_egm2008
 ) where {Tepoch<:Number, Tkepler<:Number, T<:Number}
     # Allocate the propagator structure.
     j2d = J2Propagator{Tepoch, T}()
@@ -260,7 +260,7 @@ orbit until the time Δt [s].
 # Keywords
 
 - `j2c::J2PropagatorConstants{T}`: J2 orbit propagator constants (see
-  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm08`)
+  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm2008`)
 
 # Returns
 
@@ -281,7 +281,7 @@ function j2(
     orb₀::KeplerianElements,
     dn_o2::Number = 0,
     ddn_o6::Number = 0;
-    j2c::J2PropagatorConstants{T} = j2c_egm08
+    j2c::J2PropagatorConstants{T} = j2c_egm2008
 ) where T<:Number
     j2d = j2_init(orb₀, dn_o2, ddn_o6; j2c = j2c)
     r_i, v_i = j2!(j2d, Δt)

@@ -26,8 +26,8 @@
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-export j4c_egm08, j4c_egm96, j4c_jgm02, j4c_jgm03
-export j4c_egm08_f32, j4c_egm96_f32, j4c_jgm02_f32, j4c_jgm03_f32
+export j4c_egm2008, j4c_egm1996, j4c_jgm02, j4c_jgm03
+export j4c_egm2008_f32, j4c_egm1996_f32, j4c_jgm02_f32, j4c_jgm03_f32
 export j4_init, j4_init!, j4, j4!
 
 ############################################################################################
@@ -40,14 +40,14 @@ export j4_init, j4_init!, j4, j4!
 #
 
 # EGM-08 gravitational constants.
-const j4c_egm08 = J4PropagatorConstants(
+const j4c_egm2008 = J4PropagatorConstants(
     6378137.0,
     sqrt(3.986004415e14 / 6378137.0^3),
     0.0010826261738522227,
     -1.6198975999169731e-6
 )
 
-const j4c_egm08_f32 = J4PropagatorConstants{Float32}(
+const j4c_egm2008_f32 = J4PropagatorConstants{Float32}(
     6378137.0,
     sqrt(3.986004415e14 / 6378137.0^3),
     0.0010826261738522227,
@@ -55,14 +55,14 @@ const j4c_egm08_f32 = J4PropagatorConstants{Float32}(
 )
 
 # EGM-96 gravitational constants.
-const j4c_egm96 = J4PropagatorConstants(
+const j4c_egm1996 = J4PropagatorConstants(
     6378136.3,
     sqrt(3.986004415e14 / 6378136.3^3),
     0.0010826266835531513,
     -1.619621591367e-6
 )
 
-const j4c_egm96_f32 = J4PropagatorConstants{Float32}(
+const j4c_egm1996_f32 = J4PropagatorConstants{Float32}(
     6378136.3,
     sqrt(3.986004415e14 / 6378136.3^3),
     0.0010826266835531513,
@@ -124,13 +124,13 @@ Create and initialize the J4 orbit propagator structure using the mean Keplerian
 # Keywords
 
 - `j4c::J4PropagatorConstants`: J4 orbit propagator constants (see
-  [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm08`)
+  [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm2008`)
 """
 function j4_init(
     orb₀::KeplerianElements{Tepoch, Tkepler},
     dn_o2::Number = 0,
     ddn_o6::Number = 0;
-    j4c::J4PropagatorConstants{T} = j4c_egm08
+    j4c::J4PropagatorConstants{T} = j4c_egm2008
 ) where {Tepoch<:Number, Tkepler<:Number, T<:Number}
     # Allocate the propagator structure.
     j4d = J4Propagator{Tepoch, T}()
@@ -274,7 +274,7 @@ orbit until the time Δt [s].
 # Keywords
 
 - `j4c::J4PropagatorConstants{T}`: J4 orbit propagator constants (see
-  [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm08`)
+  [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm2008`)
 
 # Returns
 
@@ -295,7 +295,7 @@ function j4(
     orb₀::KeplerianElements,
     dn_o2::Number = 0,
     ddn_o6::Number = 0;
-    j4c::J4PropagatorConstants{T} = j4c_egm08
+    j4c::J4PropagatorConstants{T} = j4c_egm2008
 ) where T<:Number
     j4d = j4_init(orb₀, dn_o2, ddn_o6; j4c = j4c)
     r_i, v_i = j4!(j4d, Δt)

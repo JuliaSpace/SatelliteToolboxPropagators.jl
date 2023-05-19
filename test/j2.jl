@@ -45,13 +45,13 @@
 
     @testset "Constructor" begin
         orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
-        j2d = J2Propagator{Float64, Float64}(orb, orb, 0, 0, j2c_egm08, 0, 0, 0, 0, 0, 0, 0, 0)
+        j2d = J2Propagator{Float64, Float64}(orb, orb, 0, 0, j2c_egm2008, 0, 0, 0, 0, 0, 0, 0, 0)
 
         # Test some random fields.
         @test j2d.Δt  == 0
         @test j2d.al₀ == 0
         @test j2d.n̄   == 0
-        @test j2d.j2c == j2c_egm08
+        @test j2d.j2c == j2c_egm2008
     end
 
     # General API Functions
@@ -79,7 +79,7 @@
             T(45)   |> deg2rad
         )
 
-        orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm08)
+        orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm2008)
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{Float64, Float64}
@@ -117,7 +117,7 @@
 
         # Test in-place initialization.
         orbp = OrbitPropagatorJ2(J2Propagator{Float64, T}())
-        orbp.j2d.j2c = j2c_egm08
+        orbp.j2d.j2c = j2c_egm2008
         Propagators.init!(orbp, orb)
 
         r, v = Propagators.step!(orbp, (jd₁ - jd₀) * 86400)
@@ -180,7 +180,7 @@
             T(45)   |> deg2rad
         )
 
-        orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm08_f32)
+        orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm2008_f32)
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{Float64, Float32}
@@ -218,7 +218,7 @@
 
         # Test in-place initialization.
         orbp = OrbitPropagatorJ2(J2Propagator{Float64, T}())
-        orbp.j2d.j2c = j2c_egm08_f32
+        orbp.j2d.j2c = j2c_egm2008_f32
         Propagators.init!(orbp, orb)
 
         r, v = Propagators.step!(orbp, (jd₁ - jd₀) * 86400)
@@ -234,7 +234,7 @@
         @test eltype(v) == T
 
         # Test simultaneous initialization and propagation.
-        r, v, orbp = Propagators.propagate(Val(:J2), (jd₁ - jd₀) * 86400, orb; j2c = j2c_egm08_f32)
+        r, v, orbp = Propagators.propagate(Val(:J2), (jd₁ - jd₀) * 86400, orb; j2c = j2c_egm2008_f32)
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{Float64, Float32}
@@ -249,7 +249,7 @@
         @test v[3] / 1000 ≈ -1.266334 atol = 1e-3
         @test eltype(v) == T
 
-        r, v, orbp = Propagators.propagate_to_epoch(Val(:J2), jd₁, orb; j2c = j2c_egm08_f32)
+        r, v, orbp = Propagators.propagate_to_epoch(Val(:J2), jd₁, orb; j2c = j2c_egm2008_f32)
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{Float64, Float32}

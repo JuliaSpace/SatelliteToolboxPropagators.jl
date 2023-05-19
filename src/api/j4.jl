@@ -33,14 +33,14 @@ Create and initialize the J4 orbit propagator structure using the mean Keplerian
 # Keywords
 
 - `j4c::J4PropagatorConstants`: J4 orbit propagator constants (see
-  [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm08`)
+  [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm2008`)
 """
 function Propagators.init(
     ::Val{:J4},
     orb₀::KeplerianElements,
     dn_o4::Number = 0,
     ddn_o6::Number = 0;
-    j4c::J4PropagatorConstants = j4c_egm08
+    j4c::J4PropagatorConstants = j4c_egm2008
 )
     j4d = j4_init(orb₀, dn_o4, ddn_o6; j4c = j4c)
     return OrbitPropagatorJ4(j4d)
@@ -95,7 +95,7 @@ orbit until the time Δt [s].
 # Keywords
 
 - `j4c::J4PropagatorConstants{T}`: J4 orbit propagator constants (see
-  [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm08`)
+  [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm2008`)
 
 # Returns
 
@@ -111,7 +111,7 @@ function Propagators.propagate(
     orb₀::KeplerianElements,
     dn_o2::Number = 0,
     ddn_o6::Number = 0;
-    j4c::J4PropagatorConstants = j4c_egm08
+    j4c::J4PropagatorConstants = j4c_egm2008
 )
     r_i, v_i, j4d = j4(Δt, orb₀, dn_o2, ddn_o6; j4c = j4c)
     return r_i, v_i, OrbitPropagatorJ4(j4d)

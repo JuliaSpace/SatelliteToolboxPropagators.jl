@@ -67,13 +67,13 @@
 
     @testset "Constructor" begin
         orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
-        j4d = J4Propagator{Float64, Float64}(orb, orb, 0, 0, j4c_egm08, 0, 0, 0, 0, 0, 0, 0, 0)
+        j4d = J4Propagator{Float64, Float64}(orb, orb, 0, 0, j4c_egm2008, 0, 0, 0, 0, 0, 0, 0, 0)
 
         # Test some random fields.
         @test j4d.Δt  == 0
         @test j4d.al₀ == 0
         @test j4d.n̄   == 0
-        @test j4d.j4c == j4c_egm08
+        @test j4d.j4c == j4c_egm2008
     end
 
     # General API Functions
@@ -100,7 +100,7 @@
             T(45)   |> deg2rad
         )
 
-        orbp = Propagators.init(Val(:J4), orb; j4c = j4c_egm08)
+        orbp = Propagators.init(Val(:J4), orb; j4c = j4c_egm2008)
         r, v = Propagators.propagate_to_epoch!(orbp, jd₁)
 
         @test eltype(r) == T
@@ -119,7 +119,7 @@
 
         # Test in-place initialization.
         orbp = OrbitPropagatorJ4(J4Propagator{Float64, T}())
-        orbp.j4d.j4c = j4c_egm08
+        orbp.j4d.j4c = j4c_egm2008
         Propagators.init!(orbp, orb)
 
         r, v = Propagators.propagate_to_epoch!(orbp, jd₁)
@@ -187,7 +187,7 @@
             T(45)   |> deg2rad
         )
 
-        orbp = Propagators.init(Val(:J4), orb; j4c = j4c_egm08_f32)
+        orbp = Propagators.init(Val(:J4), orb; j4c = j4c_egm2008_f32)
         r, v = Propagators.propagate_to_epoch!(orbp, jd₁)
 
         @test eltype(r) == T
@@ -206,7 +206,7 @@
 
         # Test in-place initialization.
         orbp = OrbitPropagatorJ4(J4Propagator{Float64, T}())
-        orbp.j4d.j4c = j4c_egm08_f32
+        orbp.j4d.j4c = j4c_egm2008_f32
         Propagators.init!(orbp, orb)
 
         r, v = Propagators.propagate_to_epoch!(orbp, jd₁)
@@ -226,7 +226,7 @@
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
 
         # Test simultaneous initialization and propagation.
-        r, v, orbp = Propagators.propagate(Val(:J4), (jd₁ - jd₀) * 86400, orb; j4c = j4c_egm08_f32)
+        r, v, orbp = Propagators.propagate(Val(:J4), (jd₁ - jd₀) * 86400, orb; j4c = j4c_egm2008_f32)
 
         @test eltype(r) == T
         @test eltype(v) == T
@@ -242,7 +242,7 @@
 
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
 
-        r, v, orbp = Propagators.propagate_to_epoch(Val(:J4), jd₁, orb; j4c = j4c_egm08_f32)
+        r, v, orbp = Propagators.propagate_to_epoch(Val(:J4), jd₁, orb; j4c = j4c_egm2008_f32)
 
         @test eltype(r) == T
         @test eltype(v) == T
