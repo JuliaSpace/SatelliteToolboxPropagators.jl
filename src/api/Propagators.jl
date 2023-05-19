@@ -52,8 +52,7 @@ function epoch end
 """
     last_instant(orbp::OrbitPropagator{Tepoch, T}) where {Tepoch<:Number, T<:Number} -> T
 
-Return the last propagation instant [s] measured from the epoch. This action must be
-performed by the function:
+Return the last propagation instant [s] measured from the epoch.
 """
 function last_instant end
 

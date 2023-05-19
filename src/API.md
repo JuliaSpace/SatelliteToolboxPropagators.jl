@@ -150,7 +150,7 @@ the same reference frame used in the initialization. **The output vector must us
 We also have the function `Propagators.propagate_to_epoch!`, but the default implementation
 should work for all propagators.
 
-#### In-place initialization (Optional)
+### In-place initialization (Optional)
 
 If the propagator supports in-place initialization, it must overload the following function:
 
@@ -181,7 +181,7 @@ Propagators.name(orbp)
 to return its name. The system uses this information to display the object using the
 function `show`. If the function is not provided, the structure name is used by default.
 
-## Simultaneous Initialization and Propagation (Optional)
+### Simultaneous Initialization and Propagation (Optional)
 
 If the propagator supports, it can overload the functions:
 
@@ -190,5 +190,5 @@ Propagators.propagate(t, args...; kwargs...)
 ```
 
 that simultaneously initialize and propagate the orbit to the instant `t` [s] after the
-input elements. `args...` and `kwargs...` must be the same as the initialization function
+input elements. `args...` and `kwargs...` must be the same as in the initialization function
 `Propagators.init`.
