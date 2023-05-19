@@ -74,8 +74,8 @@
         T = Float64
 
         orb = rv_to_kepler(
-            T[1131340.0, -2282343.0, 6672423.0],
-            T[-5643.05, 4303.33, 2428.79],
+            [1131340.0, -2282343.0, 6672423.0],
+            [-5643.05, 4303.33, 2428.79],
             date_to_jd(1986, 6, 19, 18, 35, 0)
         )
 
@@ -170,9 +170,13 @@
     @testset "Float32" begin
         T = Float32
 
+        # We saw rounding problems when converting from state vector to Keplerian elements
+        # in GitHub actions. The source was the processor that does not have FMA (fused
+        # multiply add). Hence, we will obtain the Keplerian elements using `Float64` but
+        # propagate the orbit using `Float32`.
         orb = rv_to_kepler(
-            T[1131340.0, -2282343.0, 6672423.0],
-            T[-5643.05, 4303.33, 2428.79],
+            [1131340.0, -2282343.0, 6672423.0],
+            [-5643.05, 4303.33, 2428.79],
             date_to_jd(1986, 6, 19, 18, 35, 0)
         )
 
