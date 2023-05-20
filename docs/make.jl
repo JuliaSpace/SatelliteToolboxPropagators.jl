@@ -15,6 +15,7 @@ makedocs(
         "Usage" => "man/usage.md",
         "Propagators" => [
             "J2" => "man/propagators/j2.md",
+            "J4" => "man/propagators/j4.md",
             "Two-Body" => "man/propagators/twobody.md"
         ],
         "Library" => "lib/library.md",
