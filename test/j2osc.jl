@@ -51,6 +51,9 @@
 
 @testset "J2 Osculating Orbit Propagator" verbose = true begin
     # Create a matrix with the results.
+    #
+    # Notice that the results here are not exactly the same because in J2 osculating
+    # propagator the long-term periodics are not taken into account.
     results = [
            0.0  -952.883 -3038.438 -6444.903 -0.460  6.745 -3.116
          600.0 -1034.273  1320.078 -6994.339  0.197  7.315  1.342
