@@ -1,7 +1,7 @@
 name = "SatelliteToolboxPropagators"
 uuid = "c2b69894-ea78-4e2b-9ba6-cedbbc3d14d7"
 license = "MIT"
-desc = "Orbit propagators."
+desc = "Orbit propagators for the SatelliteToolbox.jl ecosystem."
 authors = ["Ronan Arraes Jardim Chagas <ronisbr@gmail.com>"]
 version = "0.0.1"
 
