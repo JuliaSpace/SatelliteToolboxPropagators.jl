@@ -14,6 +14,7 @@ SatelliteToolboxSgp4 = "ba14ac17-bfc9-4710-a76f-b32930ef2339"
 SatelliteToolboxTle = "7ff27aeb-5fff-4337-a9ee-a9fe6b7ed35e"
 
 [compat]
+Crayons = "4"
 Reexport = "1"
 SatelliteToolboxBase = "0.2"
 SatelliteToolboxSgp4 = "2"
