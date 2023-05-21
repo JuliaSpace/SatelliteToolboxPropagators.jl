@@ -76,7 +76,7 @@ KeplerianElements{Float64, Float64}:
 
 julia> orbp = Propagators.init(Val(:TwoBody), orb)
 OrbitPropagatorTwoBody{Float64, Float64}:
-   Propagator name : Two Body Orbit Propagator
+   Propagator name : Two-Body Orbit Propagator
   Propagator epoch : 2023-01-01T00:00:00
   Last propagation : 2023-01-01T00:00:00
 ```
