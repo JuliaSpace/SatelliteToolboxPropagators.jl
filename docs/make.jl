@@ -17,6 +17,7 @@ makedocs(
             "J2" => "man/propagators/j2.md",
             "J2 Osculating" => "man/propagators/j2osc.md",
             "J4" => "man/propagators/j4.md",
+            "SGP4/SDP4" => "man/propagators/sgp4.md",
             "Two-Body" => "man/propagators/twobody.md"
         ],
         "Library" => "lib/library.md",
