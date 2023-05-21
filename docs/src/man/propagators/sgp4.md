@@ -105,9 +105,9 @@ The keywords `kwargs...` are the same as in the first version of this function.
 
 ## References
 
-- **[1]** Hoots, F. R., Roehrich, R. L (1980). *Models for Propagation of NORAD Elements
+- **[1]** **Hoots, F. R., Roehrich, R. L** (1980). *Models for Propagation of NORAD Elements
   Set*. **Spacetrack Report No. 3**.
-- **[2]** Vallado, D. A., Crawford, P., Hujsak, R., Kelso, T. S (2006). *Revisiting
+- **[2]** **Vallado, D. A., Crawford, P., Hujsak, R., Kelso, T. S** (2006). *Revisiting
   Spacetrack Report #3: Rev1*. **AIAA**.
 - **[3]** SGP4 Source code of [STRF](https://github.com/cbassa/strf), which the C code was
   converted by Paul. S. Crawford and Andrew R. Brooks.
