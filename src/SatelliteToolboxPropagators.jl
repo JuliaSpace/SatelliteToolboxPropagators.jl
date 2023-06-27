@@ -2,8 +2,11 @@ module SatelliteToolboxPropagators
 
 using Crayons
 using Dates
+using Printf
+using LinearAlgebra
 using Reexport
 using SatelliteToolboxSgp4
+using StaticArrays
 
 @reexport using SatelliteToolboxBase
 @reexport using SatelliteToolboxSgp4
@@ -31,6 +34,7 @@ include("./types.jl")
 # Escape sequences related to the crayons.
 const _D = Crayon(reset = true)
 const _B = crayon"bold"
+const _Y = crayon"bold yellow"
 
 ############################################################################################
 #                                         Includes
