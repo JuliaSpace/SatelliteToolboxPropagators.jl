@@ -695,7 +695,7 @@ function fit_j2osc_mean_elements!(
     if abs(epoch - mean_elements_epoch) > 0.001 / 86400
         verbose &&
             println("$(cy)ACTION:$(cd)   Updating the epoch of the fitted mean elements to match the desired one.")
-        orb = update_j2osc_mean_elements_epoch!(j2oscd, orb)
+        orb = update_j2osc_mean_elements_epoch!(j2oscd, orb, mean_elements_epoch)
     end
 
     # Initialize the propagator with the mean elements.

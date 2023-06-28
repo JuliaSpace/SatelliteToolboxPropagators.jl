@@ -346,7 +346,7 @@ end
 
     orb_input = KeplerianElements(
         DateTime("2023-01-01") |> datetime2julian,
-        7190.982e3,
+        7130.982e3,
         0.001111,
         98.405 |> deg2rad,
         90     |> deg2rad,
@@ -363,13 +363,14 @@ end
 
     @testset "Without Initial Guess" begin
         # Obtain the mean elements.
-        orb, ~ = fit_j2osc_mean_elements(
-            vjd,
-            vr_i,
-            vv_i;
-            mean_elements_epoch = vjd[begin],
-            verbose = false,
-        )
+        orb, ~ = redirect_stdout(devnull) do
+            fit_j2osc_mean_elements(
+                vjd,
+                vr_i,
+                vv_i;
+                mean_elements_epoch = vjd[begin],
+            )
+        end
 
         @test orb.t ≈ orb_input.t
         @test orb.a ≈ orb_input.a
@@ -382,15 +383,16 @@ end
 
     @testset "With Initial Guess" begin
         # Obtain the mean elements.
-        orb, ~ = fit_j2osc_mean_elements(
-            vjd,
-            vr_i,
-            vv_i;
-            max_iterations = 3,
-            mean_elements_epoch = vjd[begin],
-            initial_guess = orb_input,
-            verbose = false
-        )
+        orb, ~ = redirect_stdout(devnull) do
+            fit_j2osc_mean_elements(
+                vjd,
+                vr_i,
+                vv_i;
+                max_iterations = 3,
+                mean_elements_epoch = vjd[begin],
+                initial_guess = orb_input,
+            )
+        end
 
         @test orb.t ≈ orb_input.t
         @test orb.a ≈ orb_input.a
@@ -399,6 +401,27 @@ end
         @test orb.Ω ≈ orb_input.Ω
         @test orb.ω ≈ orb_input.ω
         @test orb.f ≈ orb_input.f atol = 1e-6
+    end
+
+    @testset "Without Initial Guess and Updating the Epoch" begin
+        # Obtain the mean elements.
+        orb, ~ = redirect_stdout(devnull) do
+            fit_j2osc_mean_elements(
+                vjd,
+                vr_i,
+                vv_i;
+                mean_elements_epoch = vjd[begin] + 1,
+            )
+        end
+
+        @test orb.t ≈ orb_input.t + 1
+        @test orb.a ≈ orb_input.a
+        @test orb.e ≈ orb_input.e
+        @test orb.i ≈ orb_input.i
+
+        # The input orbit is the nominal orbit for the Amazonia-1 satellite, which is Sun
+        # synchronous. Thus, the RAAN moves approximately 0.9856002605° per day.
+        @test orb.Ω ≈ orb_input.Ω + deg2rad(0.9856002605) atol = 2e-5
     end
 
     @testset "Errors" begin
