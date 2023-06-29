@@ -295,10 +295,10 @@ end
 """
     fit_j2osc_mean_elements(vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{Float64, Float64}, SMatrix{6, 6, Float64}
 
-Fit a set of mean Keplerian elements the J2 osculating orbit propagator using the osculating
-elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
-`vv_i` [m / s] represented in an inertial reference frame at instants in the array `vjd`
-[Julian Day].
+Fit a set of mean Keplerian elements for the J2 osculating orbit propagator using the
+osculating elements represented by a set of position vectors `vr_i` [m] and a set of
+velocity vectors `vv_i` [m / s] represented in an inertial reference frame at instants in
+the array `vjd` [Julian Day].
 
 !!! note
     This algorithm version will allocate a new J2 osculating propagator with the default
@@ -395,13 +395,13 @@ end
 """
     fit_j2osc_mean_elements!(j2oscd::J2OsculatingPropagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {T<:Number, Tepoch<:Number, Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{Tepoch, T}, SMatrix{6, 6, T}
 
-Fit a set of mean Keplerian elements the J2 osculating orbit propagator `j2oscd` using the
-osculating elements represented by a set of position vectors `vr_i` [m] and a set of
+Fit a set of mean Keplerian elements for the J2 osculating orbit propagator `j2oscd` using
+the osculating elements represented by a set of position vectors `vr_i` [m] and a set of
 velocity vectors `vv_i` [m / s] represented in an inertial reference frame at instants in
 the array `vjd` [Julian Day].
 
 !!! notes
-    The J2 osculating orbit propagator `sgp4d` will be initialized with the Keplerian
+    The J2 osculating orbit propagator `j2oscd` will be initialized with the Keplerian
     elements returned by the function.
 
 # Keywords
@@ -775,7 +775,7 @@ Update the epoch of the mean elements `orb` using the propagator `j2oscd` to `ne
 which can be represented by a Julian Day or a `DateTime`.
 
 !!! notes
-    The J2 osculating orbit propagator `j2osc` will be initialized with the Keplerian
+    The J2 osculating orbit propagator `j2oscd` will be initialized with the Keplerian
     elements returned by the function.
 
 # Examples
@@ -850,9 +850,9 @@ end
 """
     _j2osc_jacobian!(J::AbstractMatrix{T}, j2oscd::J2OsculatingPropagator{Tepoch, T}, Δt::Number, x₁::SVector{6, T}, y₁::SVector{6, T}; kwargs...)) where {T<:Number, Tepoch<:Number}
 
-Compute the J2 orbit propagator Jacobian by finite-differences using the propagator `j2oscd`
-at instant `Δt` considering the input mean elements `x₁` that must provide the output vector
-`y₁`. The result is written to the matrix `J`. Hence:
+Compute the J2 osculating orbit propagator Jacobian by finite-differences using the
+propagator `j2oscd` at instant `Δt` considering the input mean elements `x₁` that must
+provide the output vector `y₁`. The result is written to the matrix `J`. Hence:
 
         ∂j2osc(x, Δt) │
     J = ───────────── │
