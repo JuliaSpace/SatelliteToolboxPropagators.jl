@@ -482,7 +482,7 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 `vv_i` [m / s] represented in an inertial reference frame at instants in the array `vjd`
 [Julian Day].
 
-!!! notes
+!!! note
     The J2 orbit propagator `j2d` will be initialized with the Keplerian elements returned
     by the function.
 
@@ -788,7 +788,7 @@ end
 Update the epoch of the mean elements `orb` using a J2 orbit propagator to `new_epoch`,
 which can be represented by a Julian Day or a `DateTime`.
 
-!!! notes
+!!! note
     This algorithm version will allocate a new J2 propagator with the default constants
     `j2c_egm2008`. If another set of constants are required, use the function
     [`update_j2osc_mean_elements_epoch!`](@ref) instead.
@@ -844,7 +844,7 @@ end
 Update the epoch of the mean elements `orb` using the propagator `j2d` to `new_epoch`, which
 can be represented by a Julian Day or a `DateTime`.
 
-!!! notes
+!!! note
     The J2 orbit propagator `j2d` will be initialized with the Keplerian elements returned
     by the function.
 

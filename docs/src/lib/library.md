@@ -4,5 +4,5 @@ Library
 Documentation for `SatelliteToolboxPropagators.jl`.
 
 ```@autodocs
-Modules = [SatelliteToolboxPropagators]
+Modules = [SatelliteToolboxPropagators, Propagators]
 ```

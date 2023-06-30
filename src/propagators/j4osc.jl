@@ -401,7 +401,7 @@ the osculating elements represented by a set of position vectors `vr_i` [m] and 
 velocity vectors `vv_i` [m / s] represented in an inertial reference frame at instants in
 the array `vjd` [Julian Day].
 
-!!! notes
+!!! note
     The J4 osculating orbit propagator `j4oscd` will be initialized with the Keplerian
     elements returned by the function.
 
@@ -715,7 +715,7 @@ end
 Update the epoch of the mean elements `orb` using a J4 osculating orbit propagator to
 `new_epoch`, which can be represented by a Julian Day or a `DateTime`.
 
-!!! notes
+!!! note
     This algorithm version will allocate a new J4 osculating propagator with the default
     constants `j4c_egm2008`. If another set of constants are required, use the function
     [`update_j4osc_mean_elements_epoch!`](@ref) instead.
@@ -775,7 +775,7 @@ end
 Update the epoch of the mean elements `orb` using the propagator `j4oscd` to `new_epoch`,
 which can be represented by a Julian Day or a `DateTime`.
 
-!!! notes
+!!! note
     The J4 osculating orbit propagator `j4oscd` will be initialized with the Keplerian
     elements returned by the function.
 

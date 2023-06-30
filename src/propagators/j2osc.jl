@@ -99,7 +99,7 @@ function j2osc_init!(
     # Initialize the J2 propagator that will propagate the mean elements.
     j2_init!(j2oscd.j2d, orb₀, dn_o2, ddn_o6)
 
-    # Call the propagation one time to update the osculating elements.
+    # Call the propagntion one time to update the osculating elements.
     j2osc!(j2oscd, 0)
 
     return nothing
@@ -400,7 +400,7 @@ the osculating elements represented by a set of position vectors `vr_i` [m] and 
 velocity vectors `vv_i` [m / s] represented in an inertial reference frame at instants in
 the array `vjd` [Julian Day].
 
-!!! notes
+!!! note
     The J2 osculating orbit propagator `j2oscd` will be initialized with the Keplerian
     elements returned by the function.
 
@@ -714,7 +714,7 @@ end
 Update the epoch of the mean elements `orb` using a J2 osculating orbit propagator to
 `new_epoch`, which can be represented by a Julian Day or a `DateTime`.
 
-!!! notes
+!!! note
     This algorithm version will allocate a new J2 osculating propagator with the default
     constants `j2c_egm2008`. If another set of constants are required, use the function
     [`update_j2osc_mean_elements_epoch!`](@ref) instead.
@@ -774,7 +774,7 @@ end
 Update the epoch of the mean elements `orb` using the propagator `j2oscd` to `new_epoch`,
 which can be represented by a Julian Day or a `DateTime`.
 
-!!! notes
+!!! note
     The J2 osculating orbit propagator `j2oscd` will be initialized with the Keplerian
     elements returned by the function.
 
