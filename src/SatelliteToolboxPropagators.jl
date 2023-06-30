@@ -43,12 +43,14 @@ const _Y = crayon"bold yellow"
 include("./api/j2.jl")
 include("./api/j2osc.jl")
 include("./api/j4.jl")
+include("./api/j4osc.jl")
 include("./api/sgp4.jl")
 include("./api/twobody.jl")
 
 include("./propagators/j2.jl")
 include("./propagators/j2osc.jl")
 include("./propagators/j4.jl")
+include("./propagators/j4osc.jl")
 include("./propagators/twobody.jl")
 
 end # module SatelliteToolboxPropagators

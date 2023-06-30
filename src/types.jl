@@ -8,11 +8,12 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 export J2PropagatorConstants, J2Propagator, J2OsculatingPropagator
-export J4PropagatorConstants, J4Propagator
+export J4PropagatorConstants, J4Propagator, J4OsculatingPropagator
 export TwoBodyPropagator
 export OrbitPropagatorJ2
 export OrbitPropagatorJ2Osculating
 export OrbitPropagatorJ4
+export OrbitPropagatorJ4Osculating
 export OrbitPropagatorSgp4
 export OrbitPropagatorTwoBody
 
@@ -149,6 +150,32 @@ mutable struct J4Propagator{Tepoch, T}
 end
 
 ############################################################################################
+#                              J4 Osculating Orbit Propagator
+############################################################################################
+
+"""
+    mutable struct J4OsculatingPropagator{Tepoch<:Number, T<:Number}
+
+J4 osculating orbit propagator structure.
+"""
+mutable struct J4OsculatingPropagator{Tepoch<:Number, T<:Number}
+    # J4 orbit propagator to propagate the mean elements.
+    j4d::J4Propagator{Tepoch, T}
+
+    # Propagation time from epoch.
+    Δt::T
+
+    # Current osculating Keplerian elements.
+    orbk::KeplerianElements{Tepoch, T}
+
+    # Constructors
+    # ======================================================================================
+
+    J4OsculatingPropagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
+    J4OsculatingPropagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
+end
+
+############################################################################################
 #                                   Two Body Propagator
 ############################################################################################
 
@@ -227,6 +254,23 @@ J4 orbit propagator.
 """
 struct OrbitPropagatorJ4{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T}
     j4d::J4Propagator{Tepoch, T}
+end
+
+#                              J4 Osculating Orbit Propagator
+# ==========================================================================================
+
+"""
+    OrbitPropagatorJ4Osculating{Tepoch, T} <: OrbitPropagator{Tepoch, T}
+
+J4 osculating orbit propagator.
+
+# Fields
+
+- `j4oscd`: Structure that stores the J4 osculating orbit propagator data (see
+    [`J4OsculatingPropagator`](@ref)).
+"""
+struct OrbitPropagatorJ4Osculating{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T}
+    j4oscd::J4OsculatingPropagator{Tepoch, T}
 end
 
 #                                  SGP4 Orbit Propagator

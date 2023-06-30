@@ -16,6 +16,10 @@ end
     include("./j4.jl")
 end
 
+@testset "J4 Osculating Orbit Propagator" verbose = true begin
+    include("./j4osc.jl")
+end
+
 @testset "SGP4 Orbit Propagator" verbose = true begin
     include("./sgp4.jl")
 end
