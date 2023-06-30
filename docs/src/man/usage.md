@@ -30,6 +30,7 @@ It initializes a propagator of type `:propagator` using the arguments `args...` 
 |            J2 analytical orbit propagator | `:J2`      |
 | J2 osculating analytical orbit propagator | `:J2osc`   |
 |            J4 analytical orbit propagator | `:J4`      |
+| J4 osculating analytical orbit propagator | `:J4osc`   |
 |                SGP4/SDP4 orbit propagator | `:SGP4`    |
 |      Two body analytical orbit propagator | `:TwoBody` |
 
