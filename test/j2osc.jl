@@ -342,7 +342,7 @@ end
 
 @testset "Fitting Mean Elements for the J2 Osculating Orbit Propagator" verbose = true begin
     # We just need to run the J2 osculating propagator, obtain the osculating elements,
-    # convert them to mean Keplerian elements, and compare with the original TLE.
+    # convert them to mean Keplerian elements, and compare with the original mean elements.
 
     orb_input = KeplerianElements(
         DateTime("2023-01-01") |> datetime2julian,
