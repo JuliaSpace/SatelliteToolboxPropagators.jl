@@ -141,6 +141,11 @@ epoch to `mean_elements_epoch`.
     If `initial_guess` is not `nothing`, the B* initial estimate is obtained from the TLE or
     the state vector. Hence, if `estimate_bstar` is `false`, it will be kept constant with
     this initial value.
+
+# References
+
+- **[1]** Vallado, D. A., Crawford, P (2008). SGP4 Orbit Determination. American Institute
+    of Aeronautics ans Astronautics.
 """
 function Propagators.fit_mean_elements(
     ::Val{:SGP4},
@@ -237,6 +242,11 @@ epoch to `mean_elements_epoch`.
     If `initial_guess` is not `nothing`, the B* initial estimate is obtained from the TLE or
     the state vector. Hence, if `estimate_bstar` is `false`, it will be kept constant with
     this initial value.
+
+# References
+
+- **[1]** Vallado, D. A., Crawford, P (2008). SGP4 Orbit Determination. American Institute
+    of Aeronautics ans Astronautics.
 """
 function Propagators.fit_mean_elements!(
     orbp::OrbitPropagatorSgp4,
