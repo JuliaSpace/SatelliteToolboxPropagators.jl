@@ -53,4 +53,6 @@ include("./propagators/j4.jl")
 include("./propagators/j4osc.jl")
 include("./propagators/twobody.jl")
 
+include("./precompile.jl")
+
 end # module SatelliteToolboxPropagators
