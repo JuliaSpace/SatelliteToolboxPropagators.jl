@@ -379,6 +379,25 @@ end
         @test orb.Ω ≈ orb_input.Ω
         @test orb.ω ≈ orb_input.ω
         @test orb.f ≈ orb_input.f atol = 1e-6
+
+        # Test with very low perturbation in the Jacobian.
+        orb, ~ = redirect_stdout(devnull) do
+            fit_j2osc_mean_elements(
+                vjd,
+                vr_i,
+                vv_i;
+                mean_elements_epoch = vjd[begin],
+                jacobian_perturbation = 1e-13
+            )
+        end
+
+        @test orb.t ≈ orb_input.t
+        @test orb.a ≈ orb_input.a
+        @test orb.e ≈ orb_input.e
+        @test orb.i ≈ orb_input.i
+        @test orb.Ω ≈ orb_input.Ω
+        @test orb.ω ≈ orb_input.ω
+        @test orb.f ≈ orb_input.f atol = 1e-6
     end
 
     @testset "With Initial Guess" begin
