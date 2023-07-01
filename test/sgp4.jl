@@ -100,12 +100,12 @@
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk.t == Propagators.epoch(orbp)
-        @test orbk.a == orbp.sgp4d.a_k * orbp.sgp4d.sgp4c.R0
-        @test orbk.e == orbp.sgp4d.e_k
-        @test orbk.i == orbp.sgp4d.i_k
-        @test orbk.Ω == orbp.sgp4d.Ω_k
-        @test orbk.ω == orbp.sgp4d.ω_k
-        @test orbk.f == mean_to_true_anomaly(orbp.sgp4d.e_k, orbp.sgp4d.M_k)
+        @test orbk.a == (orbp.sgp4d.sgp4c.XKE / orbp.sgp4d.n₀) ^ (2 / 3) * (1000 * orbp.sgp4d.sgp4c.R0)
+        @test orbk.e == orbp.sgp4d.e₀
+        @test orbk.i == orbp.sgp4d.i₀
+        @test orbk.Ω == orbp.sgp4d.Ω₀
+        @test orbk.ω == orbp.sgp4d.ω₀
+        @test orbk.f == mean_to_true_anomaly(orbp.sgp4d.e₀, orbp.sgp4d.M₀)
     end
 
     # Float64

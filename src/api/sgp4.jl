@@ -12,16 +12,46 @@ Propagators.last_instant(orbp::OrbitPropagatorSgp4)  = orbp.sgp4d.Δt * 60
 Propagators.name(orbp::OrbitPropagatorSgp4)          = "SGP4 Orbit Propagator"
 
 function Propagators.mean_elements(orbp::OrbitPropagatorSgp4)
-    sgp4d = orbp.sgp4d
+    # We need to copy the propagator to avoid modifying it.
+    sgp4d = deepcopy(orbp.sgp4d)
+    sgp4c = sgp4d.sgp4c
 
+    # First, we need to create a TLE based on the initial parameters.
+    dt  = julian2datetime(Propagators.epoch(orbp))
+    dt₀ = DateTime(Year(dt))
+
+    dt_year    = year(dt)
+    epoch_year = dt_year < 1980 ? dt_year - 1900 : dt_year - 2000
+    epoch_day  = (dt - dt₀).value / 1000 / 86400 + 1
+
+    tle = TLE(
+        epoch_year          = epoch_year,
+        epoch_day           = epoch_day,
+        bstar               = sgp4d.bstar,
+        inclination         = sgp4d.i₀ |> rad2deg,
+        raan                = sgp4d.Ω₀ |> rad2deg,
+        eccentricity        = sgp4d.e₀,
+        argument_of_perigee = sgp4d.ω₀ |> rad2deg,
+        mean_anomaly        = sgp4d.M₀ |> rad2deg,
+        mean_motion         = 720 * sgp4d.n₀ / π,
+    )
+
+    # Now, we update the TLE epoch to the current propagation instant.
+    new_epoch = Propagators.epoch(orbp) + Propagators.last_instant(orbp) / 86400
+    updated_tle = update_sgp4_tle_epoch!(sgp4d, tle, new_epoch; verbose = false)
+
+    # Initialize the propagator to obtain the mean elements.
+    sgp4_init!(sgp4d, updated_tle)
+
+    # Create and return the Keplerian elements.
     return KeplerianElements(
-        sgp4d.epoch + sgp4d.Δt / 86400,
-        sgp4d.a_k * sgp4d.sgp4c.R0,
-        sgp4d.e_k,
-        sgp4d.i_k,
-        sgp4d.Ω_k,
-        sgp4d.ω_k,
-        mean_to_true_anomaly(sgp4d.e_k, sgp4d.M_k)
+        new_epoch,
+        (sgp4c.XKE / sgp4d.n₀)^(2 / 3) * (1000 * sgp4c.R0),
+        sgp4d.e₀,
+        sgp4d.i₀,
+        sgp4d.Ω₀,
+        sgp4d.ω₀,
+        mean_to_true_anomaly(sgp4d.e₀, sgp4d.M₀)
     )
 end
 
