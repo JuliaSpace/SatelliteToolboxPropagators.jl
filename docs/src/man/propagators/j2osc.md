@@ -83,6 +83,88 @@ OrbitPropagatorJ2Osculating{Float64, Float64}:
   Last propagation : 2023-01-01T00:00:00
 ```
 
+## Fitting Mean Elements
+
+We can use the function:
+
+```julia
+function Propagators.fit_mean_elements(::Val{:J2osc}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) -> KeplerianElements{Float64, Float64}, SMatrix{6, 6, Float64}
+```
+
+to fit a set of mean Keplerian elements for the J2 osculating orbit propagator using the
+osculating elements represented by a set of position vectors `vr_i` [m] and a set of
+velocity vectors `vv_i` [m / s] represented in an inertial reference frame at instants in
+the array `vjd` [Julian Day].
+
+It returns the fitted Keplerian elements and the final covariance matrix of the least-square
+algorithm.
+
+!!! note
+    This algorithm version will allocate a new J2 propagator with the default constants
+    `j2c_egm2008`. If another set of constants are required, use the function
+    [`Propagators.fit_mean_elements!`](@ref) instead.
+    
+The following keywords are available to configure the fitting process:
+
+- `atol::Number`: Tolerance for the residue absolute value. If the residue is lower than
+    `atol` at any iteration, the computation loop stops. (**Default** = 2e-4)
+- `rtol::Number`: Tolerance for the relative difference between the residues. If the
+    relative difference between the residues in two consecutive iterations is lower than
+    `rtol`, the computation loop stops. (**Default** = 2e-4)
+- `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
+    fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
+    the osculating elements in `vr_i` and `vv_i`. (**Default** = nothing)
+- `jacobian_perturbation::Number`: Initial state perturbation to compute the
+    finite-difference when calculating the Jacobian matrix. (**Default** = 1e-3)
+- `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
+    the Jacobian matrix. If the computed perturbation is lower than
+    `jacobian_perturbation_tol`, we increase it until it absolute value is higher than
+    `jacobian_perturbation_tol`. (**Default** = 1e-7)
+- `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
+    (**Default** = 50)
+- `mean_elements_epoch::Number`: Epoch for the fitted mean elements.
+    (**Default** = vjd[end])
+- `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
+    (**Default** = true)
+- `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
+    algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
+    `weight_vector` at its diagonal. (**Default** = `@SVector(ones(Bool, 6))`)
+    
+```julia
+julia> vr_i = [
+           [-6792.402703741442, 2192.6458461287293, 0.18851758695295118] .* 1000,
+           [-6357.88873265975, 2391.9476768911686, 2181.838771262736] .* 1000
+       ];
+
+julia> vv_i = [
+           [0.3445760107690598, 1.0395135806993514, 7.393686131436984] .* 1000,
+           [2.5285015912807003, 0.27812476784300005, 7.030323100703928] .* 1000
+       ];
+
+julia> vjd = [
+           2.46002818657856e6,
+           2.460028190050782e6
+       ];
+
+julia> orb, P = Propagators.fit_mean_elements(Val(:J2), vjd, vr_i, vv_i)
+ACTION:   Fitting the mean elements for the J2 propagator.
+           Iteration        Position RMSE        Velocity RMSE           Total RMSE       RMSE Variation
+                                     [km]             [km / s]                  [ ]
+PROGRESS:          3          6.15798e-05           0.00975024              9.75043         -0.000203903 %
+
+(KeplerianElements{Float64, Float64}: Epoch = 2.46003e6 (2023-03-24T16:33:40.388), [0.9999771881514358 3.332831176445557e-7 … -9.720588392821589e-5 -7.124383305247769e-5; 3.3327603024689727e-7 0.9999779181940862 … 0.0032646452155289567 1.7018081890699746e-5; … ; -9.720588394942824e-5 0.0032646452155281466 … 2.2082152640332316e-5 1.794499832376423e-8; -7.12438330606674e-5 1.7018081892440988e-5 … 1.7944998330774395e-8 2.1724736479160325e-5])
+
+julia> orb
+KeplerianElements{Float64, Float64}:
+           Epoch :    2.46003e6 (2023-03-24T16:33:40.388)
+ Semi-major axis : 7155.99       km
+    Eccentricity :    0.00307382
+     Inclination :   98.4357     °
+            RAAN :  162.113      °
+ Arg. of Perigee :   33.0518     °
+    True Anomaly :  344.956      °
+```
+
 ## References
 
 - **[1]** **Vallado, D. A** (2013). *Fundamentals of Astrodynamics and Applications*. 4th

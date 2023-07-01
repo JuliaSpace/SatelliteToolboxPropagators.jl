@@ -121,3 +121,25 @@ Propagators.propagate(t, args...; kwargs...)
 that simultaneously initialize and propagate the orbit to the instant `t` [s] after the
 input elements. `args...` and `kwargs...` must be the same as in the initialization function
 `Propagators.init`.
+
+### Fitting Mean Elements (Optional)
+
+The propagator can implement the following functions to fit a set of osculating state
+vectors into mean elements for its theory:
+
+```julia
+Propagators.fit_mean_elements(T, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector}
+Propagators.fit_mean_elements!(orbp::OrbitPropagator<Propagator name>, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector}
+```
+
+where `T = Val(<Orbit propagator symbol>)`, `vr_i` and `vv_i` are a set of position [m] and
+velocity [m / s] vectors obtained at the instants in `vjd` [Julian Day]. Those functions
+must return the mean elements used to initialize the propagator in the function
+`Propagator.init`.
+
+Each propagator type can define its own set of keyword arguments to configure the fitting
+process.
+
+The first signature will allocate a new propagator, whereas the second will use the
+allocated one passed as the first argument. In the latter, the propagator needs to be
+initialized with the fitted elements.
