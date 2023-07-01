@@ -552,3 +552,89 @@
         @test v_teme[3] ≈ 1000 * expected_results[end, 7] atol = 8e-1
     end
 end
+
+@testset "Fitting Mean Elements for the SGP4 Osculating Orbit Propagator" verbose = true begin
+    # The algorithm is already heavily testes in SatelliteToolboxSgp4.jl. Hence, we will
+    # perform just an interface test here with a simple case.
+
+    tle_input = tle"""
+    AMAZONIA 1
+    1 47699U 21015A   21270.48626105 -.00000044  00000-0  19860-2 0  9993
+    2 47699  98.4889 344.6059 0001597  74.4244 285.7135 14.40801240 30436
+    """
+
+    # Generate the osculating elements (TEME).
+    orbp    = Propagators.init(Val(:SGP4), tle_input)
+    ret     = Propagators.propagate!.(orbp, 0:10:12_000)
+    vr_teme = first.(ret)
+    vv_teme = last.(ret)
+    vjd     = Propagators.epoch(orbp) .+ (0:10:12_000) ./ 86400
+
+    tle, ~ = Propagators.fit_mean_elements(
+        Val(:SGP4),
+        vjd,
+        vr_teme,
+        vv_teme;
+        atol                     = 1e-10,
+        rtol                     = 1e-10,
+        element_set_number       = 999,
+        international_designator = "21015A",
+        mean_elements_epoch      = vjd[begin],
+        name                     = "AMAZONIA 1",
+        revolution_number        = 3043,
+        satellite_number         = 47699,
+        max_iterations           = 1000,
+        verbose                  = false,
+    )
+
+    @test tle.classification           == tle_input.classification
+    @test tle.element_set_number       == tle_input.element_set_number
+    @test tle.epoch_year               == tle_input.epoch_year
+    @test tle.international_designator == tle_input.international_designator
+    @test tle.name                     == tle_input.name
+    @test tle.revolution_number        == tle_input.revolution_number
+    @test tle.satellite_number         == tle_input.satellite_number
+
+    @test tle.bstar               ≈  tle_input.bstar               atol = 1e-6
+    @test tle.eccentricity        ≈  tle_input.eccentricity        atol = 1e-7
+    @test tle.epoch_day           ≈  tle_input.epoch_day           atol = 1e-8
+    @test tle.inclination         ≈  tle_input.inclination         atol = 1e-4
+    @test tle.mean_anomaly        ≈  tle_input.mean_anomaly        atol = 1e-4
+    @test tle.mean_motion         ≈  tle_input.mean_motion         atol = 1e-7
+    @test tle.raan                ≈  tle_input.raan                atol = 1e-4
+    @test tle.argument_of_perigee ≈  tle_input.argument_of_perigee atol = 1e-4
+
+    tle, ~ = Propagators.fit_mean_elements!(
+        orbp,
+        vjd,
+        vr_teme,
+        vv_teme;
+        atol                     = 1e-10,
+        rtol                     = 1e-10,
+        element_set_number       = 999,
+        international_designator = "21015A",
+        mean_elements_epoch      = vjd[begin],
+        name                     = "AMAZONIA 1",
+        revolution_number        = 3043,
+        satellite_number         = 47699,
+        max_iterations           = 1000,
+        verbose                  = false,
+    )
+
+    @test tle.classification           == tle_input.classification
+    @test tle.element_set_number       == tle_input.element_set_number
+    @test tle.epoch_year               == tle_input.epoch_year
+    @test tle.international_designator == tle_input.international_designator
+    @test tle.name                     == tle_input.name
+    @test tle.revolution_number        == tle_input.revolution_number
+    @test tle.satellite_number         == tle_input.satellite_number
+
+    @test tle.bstar               ≈  tle_input.bstar               atol = 1e-6
+    @test tle.eccentricity        ≈  tle_input.eccentricity        atol = 1e-7
+    @test tle.epoch_day           ≈  tle_input.epoch_day           atol = 1e-8
+    @test tle.inclination         ≈  tle_input.inclination         atol = 1e-4
+    @test tle.mean_anomaly        ≈  tle_input.mean_anomaly        atol = 1e-4
+    @test tle.mean_motion         ≈  tle_input.mean_motion         atol = 1e-7
+    @test tle.raan                ≈  tle_input.raan                atol = 1e-4
+    @test tle.argument_of_perigee ≈  tle_input.argument_of_perigee atol = 1e-4
+end

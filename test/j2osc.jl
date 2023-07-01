@@ -355,16 +355,36 @@ end
     )
 
     # Generate the osculating elements.
-    j2oscd = j2osc_init(orb_input)
-    ret    = map(t -> j2osc!(j2oscd, t), 0:10:12_000)
-    vr_i   = first.(ret)
-    vv_i   = last.(ret)
-    vjd    = j2oscd.j2d.orb₀.t .+ (0:10:12_000) ./ 86400
+    orbp = Propagators.init(Val(:J2osc), orb_input)
+    ret  = Propagators.propagate!.(orbp, 0:10:12_000)
+    vr_i = first.(ret)
+    vv_i = last.(ret)
+    vjd  = Propagators.epoch(orbp) .+ (0:10:12_000) ./ 86400
 
     @testset "Without Initial Guess" begin
         # Obtain the mean elements.
         orb, ~ = redirect_stdout(devnull) do
-            fit_j2osc_mean_elements(
+            Propagators.fit_mean_elements(
+                Val(:J2osc),
+                vjd,
+                vr_i,
+                vv_i;
+                mean_elements_epoch = vjd[begin],
+            )
+        end
+
+        @test orb.t ≈ orb_input.t
+        @test orb.a ≈ orb_input.a
+        @test orb.e ≈ orb_input.e
+        @test orb.i ≈ orb_input.i
+        @test orb.Ω ≈ orb_input.Ω
+        @test orb.ω ≈ orb_input.ω
+        @test orb.f ≈ orb_input.f atol = 1e-6
+
+        # Obtain the mean elements.
+        orb, ~ = redirect_stdout(devnull) do
+            Propagators.fit_mean_elements!(
+                orbp,
                 vjd,
                 vr_i,
                 vv_i;
@@ -382,7 +402,27 @@ end
 
         # Test with very low perturbation in the Jacobian.
         orb, ~ = redirect_stdout(devnull) do
-            fit_j2osc_mean_elements(
+            Propagators.fit_mean_elements(
+                Val(:J2osc),
+                vjd,
+                vr_i,
+                vv_i;
+                mean_elements_epoch = vjd[begin],
+                jacobian_perturbation = 1e-13
+            )
+        end
+
+        @test orb.t ≈ orb_input.t
+        @test orb.a ≈ orb_input.a
+        @test orb.e ≈ orb_input.e
+        @test orb.i ≈ orb_input.i
+        @test orb.Ω ≈ orb_input.Ω
+        @test orb.ω ≈ orb_input.ω
+        @test orb.f ≈ orb_input.f atol = 1e-6
+
+        orb, ~ = redirect_stdout(devnull) do
+            Propagators.fit_mean_elements!(
+                orbp,
                 vjd,
                 vr_i,
                 vv_i;
@@ -403,7 +443,29 @@ end
     @testset "With Initial Guess" begin
         # Obtain the mean elements.
         orb, ~ = redirect_stdout(devnull) do
-            fit_j2osc_mean_elements(
+            Propagators.fit_mean_elements(
+                Val(:J2osc),
+                vjd,
+                vr_i,
+                vv_i;
+                max_iterations = 3,
+                mean_elements_epoch = vjd[begin],
+                initial_guess = orb_input,
+            )
+        end
+
+        @test orb.t ≈ orb_input.t
+        @test orb.a ≈ orb_input.a
+        @test orb.e ≈ orb_input.e
+        @test orb.i ≈ orb_input.i
+        @test orb.Ω ≈ orb_input.Ω
+        @test orb.ω ≈ orb_input.ω
+        @test orb.f ≈ orb_input.f atol = 1e-6
+
+        # Obtain the mean elements.
+        orb, ~ = redirect_stdout(devnull) do
+            Propagators.fit_mean_elements!(
+                orbp,
                 vjd,
                 vr_i,
                 vv_i;
@@ -425,7 +487,28 @@ end
     @testset "Without Initial Guess and Updating the Epoch" begin
         # Obtain the mean elements.
         orb, ~ = redirect_stdout(devnull) do
-            fit_j2osc_mean_elements(
+            Propagators.fit_mean_elements(
+                Val(:J2osc),
+                vjd,
+                vr_i,
+                vv_i;
+                mean_elements_epoch = vjd[begin] + 1,
+            )
+        end
+
+        @test orb.t ≈ orb_input.t + 1
+        @test orb.a ≈ orb_input.a
+        @test orb.e ≈ orb_input.e
+        @test orb.i ≈ orb_input.i
+
+        # The input orbit is the nominal orbit for the Amazonia-1 satellite, which is Sun
+        # synchronous. Thus, the RAAN moves approximately 0.9856002605° per day.
+        @test orb.Ω ≈ orb_input.Ω + deg2rad(0.9856002605) atol = 2e-5
+
+        # Obtain the mean elements.
+        orb, ~ = redirect_stdout(devnull) do
+            Propagators.fit_mean_elements!(
+                orbp,
                 vjd,
                 vr_i,
                 vv_i;
@@ -447,14 +530,15 @@ end
         # Wrong dimensions in the input vectors
         # ==================================================================================
 
-        @test_throws ArgumentError fit_j2osc_mean_elements(vjd[1:end-1], vr_i, vv_i)
-        @test_throws ArgumentError fit_j2osc_mean_elements(vjd, vr_i[1:end-1], vv_i)
-        @test_throws ArgumentError fit_j2osc_mean_elements(vjd, vr_i, vv_i[1:end-1])
+        @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J2osc), vjd[1:end-1], vr_i, vv_i)
+        @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J2osc), vjd, vr_i[1:end-1], vv_i)
+        @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J2osc), vjd, vr_i, vv_i[1:end-1])
 
         # Wrong dimensions in the weight vector
         # ==================================================================================
 
-        @test_throws ArgumentError fit_j2osc_mean_elements(
+        @test_throws ArgumentError Propagators.fit_mean_elements(
+            Val(:J2osc),
             vjd,
             vr_i,
             vv_i;

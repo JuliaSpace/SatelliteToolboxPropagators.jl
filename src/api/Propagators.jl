@@ -27,6 +27,31 @@ Abstract type for the orbit propagators.
 abstract type OrbitPropagator{Tepoch<:Number, T<:Number} end
 
 """
+    fit_mean_elements(::Val{:propagator}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector} -> <Mean elements>
+
+Fit a set of mean elements for the `propagator` using the osculating elements represented by
+a set of position vectors `vr_i` [m] and a set of velocity vectors `vv_i` [m / s]
+represented in an inertial reference frame at instants in the array `vjd` [Julian Day]. The
+keywords `kwargs` depends on the propagator type.
+
+This function returns the set of mean elements used to initialize the `propagator`.
+"""
+function fit_mean_elements end
+
+"""
+    fit_mean_elements!(orbp::OrbitPropagator, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector} -> <Mean elements>
+
+Fit a set of mean elements for the propagator `orbp` using the osculating elements
+represented by a set of position vectors `vr_i` [m] and a set of velocity vectors `vv_i` [m
+/ s] represented in an inertial reference frame at instants in the array `vjd` [Julian Day].
+The keywords `kwargs` depends on the propagator type.
+
+This function returns the set of mean elements used to initialize the `propagator` and also
+initializes `orbp` with the fitted mean elements.
+"""
+function fit_mean_elements! end
+
+"""
     init(::Val{:propagator}, args...; kwargs...) -> OrbitPropagator
 
 Create and initialize the orbit `propagator`. The arguments `args` and keywords `kwargs`
