@@ -1,6 +1,11 @@
 SatelliteToolboxPropagator.jl Changelog
 =======================================
 
+Version 0.2.1
+-------------
+
+- ![Bugfix][badge-bugfix] Fix the default constant name in the function `twobody`.
+
 Version 0.2.0
 -------------
 
