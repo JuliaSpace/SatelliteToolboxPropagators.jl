@@ -134,7 +134,7 @@ The inertial frame in which the output is represented depends on which frame it 
 generate the orbit parameters. Notice that the perturbation theory requires an inertial
 frame with true equator.
 """
-function twobody(Δt::Number, orb₀::KeplerianElements; μ::T = tbd_m0) where T<:Number
+function twobody(Δt::Number, orb₀::KeplerianElements; μ::T = tbc_m0) where T<:Number
     tbd = twobody_init(orb₀; μ = μ)
     r_i, v_i = twobody!(tbd, Δt)
     return r_i, v_i, tbd
