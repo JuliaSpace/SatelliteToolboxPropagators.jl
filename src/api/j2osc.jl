@@ -120,22 +120,14 @@ function Propagators.fit_mean_elements!(
 end
 
 """
-    Propagators.init(Val(:J2osc), orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...) -> OrbitPropagatorJ2Osculating
+    Propagators.init(Val(:J2osc), orb₀::KeplerianElements; kwargs...) -> OrbitPropagatorJ2Osculating
 
 Create and initialize the J2 osculating orbit propagator structure using the mean Keplerian
-elements `orb₀`.
+elements `orb₀` [SI units].
 
 !!! note
     The type used in the propagation will be the same as used to define the constants in the
     structure `j2c`.
-
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
-- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
-    (**Default** = 0)
-- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
-    (**Default** = 0)
 
 # Keywords
 
@@ -144,60 +136,37 @@ elements `orb₀`.
 """
 function Propagators.init(
     ::Val{:J2osc},
-    orb₀::KeplerianElements,
-    dn_o2::Number = 0,
-    ddn_o6::Number = 0;
+    orb₀::KeplerianElements;
     j2c::J2PropagatorConstants = j2c_egm2008
 )
-    j2oscd = j2osc_init(orb₀, dn_o2, ddn_o6; j2c = j2c)
+    j2oscd = j2osc_init(orb₀; j2c = j2c)
     return OrbitPropagatorJ2Osculating(j2oscd)
 end
 
 """
-    Propagators.init!(orbp::OrbitPropagatorJ2Osculating, orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0) -> Nothing
+    Propagators.init!(orbp::OrbitPropagatorJ2Osculating, orb₀::KeplerianElements) -> Nothing
 
 Initialize the J2 osculating orbit propagator structure `orbp` using the mean Keplerian
-elements `orb₀`.
+elements `orb₀` [SI units].
 
 !!! warning
     The propagation constants `j2c::J2PropagatorConstants` in `orbp.j2d` will not be
     changed. Hence, they must be initialized.
-
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
-- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
-    (**Default** = 0)
-- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
-    (**Default** = 0)
 """
-function Propagators.init!(
-    orbp::OrbitPropagatorJ2Osculating,
-    orb₀::KeplerianElements,
-    dn_o2::Number = 0,
-    ddn_o6::Number = 0
-)
-    j2osc_init!(orbp.j2oscd, orb₀, dn_o2, ddn_o6)
+function Propagators.init!(orbp::OrbitPropagatorJ2Osculating, orb₀::KeplerianElements)
+    j2osc_init!(orbp.j2oscd, orb₀)
     return nothing
 end
 
 """
-    Propagators.propagate(Val(:J2osc), Δt::Number, orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...)
+    Propagators.propagate(Val(:J2osc), Δt::Number, orb₀::KeplerianElements; kwargs...)
 
-Initialize the J2 osculating propagator structure using the input elements `orb₀` and
-propagate the orbit until the time Δt [s].
+Initialize the J2 osculating propagator structure using the input elements `orb₀` [SI units]
+and propagate the orbit until the time Δt [s].
 
 !!! note
     The type used in the propagation will be the same as used to define the constants in the
     structure `j2c`.
-
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
-- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
-    (**Default** = 0)
-- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
-    (**Default** = 0)
 
 # Keywords
 
@@ -215,12 +184,10 @@ propagate the orbit until the time Δt [s].
 function Propagators.propagate(
     ::Val{:J2osc},
     Δt::Number,
-    orb₀::KeplerianElements,
-    dn_o2::Number = 0,
-    ddn_o6::Number = 0;
+    orb₀::KeplerianElements;
     j2c::J2PropagatorConstants = j2c_egm2008
 )
-    r_i, v_i, j2oscd = j2osc(Δt, orb₀, dn_o2, ddn_o6; j2c = j2c)
+    r_i, v_i, j2oscd = j2osc(Δt, orb₀; j2c = j2c)
     return r_i, v_i, OrbitPropagatorJ2Osculating(j2oscd)
 end
 

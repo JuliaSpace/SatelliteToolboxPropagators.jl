@@ -73,7 +73,7 @@
 
     @testset "Constructor" begin
         orb    = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
-        j2d    = J2Propagator{Float64, Float64}(orb, orb, 0, 0, j2c_egm2008, 0, 0, 0, 0, 0, 0, 0, 0)
+        j2d    = J2Propagator{Float64, Float64}(orb, orb, j2c_egm2008, 0, 0, 0, 0, 0)
         j2oscd = J2OsculatingPropagator{Float64, Float64}(j2d, 0, orb)
 
         # Test some random fields.

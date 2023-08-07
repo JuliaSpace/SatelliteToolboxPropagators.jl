@@ -114,22 +114,14 @@ const j2c_jgm03_f32 = J2PropagatorConstants{Float32}(
 ############################################################################################
 
 """
-    j2_init(orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...) where T<:Number -> J2Propagator
+    j2_init(orb₀::KeplerianElements; kwargs...) where T<:Number -> J2Propagator
 
 Create and initialize the J2 orbit propagator structure using the mean Keplerian elements
-`orb₀`.
+`orb₀` [SI units].
 
 !!! note
     The type used in the propagation will be the same as used to define the constants in the
     structure `j2c`.
-
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
-- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
-    (**Default** = 0)
-- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
-    (**Default** = 0)
 
 # Keywords
 
@@ -137,9 +129,7 @@ Create and initialize the J2 orbit propagator structure using the mean Keplerian
   [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm2008`)
 """
 function j2_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler},
-    dn_o2::Number = 0,
-    ddn_o6::Number = 0;
+    orb₀::KeplerianElements{Tepoch, Tkepler};
     j2c::J2PropagatorConstants{T} = j2c_egm2008
 ) where {Tepoch<:Number, Tkepler<:Number, T<:Number}
     # Allocate the propagator structure.
@@ -149,39 +139,30 @@ function j2_init(
     j2d.j2c = j2c
 
     # Initialize the propagator and return.
-    j2_init!(j2d, orb₀, dn_o2, ddn_o6)
+    j2_init!(j2d, orb₀)
 
     return j2d
 end
 
 """
-    j2_init!(j2d::J2Propagator, orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0) -> Nothing
+    j2_init!(j2d::J2Propagator, orb₀::KeplerianElements) -> Nothing
 
-Initialize the J2 orbit propagator structure `j2d` using the mean Keplerian elements `orb₀`.
+Initialize the J2 orbit propagator structure `j2d` using the mean Keplerian elements `orb₀`
+[SI units].
 
 !!! warning
     The propagation constants `j2c::J2PropagatorConstants` in `j2d` will not be changed.
     Hence, they must be initialized.
-
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
-- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
-    (**Default** = 0)
-- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
-    (**Default** = 0)
 """
 function j2_init!(
     j2d::J2Propagator{Tepoch, T},
-    orb₀::KeplerianElements,
-    dn_o2::Number = 0,
-    ddn_o6::Number = 0
+    orb₀::KeplerianElements
 ) where {Tepoch<:Number, T<:Number}
     # Unpack the gravitational constants to improve code readability.
     j2c = j2d.j2c
-    R0  = j2c.R0
+    R₀  = j2c.R0
     μm  = j2c.μm
-    J2  = j2c.J2
+    J₂  = j2c.J2
 
     # Unpack orbit elements.
     epoch = orb₀.t
@@ -193,13 +174,12 @@ function j2_init!(
     f₀    = T(orb₀.f)
 
     # Initial values and auxiliary variables.
-    al₀ = a₀ / R0                      # ................... Normalized semi-major axis [er]
+    al₀ = a₀ / R₀                      # ................... Normalized semi-major axis [er]
     e₀² = e₀^2                         # .......................... Eccentricity squared [ ]
     n₀  = μm / al₀^(T(3 / 2))          # ................... Unperturbed mean motion [rad/s]
     p₀  = al₀ * (1 - e₀²)              # ............................ Semi-latus rectum [er]
     p₀² = p₀^2                         # ................... Semi-latus rectum squared [er²]
     M₀  = true_to_mean_anomaly(e₀, f₀) # ........................ Initial mean anomaly [rad]
-    dn  = 2T(dn_o2)                    # ..... . Time-derivative of the mean motion [rad/s²]
 
     sin_i₀, cos_i₀ = sincos(T(i₀))
     sin_i₀² = sin_i₀^2
@@ -210,47 +190,32 @@ function j2_init!(
 
     # We need to compute the "mean" mean motion that is used to calculate the first-order
     # time derivative of the orbital elements [2].
-    n̄ = n₀ * (1 + T(3 / 4) * J2 / p₀² * √(1 - e₀²) * (2 - 3sin_i₀²))
+    n̄ = n₀ * (1 + T(3 / 4) * J₂ / p₀² * √(1 - e₀²) * (2 - 3sin_i₀²))
 
     # First-order time-derivative of the orbital elements.
-    δa = -T(2 / 3) * al₀ * dn / n₀
-    δe = -T(2 / 3) * (1 - T(e₀)) * dn / n₀
-    δΩ = -T(3 / 2) * n̄ * J2 / p₀² * cos_i₀
-    δω = +T(3 / 4) * n̄ * J2 / p₀² * (4 - 5sin_i₀²)
+    δΩ = -T(3 / 2) * n̄ * J₂ / p₀² * cos_i₀
+    δω = +T(3 / 4) * n̄ * J₂ / p₀² * (4 - 5sin_i₀²)
 
     # Initialize the propagator structure with the data.
-    j2d.orb₀   = j2d.orbk = orb₀
-    j2d.dn_o2  = dn_o2
-    j2d.ddn_o6 = ddn_o6
-    j2d.Δt     = 0
-    j2d.al₀    = al₀
-    j2d.M₀     = M₀
-    j2d.δa     = δa
-    j2d.δe     = δe
-    j2d.δΩ     = δΩ
-    j2d.δω     = δω
-    j2d.n̄      = n̄
+    j2d.orb₀ = j2d.orbk = orb₀
+    j2d.Δt   = 0
+    j2d.M₀   = M₀
+    j2d.δΩ   = δΩ
+    j2d.δω   = δω
+    j2d.n̄    = n̄
 
     return nothing
 end
 
 """
-    j2(Δt::Number, orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...)
+    j2(Δt::Number, orb₀::KeplerianElements; kwargs...)
 
-Initialize the J2 propagator structure using the input elements `orb₀` and propagate the
-orbit until the time Δt [s].
+Initialize the J2 propagator structure using the input elements `orb₀` [SI units] and
+propagate the orbit until the time Δt [s].
 
 !!! note
     The type used in the propagation will be the same as used to define the constants in the
     structure `j2c`.
-
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
-- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
-    (**Default** = 0)
-- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
-    (**Default** = 0)
 
 # Keywords
 
@@ -273,12 +238,10 @@ frame with true equator.
 """
 function j2(
     Δt::Number,
-    orb₀::KeplerianElements,
-    dn_o2::Number = 0,
-    ddn_o6::Number = 0;
+    orb₀::KeplerianElements;
     j2c::J2PropagatorConstants{T} = j2c_egm2008
 ) where T<:Number
-    j2d = j2_init(orb₀, dn_o2, ddn_o6; j2c = j2c)
+    j2d = j2_init(orb₀; j2c = j2c)
     r_i, v_i = j2!(j2d, Δt)
     return r_i, v_i, j2d
 end
@@ -309,17 +272,12 @@ function j2!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:
     # Unpack the variables.
     orb₀   = j2d.orb₀
     j2c    = j2d.j2c
-    al₀    = j2d.al₀
     M₀     = j2d.M₀
-    δa     = j2d.δa
-    δe     = j2d.δe
     δΩ     = j2d.δΩ
     δω     = j2d.δω
     n̄      = j2d.n̄
-    dn_o2  = j2d.dn_o2
-    ddn_o6 = j2d.ddn_o6
-    R0     = j2c.R0
     epoch  = orb₀.t
+    a₀     = orb₀.a
     e₀     = orb₀.e
     i₀     = orb₀.i
     Ω₀     = orb₀.Ω
@@ -329,24 +287,15 @@ function j2!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:
     Δt = T(t)
 
     # Propagate the orbital elements.
-    al_k = al₀ + δa * Δt
-    e_k  = e₀  + δe * Δt
-    i_k  = i₀
-    Ω_k  = mod(Ω₀ + δΩ * Δt, T(2π))
-    ω_k  = mod(ω₀ + δω * Δt, T(2π))
-
-    # The mean anomaly update equation can be seen in [1, p. 693]. However, we add the terms
-    # related with the time-derivative of the mean motion as in [1, p. 692].
-    M_k = mod(@evalpoly(Δt, M₀, n̄, dn_o2, ddn_o6), T(2π))
+    Ω_k = mod(Ω₀ + δΩ * Δt, T(2π))
+    ω_k = mod(ω₀ + δω * Δt, T(2π))
+    M_k = mod(M₀ + n̄  * Δt, T(2π))
 
     # Convert the mean anomaly to the true anomaly.
-    f_k = mean_to_true_anomaly(e_k, M_k)
-
-    # Make sure that eccentricity is not lower than 0.
-    e_k = max(e_k, T(0))
+    f_k = mean_to_true_anomaly(e₀, M_k)
 
     # Assemble the current mean elements.
-    orbk = KeplerianElements(epoch + Tepoch(Δt) / 86400, al_k * R0, e_k, i_k, Ω_k, ω_k, f_k)
+    orbk = KeplerianElements(epoch + Tepoch(Δt) / 86400, a₀, e₀, i₀, Ω_k, ω_k, f_k)
 
     # Compute the position and velocity vectors given the orbital elements.
     r_i_k, v_i_k = kepler_to_rv(orbk)
