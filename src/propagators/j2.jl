@@ -17,8 +17,8 @@
 #   [1] Vallado, D. A (2013). Fundamentals of Astrodynamics and Applications. Microcosm
 #       Press, Hawthorn, CA, USA.
 #
-#   [2] Wertz, J. R (1978). Spacecraft attitude determination and control. Kluwer Academic
-#       Publishers, Dordrecht, The Netherlands.
+#   [2] Kozai, Y (1959). The Motion of a Close Earth Satellite. The Astronomical Journal,
+#       pp. 367 -- 377.
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -204,19 +204,12 @@ function j2_init!(
     sin_i₀, cos_i₀ = sincos(T(i₀))
     sin_i₀² = sin_i₀^2
 
+    # We use the algorithm provided in [2, p. 372] that consists on updating the Keplerian
+    # elements considering only the first order secular terms, i.e., those that depends only
+    # on J₂.
+
     # We need to compute the "mean" mean motion that is used to calculate the first-order
-    # time derivative of the orbital elements.
-    #
-    # NOTE: Description of J2 propagator in [1, p. 691].
-    #
-    # Using the equations in [1, p. 691], we could not match the results from STK as
-    # mentioned in the issue:
-    #
-    #   https://github.com/JuliaSpace/SatelliteToolbox.jl/issues/91
-    #
-    # After analyzing the perturbation equations, it turns out that the time-derivative
-    # depends on the mean motion instead of the unperturbed mean motion as in the algorithm
-    # 65. We can see this by looking at the algorithm in Kozai's method in [1, p. 693].
+    # time derivative of the orbital elements [2].
     n̄ = n₀ * (1 + T(3 / 4) * J2 / p₀² * √(1 - e₀²) * (2 - 3sin_i₀²))
 
     # First-order time-derivative of the orbital elements.
