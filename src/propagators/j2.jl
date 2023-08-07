@@ -18,7 +18,7 @@
 #       Press, Hawthorn, CA, USA.
 #
 #   [2] Kozai, Y (1959). The Motion of a Close Earth Satellite. The Astronomical Journal,
-#       pp. 367 -- 377.
+#       v. 64, no. 1274, pp. 367 -- 377.
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
