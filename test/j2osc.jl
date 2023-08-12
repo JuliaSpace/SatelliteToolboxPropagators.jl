@@ -29,7 +29,7 @@
 # Numerical Propagation Results
 # ==========================================================================================
 #
-# Gravity model         : EGM-2008 (Degree 2, Order 0)
+# Gravity model         : EGM-2008 (Degree 4, Order 0)
 # Integration algorithm : AutoVern7(Rodas5())
 #
 #  Time [s] │ Pos. X (TOD)  Pos. Y (TOD)  Pos. Z (TOD)  Vel. X (TOD)  Vel. Y (TOD)  Vel. Z (TOD)

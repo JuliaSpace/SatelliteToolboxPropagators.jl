@@ -21,8 +21,16 @@
 #   [1] Vallado, D. A (2013). Fundamentals of Astrodynamics and Applications. Microcosm
 #       Press, Hawthorn, CA, USA.
 #
-#   [2] Hoots, F. R., Roehrich, R. L (1980). Models for Propagation of NORAD Elements Set.
+#   [2] Kozai, Y (1959). The Motion of a Close Earth Satellite. The Astronomical Journal,
+#       v. 64, no. 1274, pp. 367 -- 377.
+#
+#   [3] Hoots, F. R., Roehrich, R. L (1980). Models for Propagation of NORAD Elements Set.
 #       Spacetrack Report No. 3.
+#
+#   [4] Blitzer, L. Handbook of Orbital Perturbations. Astronautics 453. University of
+#       Arizona.
+#
+#   [5] https://www.mathworks.com/matlabcentral/fileexchange/43333-sun-synchronous-orbit-design
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -171,10 +179,10 @@ function j4_init!(
 ) where {Tepoch<:Number, T<:Number}
     # Unpack the gravitational constants to improve code readability.
     j4c = j4d.j4c
-    R0  = j4c.R0
+    R₀  = j4c.R0
     μm  = j4c.μm
-    J2  = j4c.J2
-    J4  = j4c.J4
+    J₂  = j4c.J2
+    J₄  = j4c.J4
 
     # Unpack orbit elements.
     epoch = orb₀.t
@@ -186,7 +194,7 @@ function j4_init!(
     f₀    = T(orb₀.f)
 
     # Initial values and auxiliary variables.
-    al₀ = a₀ / R0                      # ................... Normalized semi-major axis [er]
+    al₀ = a₀ / R₀                      # ................... Normalized semi-major axis [er]
     e₀² = e₀^2                         # .......................... Eccentricity squared [ ]
     p₀  = al₀ * (1 - e₀^2)             # ............................ Semi-latus rectum [er]
     p₀² = p₀^2                         # ................... Semi-latus rectum squared [er²]
@@ -194,50 +202,62 @@ function j4_init!(
     n₀  = μm / al₀^(T(3 / 2))          # ................. Unperturbed mean motion [rad / s]
     M₀  = true_to_mean_anomaly(e₀, f₀) # ........................ Initial mean anomaly [rad]
     dn  = 2T(dn_o2)                    # ..... Time-derivative of the mean motion [rad / s²]
-    J2² = J2^2                         # ............................... J2 constant squared
+    J₂² = J₂^2                         # ............................... J2 constant squared
 
     sin_i₀, cos_i₀ = sincos(T(i₀))
 
     sin_i₀² = sin_i₀^2
     sin_i₀⁴ = sin_i₀^4
-    aux     = (1 - e₀²)
-    saux    = sqrt(aux)
+    cos_i₀⁴ = cos_i₀^4
+    β²      = (1 - e₀²)
+    β       = √β²
 
-    # We need to compute the "mean" mean motion that is used to calculate the first-order
-    # time derivative of the orbital elements.
-    #
-    # NOTE: Description of J4 propagator in [1, p. 648-653].
-    #
-    # Using the equations in [1], we could not match the results from STK. After analyzing
-    # the perturbation equations, it turns out that the time-derivative depends on the mean
-    # motion instead of the unperturbed mean motion. We can see this by looking at the
-    # algorithm in Kozai's method in [1, p. 693].
-    #
-    # Notice that using the full expression here, with the J2² and J4 terms, yields a
-    # solution with much higher error compared with STK result.
-    āl = al₀ * (1 - T(3 / 4) * J2 / p₀² * saux * (2 - 3sin_i₀²))
-    p̄  = āl   * aux
-    n̄  = n₀  * (1 + T(3 / 4) * J2 / p̄^2 * saux * (2 - 3sin_i₀²))
+    # We need to compute the perturbed mean motion that is used to calculate the
+    # time-derivative of the orbital elements. This expression was obtained from [5] because
+    # [2] does not show it completely.
+    kn₂  = J₂  / p₀² * β
+    kn₂₂ = J₂² / p₀⁴ * β
+    kn₄  = J₄  / p₀⁴ * β
+
+    n̄ = n₀ * (
+        1 +
+        ( 3 // 4  ) * kn₂  * (2 - 3sin_i₀²) +
+        ( 3 // 128) * kn₂₂ * (120 + 64β - 40β² + (-240 - 192β + 40β²) * sin_i₀² + (105 + 144β + 25β²) * sin_i₀⁴) -
+        (45 // 128) * kn₄  * e₀² * (-8 + 40sin_i₀² - 35sin_i₀⁴)
+    )
+
+    # Some auxiliary variables to compute the perturbations.
+    k̄₂  = n̄  * J₂  / p₀²
+    k̄₂₂ = n̄  * J₂² / p₀⁴
+    k₂₂ = n₀ * J₂² / p₀⁴
+    k₄  = n₀ * J₄  / p₀⁴
 
     # First-order time-derivative of the orbital elements.
     δa = -T(2 / 3) * al₀ * dn / n₀
     δe = -T(2 / 3) * (1 - e₀) * dn / n₀
 
-    # TODO: Check J4 perturbation term sign.
+    # TODO: Check J₄ perturbation term sign.
     #
-    # We needed to flip the J4 perturbation term sign to obtain values that match those of
-    # STK. However, this modification does not seem right if we observe the RAAN secular
-    # perturbation term in SGP4 orbit propagator [2, p. 16]. For more information, see:
+    # We needed to flip the J₄ perturbation term sign from the value in [1] and [2] to
+    # obtain values that match those of STK. However, this modification does not seem right
+    # if we observe the RAAN secular perturbation term in SGP4 orbit propagator [3, p. 16].
+    # Reference [4] also provides the equation with the sign as in [2]. Furthermore, the
+    # current version, which does not match STK's, provides lower errors when comparing to a
+    # numerical propagator.
+    #
+    # For more information, see:
     #
     #   https://github.com/JuliaSpace/SatelliteToolbox.jl/issues/91
     #
-    δΩ = -T( 3 / 2  ) * n̄ * J2  / p₀² * cos_i₀ +
-          T( 3 / 32 ) * n̄ * J2² / p₀⁴ * cos_i₀ * (-36 -  4e₀² + 48saux + (40 - 5e₀² - 72saux) * sin_i₀²) +
-          T(15 / 32 ) * n̄ * J4  / p₀⁴ * cos_i₀ * (  8 + 12e₀² - (14 + 21e₀²) * sin_i₀²)
 
-    δω = +T( 3 / 4  ) * n̄ * J2  / p₀² * (4 - 5sin_i₀²) +
-          T( 9 / 384) * n̄ * J2² / p₀⁴ * (192 + 56e₀² - 192saux + (-172 + 288saux) * sin_i₀² + e₀² * sin_i₀⁴) -
-          T(15 / 128) * n̄ * J4  / p₀⁴ * (64 + 72e₀² - (248 + 252e₀²) * sin_i₀² + (196 + 189e₀²) * sin_i₀⁴)
+    δΩ = -( 3 // 2 ) * k̄₂  * cos_i₀ +
+          ( 3 // 32) * k̄₂₂ * cos_i₀ * (-36 -  4e₀² + 48β + (40 - 5e₀² - 72β) * sin_i₀²) +
+          (15 // 32) * k₄  * cos_i₀ * (8 + 12e₀² - (14 + 21e₀²) * sin_i₀²)
+
+    δω = ( 3 // 4  ) * k̄₂  * (4 - 5sin_i₀²) +
+         ( 3 // 128) * k̄₂₂ * (384 + 96e₀² - 384β + (-824 - 116e₀² + 1056β) * sin_i₀² + (430 - 5e₀² - 720β) * sin_i₀⁴) -
+         (15 // 16 ) * k₂₂ * e₀² * cos_i₀⁴ -
+         (15 // 128) * k₄ * (64 + 72e₀² - (248 + 252e₀²) * sin_i₀² + (196 + 189e₀²) * sin_i₀⁴)
 
     # Initialize the propagator structure with the data.
     j4d.orb₀   = j4d.orbk = orb₀
