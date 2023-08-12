@@ -180,7 +180,7 @@
             date_to_jd(1986, 6, 19, 18, 35, 0)
         )
 
-        orbp = Propagators.init(Val(:TwoBody), orb; μ = tbc_m0_f32)
+        orbp = Propagators.init(Val(:TwoBody), orb; m0 = tbc_m0_f32)
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{Float64, Float32}
@@ -234,7 +234,7 @@
         @test eltype(v) == T
 
         # Test simultaneous initialization and propagation.
-        r, v, orbp = Propagators.propagate(Val(:TwoBody), 40 * 60, orb; μ = tbc_m0_f32)
+        r, v, orbp = Propagators.propagate(Val(:TwoBody), 40 * 60, orb; m0 = tbc_m0_f32)
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{Float64, Float32}
@@ -249,7 +249,7 @@
         @test v[3] / 1000 ≈ -6.112511 atol = 5e-3
         @test eltype(v) == T
 
-        r, v, orbp = Propagators.propagate_to_epoch(Val(:TwoBody), jd₁, orb; μ = tbc_m0_f32)
+        r, v, orbp = Propagators.propagate_to_epoch(Val(:TwoBody), jd₁, orb; m0 = tbc_m0_f32)
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{Float64, Float32}

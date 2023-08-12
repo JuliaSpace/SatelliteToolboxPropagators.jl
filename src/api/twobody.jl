@@ -20,19 +20,15 @@ elements `orb₀`.
 
 !!! note
     The type used in the propagation will be the same as used to define the gravitational
-    constant `μ`.
-
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
+    constant `m0`.
 
 # Keywords
 
-- `μ::T`: Standard gravitational parameter of the central body [m³/s²].
+- `m0::T`: Standard gravitational parameter of the central body [m³ / s²].
     (**Default** = `tbc_m0`)
 """
-function Propagators.init(::Val{:TwoBody}, orb₀::KeplerianElements; μ::Number = tbc_m0)
-    tbd = twobody_init(orb₀; μ = μ)
+function Propagators.init(::Val{:TwoBody}, orb₀::KeplerianElements; m0::Number = tbc_m0)
+    tbd = twobody_init(orb₀; m0 = m0)
     return OrbitPropagatorTwoBody(tbd)
 end
 
@@ -43,7 +39,7 @@ Initialize the two-body orbit propagator structure `orbp` using the mean Kepleri
 `orb₀`.
 
 !!! warning
-    The propagation constant `μ::Number` in `tbd` will not be changed. Hence, it must be
+    The propagation constant `m0::Number` in `tbd` will not be changed. Hence, it must be
     initialized.
 
 # Arguments
@@ -56,22 +52,18 @@ function Propagators.init!(orbp::OrbitPropagatorTwoBody, orb₀::KeplerianElemen
 end
 
 """
-    Propagators.propagate(Val(:TwoBody), Δt::Number, orb₀::KeplerianElements; kwargs...)
+    Propagators.propagate(Val(:TwoBody), Δt::Number, orb₀::KeplerianElements; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagatorTwoBody
 
 Initialize the two-body propagator structure using the input elements `orb₀` and propagate
 the orbit until the time Δt [s].
 
 !!! note
     The type used in the propagation will be the same as used to define the gravitational
-    constant `μ`.
-
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
+    constant `m0`.
 
 # Keywords
 
-- `μ::T`: Standard gravitational parameter of the central body [m³/s²].
+- `m0::T`: Standard gravitational parameter of the central body [m³ / s²].
     (**Default** = `tbc_m0`)
 
 # Returns
@@ -80,15 +72,15 @@ the orbit until the time Δt [s].
     instant.
 - `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
     instant.
-- [`TwoBodyPropagator`](@ref): Structure with the initialized parameters.
+- [`OrbitPropagatorTwoBody`](@ref): Structure with the initialized parameters.
 """
 function Propagators.propagate(
     ::Val{:TwoBody},
     Δt::Number,
     orb₀::KeplerianElements;
-    μ::Number = tbc_m0
+    m0::Number = tbc_m0
 )
-    r_i, v_i, tbd = twobody(Δt, orb₀; μ = μ)
+    r_i, v_i, tbd = twobody(Δt, orb₀; m0 = m0)
     return r_i, v_i, OrbitPropagatorTwoBody(tbd)
 end
 

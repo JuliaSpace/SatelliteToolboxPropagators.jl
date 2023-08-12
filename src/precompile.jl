@@ -104,7 +104,7 @@ PrecompileTools.@setup_workload begin
             orbp = Propagators.init(Val(:TwoBody), orb)
             Propagators.propagate!(orbp, 0.0)
 
-            orbp = Propagators.init(Val(:TwoBody), orb; μ = tbc_m0_f32)
+            orbp = Propagators.init(Val(:TwoBody), orb; m0 = tbc_m0_f32)
             Propagators.propagate!(orbp, 0.0f0)
         end
     end

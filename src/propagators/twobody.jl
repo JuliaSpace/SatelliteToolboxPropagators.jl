@@ -41,26 +41,22 @@ Create and initialize the two-body propagator structure using the mean Keplerian
 
 !!! note
     The type used in the propagation will be the same as used to define the gravitational
-    constant `μ`.
-
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
+    constant `m0`.
 
 # Keywords
 
-- `μ::T`: Standard gravitational parameter of the central body [m³/s²].
+- `m0::T`: Standard gravitational parameter of the central body [m³ / s²].
     (**Default** = `tbc_m0`)
 """
 function twobody_init(
     orb₀::KeplerianElements{Tepoch, Tkepler};
-    μ::T = tbc_m0
+    m0::T = tbc_m0
 ) where {Tepoch<:Number, Tkepler<:Number, T<:Number}
     # Allocate the propagator structure.
     tbd = TwoBodyPropagator{Tepoch, T}()
 
     # Assign the constant, which are used in initialization.
-    tbd.μ = μ
+    tbd.μ = m0
 
     # Initialize the propagator and return.
     twobody_init!(tbd, orb₀)
@@ -76,10 +72,6 @@ Initialize the two-body propagator structure `tbd` using the mean Keplerian elem
 !!! warning
     The propagation constant `μ::Number` in `tbd` will not be changed. Hence, it must be
     initialized.
-
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
 """
 function twobody_init!(
     tbd::TwoBodyPropagator{Tepoch, T},
@@ -102,22 +94,18 @@ function twobody_init!(
 end
 
 """
-    twobody(Δt::Number, orb₀::KeplerianElements; kwargs...)
+    twobody(Δt::Number, orb₀::KeplerianElements; kwargs...) -> SVector{3, T}, SVector{3, T}, TwoBodyPropagator
 
 Initialize the two-body propagator structure using the input elements `orb₀` and propagate
 the orbit until the time Δt [s].
 
 !!! note
     The type used in the propagation will be the same as used to define the gravitational
-    constant `μ`.
-
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
+    constant `m0`.
 
 # Keywords
 
-- `μ::T`: Standard gravitational parameter of the central body [m³/s²].
+- `m0::T`: Standard gravitational parameter of the central body [m³ / s²].
     (**Default** = `tbc_m0`)
 
 # Returns
@@ -131,17 +119,16 @@ the orbit until the time Δt [s].
 # Remarks
 
 The inertial frame in which the output is represented depends on which frame it was used to
-generate the orbit parameters. Notice that the perturbation theory requires an inertial
-frame with true equator.
+generate the orbit parameters.
 """
-function twobody(Δt::Number, orb₀::KeplerianElements; μ::T = tbc_m0) where T<:Number
-    tbd = twobody_init(orb₀; μ = μ)
+function twobody(Δt::Number, orb₀::KeplerianElements; m0::T = tbc_m0) where T<:Number
+    tbd = twobody_init(orb₀; m0 = m0)
     r_i, v_i = twobody!(tbd, Δt)
     return r_i, v_i, tbd
 end
 
 """
-    twobody!(tbd::TwoBodyPropagator{Tepoch, T}, t::Number) where {Tepoch, T}
+    twobody!(tbd::TwoBodyPropagator{Tepoch, T}, t::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
 
 Propagate the orbit defined in `tbd` (see [`TwoBodyPropagator`](@ref)) to `t` [s] after the
 epoch of the input mean elements in `tbd`.
@@ -159,30 +146,32 @@ epoch of the input mean elements in `tbd`.
 # Remarks
 
 The inertial frame in which the output is represented depends on which frame it was used to
-generate the orbit parameters. Notice that the perturbation theory requires an inertial
-frame with true equator.
+generate the orbit parameters.
 """
-function twobody!(tbd::TwoBodyPropagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:Number}
+function twobody!(
+    tbd::TwoBodyPropagator{Tepoch, T},
+    t::Number
+) where {Tepoch<:Number, T<:Number}
     # Unpack.
     orb₀ = tbd.orb₀
+    a₀     = orb₀.a
+    e₀     = orb₀.e
+    i₀     = orb₀.i
+    Ω₀     = orb₀.Ω
+    ω₀     = orb₀.ω
 
     # Time elapsed since epoch.
     epoch  = orb₀.t
     Δt     = T(t)
 
     # Propagate the orbital elements.
-    a_k = orb₀.a
-    e_k = orb₀.e
-    i_k = orb₀.i
-    Ω_k = orb₀.Ω
-    ω_k = orb₀.ω
     M_k = tbd.M₀ + tbd.n₀ * Δt
 
     # Convert the mean anomaly to true anomaly.
-    f_k = mean_to_true_anomaly(e_k, M_k)
+    f_k = mean_to_true_anomaly(e₀, M_k)
 
     # Assemble the current mean elements.
-    orbk = KeplerianElements(epoch + Tepoch(Δt) / 86400, a_k, e_k, i_k, Ω_k, ω_k, f_k)
+    orbk = KeplerianElements(epoch + Tepoch(Δt) / 86400, a₀, e₀, i₀, Ω₀, ω₀, f_k)
 
     # Compute the position and velocity vectors given the orbital elements.
     r_i_k, v_i_k = kepler_to_rv(orbk)
