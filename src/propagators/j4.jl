@@ -185,21 +185,18 @@ function j4_init!(
     J₄  = j4c.J4
 
     # Unpack orbit elements.
-    epoch = orb₀.t
-    a₀    = T(orb₀.a)
-    e₀    = T(orb₀.e)
-    i₀    = T(orb₀.i)
-    Ω₀    = T(orb₀.Ω)
-    ω₀    = T(orb₀.ω)
-    f₀    = T(orb₀.f)
+    a₀ = T(orb₀.a)
+    e₀ = T(orb₀.e)
+    i₀ = T(orb₀.i)
+    f₀ = T(orb₀.f)
 
     # Initial values and auxiliary variables.
     al₀ = a₀ / R₀                      # ................... Normalized semi-major axis [er]
     e₀² = e₀^2                         # .......................... Eccentricity squared [ ]
-    p₀  = al₀ * (1 - e₀^2)             # ............................ Semi-latus rectum [er]
+    p₀  = al₀ * (1 - e₀²)              # ............................ Semi-latus rectum [er]
     p₀² = p₀^2                         # ................... Semi-latus rectum squared [er²]
     p₀⁴ = p₀^4                         # .......... Semi-latus rectum to the 4th power [er⁴]
-    n₀  = μm / al₀^(T(3 / 2))          # ................. Unperturbed mean motion [rad / s]
+    n₀  = μm / √(al₀^3)                # ................. Unperturbed mean motion [rad / s]
     M₀  = true_to_mean_anomaly(e₀, f₀) # ........................ Initial mean anomaly [rad]
     dn  = 2T(dn_o2)                    # ..... Time-derivative of the mean motion [rad / s²]
     J₂² = J₂^2                         # ............................... J2 constant squared
@@ -257,7 +254,7 @@ function j4_init!(
     δω = ( 3 // 4  ) * k̄₂  * (4 - 5sin_i₀²) +
          ( 3 // 128) * k̄₂₂ * (384 + 96e₀² - 384β + (-824 - 116e₀² + 1056β) * sin_i₀² + (430 - 5e₀² - 720β) * sin_i₀⁴) -
          (15 // 16 ) * k₂₂ * e₀² * cos_i₀⁴ -
-         (15 // 128) * k₄ * (64 + 72e₀² - (248 + 252e₀²) * sin_i₀² + (196 + 189e₀²) * sin_i₀⁴)
+         (15 // 128) * k₄  * (64 + 72e₀² - (248 + 252e₀²) * sin_i₀² + (196 + 189e₀²) * sin_i₀⁴)
 
     # Initialize the propagator structure with the data.
     j4d.orb₀   = j4d.orbk = orb₀
