@@ -268,7 +268,6 @@ frame with true equator.
 function j2!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:Number}
     # Unpack the variables.
     orb₀   = j2d.orb₀
-    j2c    = j2d.j2c
     M₀     = j2d.M₀
     δΩ     = j2d.δΩ
     δω     = j2d.δω
