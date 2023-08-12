@@ -416,19 +416,19 @@ julia> orb, P = fit_j4_mean_elements(vjd, vr_i, vv_i)
 ACTION:   Fitting the mean elements for the J4 propagator.
            Iteration        Position RMSE        Velocity RMSE           Total RMSE       RMSE Variation
                                      [km]             [km / s]                  [ ]
-PROGRESS:         23              4.32503           0.00539333              4325.03         -2.94254e-06 %
+PROGRESS:         23              4.33863           0.00539962              4338.63         -2.90777e-06 %
 
-(KeplerianElements{Float64, Float64}: Epoch = 2.46003e6 (2023-03-24T18:08:40.388), [0.16604967921134256 0.06643577684325273 … -3.85530201888247e-5 0.00012403223352387027; 0.06643577684023591 0.2663341547718351 … -1.7942536745204864e-5 -1.9568202595537958e-5; … ; -3.8553020185604505e-5 -1.7942536748844937e-5 … 4.39718600329357e-7 -8.092633462502864e-8; 0.0001240322335250686 -1.956820259353855e-5 … -8.092633462892543e-8 1.245186657304487e-7])
+(KeplerianElements{Float64, Float64}: Epoch = 2.46003e6 (2023-03-24T18:08:40.388), [0.16604866262321472 0.06643593039980161 … -3.8553206984036995e-5 0.00012403204426258087; 0.06643593040175688 0.26633435614867085 … -1.7942563356579497e-5 -1.95681107792859e-5; … ; -3.855320698470177e-5 -1.794256335557519e-5 … 4.3972013198895673e-7 -8.092682623169118e-8; 0.000124032044261828 -1.9568110780915995e-5 … -8.092682623078798e-8 1.2451901466558624e-7])
 
 julia> orb
 KeplerianElements{Float64, Float64}:
            Epoch :    2.46003e6 (2023-03-24T18:08:40.388)
- Semi-major axis : 7131.65      km
-    Eccentricity :    0.0011429
-     Inclination :   98.4366    °
-            RAAN :  162.177     °
- Arg. of Perigee :  101.263     °
-    True Anomaly :  258.712     °
+ Semi-major axis : 7131.64       km
+    Eccentricity :    0.00114298
+     Inclination :   98.4366     °
+            RAAN :  162.177      °
+ Arg. of Perigee :  101.282      °
+    True Anomaly :  258.693      °
 ```
 """
 function fit_j4_mean_elements(
@@ -526,19 +526,19 @@ julia> orb, P = fit_j4_mean_elements!(j4d, vjd, vr_i, vv_i)
 ACTION:   Fitting the mean elements for the J4 propagator.
            Iteration        Position RMSE        Velocity RMSE           Total RMSE       RMSE Variation
                                      [km]             [km / s]                  [ ]
-PROGRESS:         23              4.32503           0.00539333              4325.03         -2.94254e-06 %
+PROGRESS:         23              4.33863           0.00539962              4338.63         -2.90777e-06 %
 
-(KeplerianElements{Float64, Float64}: Epoch = 2.46003e6 (2023-03-24T18:08:40.388), [0.16604967921134256 0.06643577684325273 … -3.85530201888247e-5 0.00012403223352387027; 0.06643577684023591 0.2663341547718351 … -1.7942536745204864e-5 -1.9568202595537958e-5; … ; -3.8553020185604505e-5 -1.7942536748844937e-5 … 4.39718600329357e-7 -8.092633462502864e-8; 0.0001240322335250686 -1.956820259353855e-5 … -8.092633462892543e-8 1.245186657304487e-7])
+(KeplerianElements{Float64, Float64}: Epoch = 2.46003e6 (2023-03-24T18:08:40.388), [0.16604866262321472 0.06643593039980161 … -3.8553206984036995e-5 0.00012403204426258087; 0.06643593040175688 0.26633435614867085 … -1.7942563356579497e-5 -1.95681107792859e-5; … ; -3.855320698470177e-5 -1.794256335557519e-5 … 4.3972013198895673e-7 -8.092682623169118e-8; 0.000124032044261828 -1.9568110780915995e-5 … -8.092682623078798e-8 1.2451901466558624e-7])
 
 julia> orb
 KeplerianElements{Float64, Float64}:
            Epoch :    2.46003e6 (2023-03-24T18:08:40.388)
- Semi-major axis : 7131.65      km
-    Eccentricity :    0.0011429
-     Inclination :   98.4366    °
-            RAAN :  162.177     °
- Arg. of Perigee :  101.263     °
-    True Anomaly :  258.712     °
+ Semi-major axis : 7131.64       km
+    Eccentricity :    0.00114298
+     Inclination :   98.4366     °
+            RAAN :  162.177      °
+ Arg. of Perigee :  101.282      °
+    True Anomaly :  258.693      °
 ```
 """
 function fit_j4_mean_elements!(
@@ -805,8 +805,8 @@ KeplerianElements{Float64, Float64}:
     Eccentricity :    0.001111
      Inclination :   98.405    °
             RAAN :   90.9555   °
- Arg. of Perigee :  197.093    °
-    True Anomaly :  127.294    °
+ Arg. of Perigee :  197.079    °
+    True Anomaly :  127.293    °
 ```
 """
 function update_j4_mean_elements_epoch(
@@ -864,8 +864,8 @@ KeplerianElements{Float64, Float64}:
     Eccentricity :    0.001111
      Inclination :   98.405    °
             RAAN :   90.9555   °
- Arg. of Perigee :  197.093    °
-    True Anomaly :  127.294    °
+ Arg. of Perigee :  197.079    °
+    True Anomaly :  127.293    °
 ```
 """
 function update_j4_mean_elements_epoch!(

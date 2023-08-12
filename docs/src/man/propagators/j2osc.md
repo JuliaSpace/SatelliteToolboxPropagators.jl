@@ -23,17 +23,11 @@ The algorithm implemented here is based on **[1]**.
 We can initialize the J2 osculating analytical orbit propagator with the following function:
 
 ```julia
-function Propagators.init(Val(:J2osc), orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...)
+function Propagators.init(Val(:J2osc), orb₀::KeplerianElements; kwargs...)
 ```
 
 which creates a J2 osculating propagator structure [`OrbitPropagatorJ2Osculating`](@ref)
-with the mean Keplerian elements `orb₀`. It supports the following positional arguments:
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
-- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
-    (**Default** = 0)
-- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
-    (**Default** = 0)
+with the mean Keplerian elements `orb₀`.
     
 The following keyword selects the gravitational constants for the propagation algorithm:
 

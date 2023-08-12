@@ -40,7 +40,7 @@ which creates a two-body propagator structure [`OrbitPropagatorTwoBody`](@ref) w
 Keplerian elements `orb₀`. The following keyword selects the standard gravitational
 parameter for the propagation algorithm:
 
-- `μ::T`: Standard gravitational parameter of the central body [m³/s²].
+- `m0::T`: Standard gravitational parameter of the central body [m³/s²].
     (**Default** = `tbc_m0`)
     
 This package contains some pre-built gravitational parameters of the Earth for this

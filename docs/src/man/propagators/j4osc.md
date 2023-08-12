@@ -23,18 +23,12 @@ The algorithm implemented here is based on **[1]**.
 We can initialize the J4 osculating analytical orbit propagator with the following function:
 
 ```julia
-function Propagators.init(Val(:J4osc), orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...)
+function Propagators.init(Val(:J4osc), orb₀::KeplerianElements; kwargs...)
 ```
 
 which creates a J4 osculating propagator structure [`OrbitPropagatorJ4Osculating`](@ref)
-with the mean Keplerian elements `orb₀`. It supports the following positional arguments:
+with the mean Keplerian elements `orb₀`.    
 
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
-- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
-    (**Default** = 0)
-- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
-    (**Default** = 0)
-    
 The following keyword selects the gravitational constants for the propagation algorithm:
 
 - `j4c::J4PropagatorConstants`: J4 orbit propagator constants (see
@@ -150,19 +144,19 @@ julia> orb, P = Propagators.fit_mean_elements(Val(:J4), vjd, vr_i, vv_i)
 ACTION:   Fitting the mean elements for the J4 propagator.
            Iteration        Position RMSE        Velocity RMSE           Total RMSE       RMSE Variation
                                      [km]             [km / s]                  [ ]
-PROGRESS:          3          6.13971e-05           0.00972202              9.72221         -0.000197872 %
+PROGRESS:          3          6.15485e-05           0.00974542              9.74561         -0.000202693 %
 
-(KeplerianElements{Float64, Float64}: Epoch = 2.46003e6 (2023-03-24T16:33:40.388), [0.9999771881617059 3.332632038373772e-7 … -9.720779655127568e-5 -7.122976863467179e-5; 3.332604662785857e-7 0.9999779183950048 … 0.0032646363435036604 1.7058462259742015e-5; … ; -9.720779655821982e-5 0.0032646363435034492 … 2.208202282175653e-5 1.8337551711581296e-8; -7.122976863572516e-5 1.7058462251039033e-5 … 1.8337551683284122e-8 2.172632163462607e-5])
+(KeplerianElements{Float64, Float64}: Epoch = 2.46003e6 (2023-03-24T16:33:40.388), [0.9999771881468177 3.332792953350762e-7 … -9.720624897312517e-5 -7.123903528819134e-5; 3.3328163749600056e-7 0.9999779184112135 … 0.003264642609847606 1.703255608327167e-5; … ; -9.720624896357869e-5 0.003264642609847727 … 2.2082113077394168e-5 1.80975773671447e-8; -7.123903528970661e-5 1.703255607901948e-5 … 1.8097577352747468e-8 2.1724922081159044e-5])
 
 julia> orb
 KeplerianElements{Float64, Float64}:
            Epoch :    2.46003e6 (2023-03-24T16:33:40.388)
- Semi-major axis : 7155.94       km
-    Eccentricity :    0.00306707
+ Semi-major axis : 7155.98       km
+    Eccentricity :    0.00307271
      Inclination :   98.4357     °
             RAAN :  162.113      °
- Arg. of Perigee :   33.108      °
-    True Anomaly :  344.9        °
+ Arg. of Perigee :   33.061      °
+    True Anomaly :  344.947      °
 ```
 
 ## References
