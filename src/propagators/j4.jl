@@ -208,7 +208,7 @@ function j4_init!(
     k₂₂ = n₀ * J₂² / p₀⁴
     k₄  = n₀ * J₄  / p₀⁴
 
-    # TODO: Check J₄ perturbation term sign.
+    # TODO: Check J₄ perturbation term sign in RAAN time-derivative.
     #
     # We needed to flip the J₄ perturbation term sign from the value in [1] and [2] to
     # obtain values that match those of STK. However, this modification does not seem right
