@@ -159,7 +159,7 @@ function Propagators.init!(orbp::OrbitPropagatorJ2Osculating, orb₀::KeplerianE
 end
 
 """
-    Propagators.propagate(Val(:J2osc), Δt::Number, orb₀::KeplerianElements; kwargs...)
+    Propagators.propagate(Val(:J2osc), Δt::Number, orb₀::KeplerianElements; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagatorJ2Osculating
 
 Initialize the J2 osculating propagator structure using the input elements `orb₀` [SI units]
 and propagate the orbit until the time Δt [s].

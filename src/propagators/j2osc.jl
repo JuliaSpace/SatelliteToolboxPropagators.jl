@@ -28,7 +28,7 @@ export update_j2osc_mean_elements_epoch, update_j2osc_mean_elements_epoch!
 ############################################################################################
 
 """
-    j2osc_init(orb₀::KeplerianElements; kwargs...) where T<:Number -> J2OsculatingPropagator
+    j2osc_init(orb₀::KeplerianElements; kwargs...) -> J2OsculatingPropagator
 
 Create and initialize the J2 osculating orbit propagator structure using the mean Keplerian
 elements `orb₀` [SI units].
@@ -72,23 +72,18 @@ elements `orb₀` [SI units].
     The propagation constants `j2c::J2PropagatorConstants` in `j2oscd.j2d` will not be
     changed. Hence, they must be initialized.
 """
-function j2osc_init!(
-    j2oscd::J2OsculatingPropagator{Tepoch, T},
-    orb₀::KeplerianElements,
-    dn_o2::Number = 0,
-    ddn_o6::Number = 0
-) where {Tepoch<:Number, T<:Number}
+function j2osc_init!(j2oscd::J2OsculatingPropagator, orb₀::KeplerianElements)
     # Initialize the J2 propagator that will propagate the mean elements.
     j2_init!(j2oscd.j2d, orb₀)
 
-    # Call the propagntion one time to update the osculating elements.
+    # Call the propagation one time to update the osculating elements.
     j2osc!(j2oscd, 0)
 
     return nothing
 end
 
 """
-    j2osc(Δt::Number, orb₀::KeplerianElements; kwargs...)
+    j2osc(Δt::Number, orb₀::KeplerianElements; kwargs...) -> SVector{3, T}, SVector{3, T}, J2OsculatingPropagator
 
 Initialize the J2 osculating propagator structure using the input elements `orb₀` [SI units]
 and propagate the orbit until the time Δt [s].
@@ -116,11 +111,7 @@ The inertial frame in which the output is represented depends on which frame it 
 generate the orbit parameters. Notice that the perturbation theory requires an inertial
 frame with true equator.
 """
-function j2osc(
-    Δt::Number,
-    orb₀::KeplerianElements;
-    j2c::J2PropagatorConstants{T} = j2c_egm2008
-) where T<:Number
+function j2osc(Δt::Number, orb₀::KeplerianElements; j2c::J2PropagatorConstants = j2c_egm2008)
     j2oscd = j2osc_init(orb₀; j2c = j2c)
     r_i, v_i = j2osc!(j2oscd, Δt)
     return r_i, v_i, j2oscd
