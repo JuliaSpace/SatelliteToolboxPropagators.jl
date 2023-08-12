@@ -29,7 +29,7 @@ export update_j4osc_mean_elements_epoch, update_j4osc_mean_elements_epoch!
 ############################################################################################
 
 """
-    j4osc_init(orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...) where T<:Number -> J4OsculatingPropagator
+    j4osc_init(orb₀::KeplerianElements; kwargs...) -> J4OsculatingPropagator
 
 Create and initialize the J4 osculating orbit propagator structure using the mean Keplerian
 elements `orb₀`.
@@ -38,23 +38,13 @@ elements `orb₀`.
     The type used in the propagation will be the same as used to define the constants in the
     structure `j4c`.
 
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
-- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
-    (**Default** = 0)
-- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
-    (**Default** = 0)
-
 # Keywords
 
 - `j4c::J4PropagatorConstants`: J4 orbit propagator constants (see
     [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm2008`)
 """
 function j4osc_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler},
-    dn_o2::Number = 0,
-    ddn_o6::Number = 0;
+    orb₀::KeplerianElements{Tepoch, Tkepler};
     j4c::J4PropagatorConstants{T} = j4c_egm2008
 ) where {Tepoch<:Number, Tkepler<:Number, T<:Number}
     # Allocate the J4 propagator structure that will propagate the mean elements.
@@ -68,13 +58,13 @@ function j4osc_init(
     j4oscd.j4d = j4d
 
     # Initialize the propagator and return.
-    j4osc_init!(j4oscd, orb₀, dn_o2, ddn_o6)
+    j4osc_init!(j4oscd, orb₀)
 
     return j4oscd
 end
 
 """
-    j4osc_init!(j4oscd::J4OsculatingPropagator, orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0) -> Nothing
+    j4osc_init!(j4oscd::J4OsculatingPropagator, orb₀::KeplerianElements) -> Nothing
 
 Initialize the J4 osculating orbit propagator structure `j4oscd` using the mean Keplerian
 elements `orb₀`.
@@ -82,23 +72,10 @@ elements `orb₀`.
 !!! warning
     The propagation constants `j4c::J4PropagatorConstants` in `j4oscd.j4d` will not be
     changed. Hence, they must be initialized.
-
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
-- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
-    (**Default** = 0)
-- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
-    (**Default** = 0)
 """
-function j4osc_init!(
-    j4oscd::J4OsculatingPropagator{Tepoch, T},
-    orb₀::KeplerianElements,
-    dn_o2::Number = 0,
-    ddn_o6::Number = 0
-) where {Tepoch<:Number, T<:Number}
+function j4osc_init!(j4oscd::J4OsculatingPropagator, orb₀::KeplerianElements)
     # Initialize the J4 propagator that will propagate the mean elements.
-    j4_init!(j4oscd.j4d, orb₀, dn_o2, ddn_o6)
+    j4_init!(j4oscd.j4d, orb₀)
 
     # Call the propagation one time to update the osculating elements.
     j4osc!(j4oscd, 0)
@@ -107,7 +84,7 @@ function j4osc_init!(
 end
 
 """
-    j4osc(Δt::Number, orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...)
+    j4osc(Δt::Number, orb₀::KeplerianElements; kwargs...) -> SVector{3, T}, SVector{3, T}, J4OsculatingPropagator
 
 Initialize the J4 osculating propagator structure using the input elements `orb₀` and
 propagate the orbit until the time Δt [s].
@@ -115,14 +92,6 @@ propagate the orbit until the time Δt [s].
 !!! note
     The type used in the propagation will be the same as used to define the constants in the
     structure `j4c`.
-
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
-- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
-    (**Default** = 0)
-- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
-    (**Default** = 0)
 
 # Keywords
 
@@ -143,14 +112,8 @@ The inertial frame in which the output is represented depends on which frame it 
 generate the orbit parameters. Notice that the perturbation theory requires an inertial
 frame with true equator.
 """
-function j4osc(
-    Δt::Number,
-    orb₀::KeplerianElements,
-    dn_o2::Number = 0,
-    ddn_o6::Number = 0;
-    j4c::J4PropagatorConstants{T} = j4c_egm2008
-) where T<:Number
-    j4oscd = j4osc_init(orb₀, dn_o2, ddn_o6; j4c = j4c)
+function j4osc(Δt::Number, orb₀::KeplerianElements; j4c::J4PropagatorConstants = j4c_egm2008)
+    j4oscd = j4osc_init(orb₀; j4c = j4c)
     r_i, v_i = j4osc!(j4oscd, Δt)
     return r_i, v_i, j4oscd
 end
@@ -185,9 +148,9 @@ function j4osc!(j4oscd::J4OsculatingPropagator{Tepoch, T}, t::Number) where {Tep
 
     # Unpack the propagator constants.
     j4c = j4d.j4c
-    R0  = j4c.R0
+    R₀  = j4c.R0
     μm  = j4c.μm
-    J2  = j4c.J2
+    J₂  = j4c.J2
 
     # Time from epoch to propagate the orbit.
     Δt = T(t)
@@ -208,7 +171,7 @@ function j4osc!(j4oscd::J4OsculatingPropagator{Tepoch, T}, t::Number) where {Tep
     u_k  = ω_k + f_k
 
     # Auxiliary variables to reduce the computational burden.
-    KJ2 = J2 * R0 * R0
+    KJ₂ = J₂ * R₀ * R₀
 
     sin_i_k, cos_i_k         = sincos(i_k)
     sin_f_k, cos_f_k         = sincos(f_k)
@@ -227,24 +190,24 @@ function j4osc!(j4oscd::J4OsculatingPropagator{Tepoch, T}, t::Number) where {Tep
     aux4 = -aux3 / (1 + aux2)
 
     # Compute the short-periodic perturbations considering only the J2 gravitational term.
-    δisp_k = +KJ2 * sin_i_k * cos_i_k / (4p_k²) * aux1
+    δisp_k = +KJ₂ * sin_i_k * cos_i_k / (4p_k²) * aux1
 
-    δpsp_k = +KJ2 * sin_i_k² / (2p_k) * aux1
+    δpsp_k = +KJ₂ * sin_i_k² / (2p_k) * aux1
 
-    δΩsp_k = -KJ2 * cos_i_k / (4p_k²) * (
+    δΩsp_k = -KJ₂ * cos_i_k / (4p_k²) * (
         6 * (f_k - M_k + e_sin_f_k) - 3sin_2u_k - 3e_k * sin_2ω_f_k - e_k * sin_2ω_3f_k
     )
 
-    δrsp_k = -KJ2 / (4p_k) * (
+    δrsp_k = -KJ₂ / (4p_k) * (
         aux3 * (2aux2 / (1 + e_cos_f_k) + e_cos_f_k / (1 + aux2) + 1) - sin_i_k² * cos_2u_k
     )
 
-    δṙsp_k = +KJ2 * √μm / (4 * √(p_k^5)) * (
+    δṙsp_k = +KJ₂ * √μm / (4 * √(p_k^5)) * (
         aux3 * e_sin_f_k * (aux2 + ((1 + e_cos_f_k)^2) / (1 + aux2)) -
         2sin_i_k² * (1 - e_cos_f_k)^2 * sin_2u_k
     )
 
-    δusp_k = +KJ2 / (8p_k²) * (
+    δusp_k = +KJ₂ / (8p_k²) * (
         (6 - 30cos_i_k²) * (f_k - M_k) +
         4e_sin_f_k * (1 - 6cos_i_k² + aux4) +
         aux4 * e_k² * sin(2f_k) +

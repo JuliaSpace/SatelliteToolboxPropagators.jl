@@ -6,12 +6,12 @@
 #   J4 orbit propagator algorithm.
 #
 #   This algorithm propagates the orbit considering the secular perturbations of central
-#   body zonal harmonics as presented in [1, p. 647-654, 692-692], which is Kozai's method
-#   but neglecting long-periodic and short-periodic perturbations.
+#   body zonal harmonics as presented in [1, p. 647-654, 692-692] and [2], which is Kozai's
+#   method but neglecting long-periodic and short-periodic perturbations.
 #
-#   The terms J2, J2², and J4 are considered, i.e. the J6 is assumed to be 0.  The effect of
-#   the drag is also taken into account. This can be used as a propagator of mean elements
-#   for mission analysis in which the satellite orbit is maintained.
+#   The terms J2, J2², and J4 are considered, i.e. J6 is assumed to be 0. This can be used
+#   as a propagator of mean elements for mission analysis in which the satellite orbit is
+#   maintained.
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #
@@ -114,7 +114,7 @@ const j4c_jgm03_f32 = J4PropagatorConstants{Float32}(
 ############################################################################################
 
 """
-    j4_init(orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...) where T<:Number -> J4Propagator
+    j4_init(orb₀::KeplerianElements; kwargs...) -> J4Propagator
 
 Create and initialize the J4 orbit propagator structure using the mean Keplerian elements
 `orb₀`.
@@ -123,23 +123,13 @@ Create and initialize the J4 orbit propagator structure using the mean Keplerian
     The type used in the propagation will be the same as used to define the constants in the
     structure `j4c`.
 
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
-- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
-    (**Default** = 0)
-- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
-    (**Default** = 0)
-
 # Keywords
 
 - `j4c::J4PropagatorConstants`: J4 orbit propagator constants (see
   [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm2008`)
 """
 function j4_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler},
-    dn_o2::Number = 0,
-    ddn_o6::Number = 0;
+    orb₀::KeplerianElements{Tepoch, Tkepler};
     j4c::J4PropagatorConstants{T} = j4c_egm2008
 ) where {Tepoch<:Number, Tkepler<:Number, T<:Number}
     # Allocate the propagator structure.
@@ -149,33 +139,23 @@ function j4_init(
     j4d.j4c = j4c
 
     # Initialize the propagator and return.
-    j4_init!(j4d, orb₀, dn_o2, ddn_o6)
+    j4_init!(j4d, orb₀)
 
     return j4d
 end
 
 """
-    j4_init!(j4d::J4Propagator, orb₀::KeplerianElements, dn_o4::Number = 0, ddn_o6::Number = 0) -> Nothing
+    j4_init!(j4d::J4Propagator, orb₀::KeplerianElements) -> Nothing
 
 Initialize the J4 orbit propagator structure `j4d` using the mean Keplerian elements `orb₀`.
 
 !!! warning
     The propagation constants `j4c::J4PropagatorConstants` in `j4d` will not be changed.
     Hence, they must be initialized.
-
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
-- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^2].
-    (**Default** = 0)
-- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
-    (**Default** = 0)
 """
 function j4_init!(
     j4d::J4Propagator{Tepoch, T},
     orb₀::KeplerianElements,
-    dn_o2::Number = 0,
-    ddn_o6::Number = 0
 ) where {Tepoch<:Number, T<:Number}
     # Unpack the gravitational constants to improve code readability.
     j4c = j4d.j4c
@@ -198,7 +178,6 @@ function j4_init!(
     p₀⁴ = p₀^4                         # .......... Semi-latus rectum to the 4th power [er⁴]
     n₀  = μm / √(al₀^3)                # ................. Unperturbed mean motion [rad / s]
     M₀  = true_to_mean_anomaly(e₀, f₀) # ........................ Initial mean anomaly [rad]
-    dn  = 2T(dn_o2)                    # ..... Time-derivative of the mean motion [rad / s²]
     J₂² = J₂^2                         # ............................... J2 constant squared
 
     sin_i₀, cos_i₀ = sincos(T(i₀))
@@ -229,10 +208,6 @@ function j4_init!(
     k₂₂ = n₀ * J₂² / p₀⁴
     k₄  = n₀ * J₄  / p₀⁴
 
-    # First-order time-derivative of the orbital elements.
-    δa = -T(2 / 3) * al₀ * dn / n₀
-    δe = -T(2 / 3) * (1 - e₀) * dn / n₀
-
     # TODO: Check J₄ perturbation term sign.
     #
     # We needed to flip the J₄ perturbation term sign from the value in [1] and [2] to
@@ -257,23 +232,18 @@ function j4_init!(
          (15 // 128) * k₄  * (64 + 72e₀² - (248 + 252e₀²) * sin_i₀² + (196 + 189e₀²) * sin_i₀⁴)
 
     # Initialize the propagator structure with the data.
-    j4d.orb₀   = j4d.orbk = orb₀
-    j4d.dn_o2  = dn_o2
-    j4d.ddn_o6 = ddn_o6
-    j4d.Δt     = 0
-    j4d.al₀    = al₀
-    j4d.M₀     = M₀
-    j4d.δa     = δa
-    j4d.δe     = δe
-    j4d.δΩ     = δΩ
-    j4d.δω     = δω
-    j4d.n̄      = n̄
+    j4d.orb₀ = j4d.orbk = orb₀
+    j4d.Δt   = 0
+    j4d.M₀   = M₀
+    j4d.δΩ   = δΩ
+    j4d.δω   = δω
+    j4d.n̄    = n̄
 
     return nothing
 end
 
 """
-    j4(Δt::Number, orb₀::KeplerianElements, dn_o2::Number = 0, ddn_o6::Number = 0; kwargs...)
+    j4(Δt::Number, orb₀::KeplerianElements; kwargs...) -> SVector{3, T}, SVector{3, T}, J4Propagator
 
 Initialize the J4 propagator structure using the input elements `orb₀` and propagate the
 orbit until the time Δt [s].
@@ -282,17 +252,9 @@ orbit until the time Δt [s].
     The type used in the propagation will be the same as used to define the constants in the
     structure `j4c`.
 
-# Arguments
-
-- `orb₀::KeplerianElements`: Initial mean Keplerian elements [SI units].
-- `dn_o2::Number`: First time derivative of the mean motion divided by two [rad/s^4].
-    (**Default** = 0)
-- `ddn_o6::Number`: Second time derivative of the mean motion divided by six [rad/s^3].
-    (**Default** = 0)
-
 # Keywords
 
-- `j4c::J4PropagatorConstants{T}`: J4 orbit propagator constants (see
+- `j4c::J4PropagatorConstants`: J4 orbit propagator constants (see
   [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm2008`)
 
 # Returns
@@ -309,20 +271,14 @@ The inertial frame in which the output is represented depends on which frame it 
 generate the orbit parameters. Notice that the perturbation theory requires an inertial
 frame with true equator.
 """
-function j4(
-    Δt::Number,
-    orb₀::KeplerianElements,
-    dn_o2::Number = 0,
-    ddn_o6::Number = 0;
-    j4c::J4PropagatorConstants{T} = j4c_egm2008
-) where T<:Number
-    j4d = j4_init(orb₀, dn_o2, ddn_o6; j4c = j4c)
+function j4(Δt::Number, orb₀::KeplerianElements; j4c::J4PropagatorConstants = j4c_egm2008)
+    j4d = j4_init(orb₀; j4c = j4c)
     r_i, v_i = j4!(j4d, Δt)
     return r_i, v_i, j4d
 end
 
 """
-    j4!(j4d::J4Propagator{Tepoch, T}, t::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    j4!(j4d::J4Propagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:Number} -> SVector{3, T}, SVector{3, T}
 
 Propagate the orbit defined in `j4d` (see [`J4Propagator`](@ref)) to `t` [s] after the
 epoch of the input mean elements in `j4d`.
@@ -343,21 +299,15 @@ The inertial frame in which the output is represented depends on which frame it 
 generate the orbit parameters. Notice that the perturbation theory requires an inertial
 frame with true equator.
 """
-function j4!(j4d::J4Propagator{Tepoch, T}, t::Number) where {Tepoch, T}
+function j4!(j4d::J4Propagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:Number}
     # Unpack the variables.
     orb₀   = j4d.orb₀
-    j4c    = j4d.j4c
-    al₀    = j4d.al₀
     M₀     = j4d.M₀
-    δa     = j4d.δa
-    δe     = j4d.δe
     δΩ     = j4d.δΩ
     δω     = j4d.δω
     n̄      = j4d.n̄
-    dn_o2  = j4d.dn_o2
-    ddn_o6 = j4d.ddn_o6
-    R0     = j4c.R0
     epoch  = orb₀.t
+    a₀     = orb₀.a
     e₀     = orb₀.e
     i₀     = orb₀.i
     Ω₀     = orb₀.Ω
@@ -367,24 +317,15 @@ function j4!(j4d::J4Propagator{Tepoch, T}, t::Number) where {Tepoch, T}
     Δt = T(t)
 
     # Propagate the orbital elements.
-    al_k = al₀ + δa * Δt
-    e_k  = e₀  + δe * Δt
-    i_k  = i₀
-    Ω_k  = mod(Ω₀ + δΩ * Δt, T(2π))
-    ω_k  = mod(ω₀ + δω * Δt, T(2π))
-
-    # The mean anomaly update equation can be seen in [1, p. 693]. However, we add the terms
-    # related with the time-derivative of the mean motion as in [1, p. 692].
-    M_k = mod(@evalpoly(Δt, M₀, n̄, dn_o2, ddn_o6), T(2π))
+    Ω_k = mod(Ω₀ + δΩ * Δt, T(2π))
+    ω_k = mod(ω₀ + δω * Δt, T(2π))
+    M_k = mod(M₀ + n̄  * Δt, T(2π))
 
     # Convert the mean anomaly to the true anomaly.
-    f_k  = mean_to_true_anomaly(e_k, M_k)
-
-    # Make sure that eccentricity is not lower than 0.
-    e_k = max(e_k, T(0))
+    f_k = mean_to_true_anomaly(e₀, M_k)
 
     # Assemble the current mean elements.
-    orbk = KeplerianElements(epoch + Tepoch(Δt) / 86400, al_k * R0, e_k, i_k, Ω_k, ω_k, f_k)
+    orbk = KeplerianElements(epoch + Tepoch(Δt) / 86400, a₀, e₀, i₀, Ω_k, ω_k, f_k)
 
     # Compute the position and velocity vectors given the orbital elements.
     r_i_k, v_i_k = kepler_to_rv(orbk)
