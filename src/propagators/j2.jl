@@ -165,24 +165,23 @@ function j2_init!(
     J₂  = j2c.J2
 
     # Unpack orbit elements.
-    epoch = orb₀.t
-    a₀    = T(orb₀.a)
-    e₀    = T(orb₀.e)
-    i₀    = T(orb₀.i)
-    Ω₀    = T(orb₀.Ω)
-    ω₀    = T(orb₀.ω)
-    f₀    = T(orb₀.f)
+    a₀ = T(orb₀.a)
+    e₀ = T(orb₀.e)
+    i₀ = T(orb₀.i)
+    f₀ = T(orb₀.f)
 
     # Initial values and auxiliary variables.
     al₀ = a₀ / R₀                      # ................... Normalized semi-major axis [er]
     e₀² = e₀^2                         # .......................... Eccentricity squared [ ]
-    n₀  = μm / al₀^(T(3 / 2))          # ................... Unperturbed mean motion [rad/s]
+    n₀  = μm / √(al₀^3)                # ................... Unperturbed mean motion [rad/s]
     p₀  = al₀ * (1 - e₀²)              # ............................ Semi-latus rectum [er]
     p₀² = p₀^2                         # ................... Semi-latus rectum squared [er²]
     M₀  = true_to_mean_anomaly(e₀, f₀) # ........................ Initial mean anomaly [rad]
 
     sin_i₀, cos_i₀ = sincos(T(i₀))
     sin_i₀² = sin_i₀^2
+    β²      = 1 - e₀²
+    β       = √β²
 
     # We use the algorithm provided in [2, p. 372] that consists on updating the Keplerian
     # elements considering only the first order secular terms, i.e., those that depends only
@@ -190,11 +189,13 @@ function j2_init!(
 
     # We need to compute the perturbed mean motion that is used to calculate the first-order
     # time derivative of the orbital elements [2].
-    n̄ = n₀ * (1 + T(3 / 4) * J₂ / p₀² * √(1 - e₀²) * (2 - 3sin_i₀²))
+    kn₂ = J₂  / p₀² * β
+    n̄   = n₀ * (1 + (3 // 4) * kn₂ * (2 - 3sin_i₀²))
 
     # First-order time-derivative of the orbital elements.
-    δΩ = -T(3 / 2) * n̄ * J₂ / p₀² * cos_i₀
-    δω = +T(3 / 4) * n̄ * J₂ / p₀² * (4 - 5sin_i₀²)
+    k̄₂ = n̄  * J₂  / p₀²
+    δΩ = -(3 // 2) * k̄₂ * cos_i₀
+    δω = +(3 // 4) * k̄₂ * (4 - 5sin_i₀²)
 
     # Initialize the propagator structure with the data.
     j2d.orb₀ = j2d.orbk = orb₀
