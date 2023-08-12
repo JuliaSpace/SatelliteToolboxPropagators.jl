@@ -188,7 +188,7 @@ function j2_init!(
     # elements considering only the first order secular terms, i.e., those that depends only
     # on J₂.
 
-    # We need to compute the "mean" mean motion that is used to calculate the first-order
+    # We need to compute the perturbed mean motion that is used to calculate the first-order
     # time derivative of the orbital elements [2].
     n̄ = n₀ * (1 + T(3 / 4) * J₂ / p₀² * √(1 - e₀²) * (2 - 3sin_i₀²))
 
