@@ -6,8 +6,8 @@
 #   J2 orbit propagator algorithm.
 #
 #   This algorithm propagates the orbit considering the perturbed two-body equations as
-#   presented in [1, p. 690-692]. It uses the first-order approximation of Kepler's problem,
-#   considering the effects of secular gravitational and drag perturbations.
+#   presented in [2, p. 372]. It uses the first-order approximation of Kepler's problem,
+#   considering the effects of secular gravitational perturbations.
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #
@@ -114,7 +114,7 @@ const j2c_jgm03_f32 = J2PropagatorConstants{Float32}(
 ############################################################################################
 
 """
-    j2_init(orb₀::KeplerianElements; kwargs...) where T<:Number -> J2Propagator
+    j2_init(orb₀::KeplerianElements; kwargs...) -> J2Propagator
 
 Create and initialize the J2 orbit propagator structure using the mean Keplerian elements
 `orb₀` [SI units].
@@ -209,7 +209,7 @@ function j2_init!(
 end
 
 """
-    j2(Δt::Number, orb₀::KeplerianElements; kwargs...)
+    j2(Δt::Number, orb₀::KeplerianElements; kwargs...) -> SVector{3, T}, SVector{3, T}, J2Propagator
 
 Initialize the J2 propagator structure using the input elements `orb₀` [SI units] and
 propagate the orbit until the time Δt [s].
@@ -220,8 +220,8 @@ propagate the orbit until the time Δt [s].
 
 # Keywords
 
-- `j2c::J2PropagatorConstants{T}`: J2 orbit propagator constants (see
-  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm2008`)
+- `j2c::J2PropagatorConstants`: J2 orbit propagator constants (see
+    [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm2008`)
 
 # Returns
 
@@ -237,11 +237,7 @@ The inertial frame in which the output is represented depends on which frame it 
 generate the orbit parameters. Notice that the perturbation theory requires an inertial
 frame with true equator.
 """
-function j2(
-    Δt::Number,
-    orb₀::KeplerianElements;
-    j2c::J2PropagatorConstants{T} = j2c_egm2008
-) where T<:Number
+function j2(Δt::Number, orb₀::KeplerianElements; j2c::J2PropagatorConstants = j2c_egm2008)
     j2d = j2_init(orb₀; j2c = j2c)
     r_i, v_i = j2!(j2d, Δt)
     return r_i, v_i, j2d
