@@ -27,7 +27,7 @@ The current supported propagators are:
 
 ``` julia
 julia> using Pkg
-julia> Pkg.install("SatelliteToolboxPropagators")
+julia> Pkg.add("SatelliteToolboxPropagators")
 ```
 
 ## Documentation
