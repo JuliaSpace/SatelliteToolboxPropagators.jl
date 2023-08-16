@@ -194,15 +194,15 @@ function j2_init!(
 
     # First-order time-derivative of the orbital elements.
     k̄₂ = n̄  * J₂  / p₀²
-    δΩ = -(3 // 2) * k̄₂ * cos_i₀
-    δω = +(3 // 4) * k̄₂ * (4 - 5sin_i₀²)
+    ∂Ω = -(3 // 2) * k̄₂ * cos_i₀
+    ∂ω = +(3 // 4) * k̄₂ * (4 - 5sin_i₀²)
 
     # Initialize the propagator structure with the data.
     j2d.orb₀ = j2d.orbk = orb₀
     j2d.Δt   = 0
     j2d.M₀   = M₀
-    j2d.δΩ   = δΩ
-    j2d.δω   = δω
+    j2d.∂Ω   = ∂Ω
+    j2d.∂ω   = ∂ω
     j2d.n̄    = n̄
 
     return nothing
@@ -269,8 +269,8 @@ function j2!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:
     # Unpack the variables.
     orb₀   = j2d.orb₀
     M₀     = j2d.M₀
-    δΩ     = j2d.δΩ
-    δω     = j2d.δω
+    ∂Ω     = j2d.∂Ω
+    ∂ω     = j2d.∂ω
     n̄      = j2d.n̄
     epoch  = orb₀.t
     a₀     = orb₀.a
@@ -283,8 +283,8 @@ function j2!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:
     Δt = T(t)
 
     # Propagate the orbital elements.
-    Ω_k = mod(Ω₀ + δΩ * Δt, T(2π))
-    ω_k = mod(ω₀ + δω * Δt, T(2π))
+    Ω_k = mod(Ω₀ + ∂Ω * Δt, T(2π))
+    ω_k = mod(ω₀ + ∂ω * Δt, T(2π))
     M_k = mod(M₀ + n̄  * Δt, T(2π))
 
     # Convert the mean anomaly to the true anomaly.

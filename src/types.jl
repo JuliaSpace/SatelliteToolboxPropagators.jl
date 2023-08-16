@@ -53,8 +53,8 @@ mutable struct J2Propagator{Tepoch<:Number, T<:Number}
     # ======================================================================================
 
     M₀::T # ................................................ Initial mean mean anomaly [rad]
-    δΩ::T # ................................................. RAAN time derivative [rad / s]
-    δω::T # .................................. Argument of perigee time derivative [rad / s]
+    ∂Ω::T # ................................................. RAAN time derivative [rad / s]
+    ∂ω::T # .................................. Argument of perigee time derivative [rad / s]
     n̄::T  # ................................................ Perturbed mean motion [rad / s]
 
     # Constructors
@@ -128,8 +128,8 @@ mutable struct J4Propagator{Tepoch, T}
     # ======================================================================================
 
     M₀::T # .,,,,........................................... Initial mean mean anomaly [rad]
-    δΩ::T # .,,,,............................................ RAAN time derivative [rad / s]
-    δω::T # .,,,,............................. Argument of perigee time derivative [rad / s]
+    ∂Ω::T # .,,,,............................................ RAAN time derivative [rad / s]
+    ∂ω::T # .,,,,............................. Argument of perigee time derivative [rad / s]
     n̄::T  # ................................................ Perturbed mean motion [rad / s]
 
     # Constructors

@@ -222,11 +222,11 @@ function j4_init!(
     #   https://github.com/JuliaSpace/SatelliteToolbox.jl/issues/91
     #
 
-    δΩ = -( 3 // 2 ) * k̄₂  * cos_i₀ +
+    ∂Ω = -( 3 // 2 ) * k̄₂  * cos_i₀ +
           ( 3 // 32) * k̄₂₂ * cos_i₀ * (-36 -  4e₀² + 48β + (40 - 5e₀² - 72β) * sin_i₀²) +
           (15 // 32) * k₄  * cos_i₀ * (8 + 12e₀² - (14 + 21e₀²) * sin_i₀²)
 
-    δω = ( 3 // 4  ) * k̄₂  * (4 - 5sin_i₀²) +
+    ∂ω = ( 3 // 4  ) * k̄₂  * (4 - 5sin_i₀²) +
          ( 3 // 128) * k̄₂₂ * (384 + 96e₀² - 384β + (-824 - 116e₀² + 1056β) * sin_i₀² + (430 - 5e₀² - 720β) * sin_i₀⁴) -
          (15 // 16 ) * k₂₂ * e₀² * cos_i₀⁴ -
          (15 // 128) * k₄  * (64 + 72e₀² - (248 + 252e₀²) * sin_i₀² + (196 + 189e₀²) * sin_i₀⁴)
@@ -235,8 +235,8 @@ function j4_init!(
     j4d.orb₀ = j4d.orbk = orb₀
     j4d.Δt   = 0
     j4d.M₀   = M₀
-    j4d.δΩ   = δΩ
-    j4d.δω   = δω
+    j4d.∂Ω   = ∂Ω
+    j4d.∂ω   = ∂ω
     j4d.n̄    = n̄
 
     return nothing
@@ -303,8 +303,8 @@ function j4!(j4d::J4Propagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:
     # Unpack the variables.
     orb₀   = j4d.orb₀
     M₀     = j4d.M₀
-    δΩ     = j4d.δΩ
-    δω     = j4d.δω
+    ∂Ω     = j4d.∂Ω
+    ∂ω     = j4d.∂ω
     n̄      = j4d.n̄
     epoch  = orb₀.t
     a₀     = orb₀.a
@@ -317,8 +317,8 @@ function j4!(j4d::J4Propagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:
     Δt = T(t)
 
     # Propagate the orbital elements.
-    Ω_k = mod(Ω₀ + δΩ * Δt, T(2π))
-    ω_k = mod(ω₀ + δω * Δt, T(2π))
+    Ω_k = mod(Ω₀ + ∂Ω * Δt, T(2π))
+    ω_k = mod(ω₀ + ∂ω * Δt, T(2π))
     M_k = mod(M₀ + n̄  * Δt, T(2π))
 
     # Convert the mean anomaly to the true anomaly.
