@@ -14,6 +14,7 @@ Version 0.3.0
   propagators to remove unnecessary variables in their structures after the redesign.
 - ![Enhancement][badge-enhancement] We improved the J2 and J4 propagators given Kozai's
   theory.
+- ![Enhancement][badge-enhancement] We updated the dependency compatibility bounds.
 
 Version 0.2.1
 -------------
