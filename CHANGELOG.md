@@ -1,6 +1,20 @@
 SatelliteToolboxPropagator.jl Changelog
 =======================================
 
+Version 0.3.0
+-------------
+
+- ![BREAKING][badge-breaking] We removed the possibility to add a mean motion
+  time-derivative to J2 and J4 propagators. The theory we used to code those algorithms does
+  not take into account such perturbations. Hence, the propagation accuracy would degrade
+  very fast in those case with the mean motion perturbation.
+- ![BREAKING][badge-breaking] The symbol to indicate a time-derivative in the structures of
+  the propagators was changed from `δ` to `∂`.
+- ![BREAKING][badge-breaking] ![Enhancement][badge-enhancement] We modified all the
+  propagators to remove unnecessary variables in their structures after the redesign.
+- ![Enhancement][badge-enhancement] We improved the J2 and J4 propagators given Kozai's
+  theory.
+
 Version 0.2.1
 -------------
 
