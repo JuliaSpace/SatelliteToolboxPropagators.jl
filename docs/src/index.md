@@ -1,5 +1,4 @@
-SatelliteToolboxPropagators.jl
-==============================
+# SatelliteToolboxPropagators.jl
 
 This packages contains orbit propagators for the **SatelliteToolbox.jl** ecosystem.
 

@@ -129,8 +129,8 @@ vectors. Since the system is chaotic, a good initial guess is paramount for algo
 convergence. We can provide an initial guess using the keyword `initial_guess`.
 
 If `initial_guess` is a `TLE`, we update the TLE epoch using the function
-[`update_sgp4_tle_epoch!`](@ref) to the desired one in `mean_elements_epoch`. Afterward, we
-use this new TLE as the initial guess.
+`update_sgp4_tle_epoch!` to the desired one in `mean_elements_epoch`. Afterward, we use this
+new TLE as the initial guess.
 
 If `initial_guess` is an `AbstractVector`, we use this vector as the initial mean state
 vector for the algorithm. It must contain 7 elements as follows:
@@ -144,8 +144,8 @@ vector for the algorithm. It must contain 7 elements as follows:
 If `initial_guess` is `nothing`, the algorithm takes the closest osculating state vector to
 the `mean_elements_epoch` and uses it as the initial mean state vector. In this case, the
 epoch is set to the same epoch of the osculating data in `vjd`. When the fitted TLE is
-obtained, the algorithm uses the function [`update_sgp4_tle_epoch!`](@ref) to change its
-epoch to `mean_elements_epoch`.
+obtained, the algorithm uses the function `update_sgp4_tle_epoch!` to change its epoch to
+`mean_elements_epoch`.
 
 !!! note
 
@@ -244,8 +244,8 @@ vectors. Since the system is chaotic, a good initial guess is paramount for algo
 convergence. We can provide an initial guess using the keyword `initial_guess`.
 
 If `initial_guess` is a `TLE`, we update the TLE epoch using the function
-[`update_sgp4_tle_epoch!`](@ref) to the desired one in `mean_elements_epoch`. Afterward, we
-use this new TLE as the initial guess.
+`update_sgp4_tle_epoch!` to the desired one in `mean_elements_epoch`. Afterward, we use this
+new TLE as the initial guess.
 
 If `initial_guess` is an `AbstractVector`, we use this vector as the initial mean state
 vector for the algorithm. It must contain 7 elements as follows:
@@ -259,8 +259,8 @@ vector for the algorithm. It must contain 7 elements as follows:
 If `initial_guess` is `nothing`, the algorithm takes the closest osculating state vector to
 the `mean_elements_epoch` and uses it as the initial mean state vector. In this case, the
 epoch is set to the same epoch of the osculating data in `vjd`. When the fitted TLE is
-obtained, the algorithm uses the function [`update_sgp4_tle_epoch!`](@ref) to change its
-epoch to `mean_elements_epoch`.
+obtained, the algorithm uses the function `update_sgp4_tle_epoch!` to change its epoch to
+`mean_elements_epoch`.
 
 !!! note
 
@@ -309,7 +309,7 @@ by the arguments.
 
 # Keywords
 
-- `sgp4c::Sgp4Constants`: SGP4 orbit propagator constants (see [`Sgp4Constants`](@ref)).
+- `sgp4c::Sgp4Constants`: SGP4 orbit propagator constants (see `Sgp4Constants`).
     (**Default** = `sgp4c_wgs84`)
 """
 function Propagators.init(::Val{:SGP4}, tle::TLE; sgp4c::Sgp4Constants = sgp4c_wgs84)
@@ -403,7 +403,7 @@ until the time Δt [s].
 
 # Keywords
 
-- `sgp4c::Sgp4Constants{T}`: SGP4 orbit propagator constants (see [`Sgp4Constants`](@ref)).
+- `sgp4c::Sgp4Constants{T}`: SGP4 orbit propagator constants (see `Sgp4Constants`).
     (**Default** = `sgp4c_wgs84`)
 
 # Returns

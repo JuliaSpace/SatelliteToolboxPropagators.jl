@@ -1,5 +1,4 @@
-API
-===
+# API
 
 **SatelliteToolboxPropagators.jl** has a propagator API to improve the usability. This API
 has the following requirements, which must be met by all propagators that uses it.

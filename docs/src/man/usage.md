@@ -1,25 +1,25 @@
-Usage
-=====
+# Usage
 
 ```@meta
 CurrentModule = SatelliteToolboxPropagators
-DocTestSetup = quote
-    using SatelliteToolboxPropagators
-end
+```
+
+```@repl usage
+using SatelliteToolboxPropagators
 ```
 
 All the propagators can be accessed using the available API, which allows to initialize and
 propagate the orbit.
 
-All the API function are available inside the module [`Propagators`](@ref) that is exported
-by this package.
+All the API function are available inside the module `Propagators` that is exported by this
+package.
 
 ## Initialization
 
 We can initialize an orbit propagator using the function:
 
 ```julia
-function Propagators.init(::Val{:propagator}, args...; kwargs...)
+Propagators.init(::Val{:propagator}, args...; kwargs...)
 ```
 
 It initializes a propagator of type `:propagator` using the arguments `args...` and keywords
@@ -39,36 +39,24 @@ See the documentation of each algorithm to verify the supported arguments and ke
 For example, a J2 analytical orbit propagator can be initialized with a set of mean elements
 as follows:
 
-```jldoctest J2
-julia> orb = KeplerianElements(
-           date_to_jd(2023, 1, 1, 0, 0, 0),
-           7190.982e3,
-           0.001111,
-           98.405 |> deg2rad,
-           100    |> deg2rad,
-           90     |> deg2rad,
-           19     |> deg2rad
-       )
-KeplerianElements{Float64, Float64}:
-           Epoch :    2.45995e6 (2023-01-01T00:00:00)
- Semi-major axis : 7190.98     km
-    Eccentricity :    0.001111
-     Inclination :   98.405    °
-            RAAN :  100.0      °
- Arg. of Perigee :   90.0      °
-    True Anomaly :   19.0      °
+```@repl usage
+orb = KeplerianElements(
+    date_to_jd(2023, 1, 1, 0, 0, 0),
+    7190.982e3,
+    0.001111,
+    98.405 |> deg2rad,
+    100    |> deg2rad,
+    90     |> deg2rad,
+    19     |> deg2rad
+)
 
-julia> orbp = Propagators.init(Val(:J2), orb)
-OrbitPropagatorJ2{Float64, Float64}:
-   Propagator name : J2 Orbit Propagator
-  Propagator epoch : 2023-01-01T00:00:00
-  Last propagation : 2023-01-01T00:00:00
+orbp = Propagators.init(Val(:J2), orb)
 ```
 
 We also have the function:
 
 ```julia
-function init!(orbp::OrbitPropagator, args...; kwargs...)
+init!(orbp::OrbitPropagator, args...; kwargs...)
 ```
 
 that initializes the propagator `orbp` in-place using the arguments `args...` and keywords
@@ -81,7 +69,7 @@ Hence, some algorithms might not support it.
 After the initialization, we can propagate the orbit using some functions as follows.
 
 ```julia
-function propagate!(orbp::OrbitPropagator{Tepoch, T}, t::Number) where {Tepoch, T}
+propagate!(orbp::OrbitPropagator{Tepoch, T}, t::Number) where {Tepoch, T}
 ```
 
 This function propagates the orbit using `orbp` by `t` [s] from the initial orbit epoch. It
@@ -92,15 +80,14 @@ initialization.
 For example, using the initialized propagator, we can propagate the orbit by 6000s as
 follows:
 
-```jldoctest J2
-julia> Propagators.propagate!(orbp, 6000)
-([1.3152752189693751e6, -1.5933886600051078e6, 6.8797020668377e6], [993.0153602143952, -7152.78809001682, -1844.2917380794433])
+```@repl usage
+Propagators.propagate!(orbp, 6000)
 ```
 
 ---
 
 ```julia
-function propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, jd::Number) where {Tepoch, T}
+propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, jd::Number) where {Tepoch, T}
 ```
 
 This function propagates the orbit using `orbp` until the epoch `jd` [Julian Day]. It
@@ -111,15 +98,14 @@ initialization.
 For example, using the initialized propagator, we can propagate the orbit to
 2023-01-02T00:00:00 as follows:
 
-```jldoctest J2
-julia> Propagators.propagate_to_epoch!(orbp, date_to_jd(2023, 1, 2, 0, 0, 0))
-([1.2007441457621562e6, -7.014291058654364e6, -1.0443532029853627e6], [-1262.9147609767083, 860.1551065186032, -7285.029142259778])
+```@repl usage
+Propagators.propagate_to_epoch!(orbp, date_to_jd(2023, 1, 2, 0, 0, 0))
 ```
 
 ---
 
 ```julia
-function step!(orbp::OrbitPropagator{Tepoch, T}, Δt::Number) where {Tepoch, T}
+step!(orbp::OrbitPropagator{Tepoch, T}, Δt::Number) where {Tepoch, T}
 ```
 
 Every time we propagate the orbit, the propagation instant is recorded inside the structure.
@@ -131,21 +117,12 @@ propagator initialization.
 For example, using the initialized propagator, we can advance the propagation by 60 s as
 follows:
 
-```jldoctest J2
-julia> orbp
-OrbitPropagatorJ2{Float64, Float64}:
-   Propagator name : J2 Orbit Propagator
-  Propagator epoch : 2023-01-01T00:00:00
-  Last propagation : 2023-01-02T00:00:00
+```@repl usage
+orbp
 
-julia> Propagators.step!(orbp, 60)
-([1.1228778966719273e6, -6.949273896376436e6, -1.4786561473080558e6], [-1337.5317183567313, 1308.4670676524293, -7204.0232806824615])
+Propagators.step!(orbp, 60)
 
-julia> orbp
-OrbitPropagatorJ2{Float64, Float64}:
-   Propagator name : J2 Orbit Propagator
-  Propagator epoch : 2023-01-01T00:00:00
-  Last propagation : 2023-01-02T00:01:00
+orbp
 ```
 
 ## Simultaneous Initialization and Propagation
@@ -153,8 +130,8 @@ OrbitPropagatorJ2{Float64, Float64}:
 We can use the following functions to simultaneously initialize and propagate the orbit:
 
 ```julia
-function propagate(::Val{:propagator}, Δt::Number, args...; kwargs...)
-function propagate_to_epoch(::Val{:propagator}, jd::Number, args...; kwargs...)
+propagate(::Val{:propagator}, Δt::Number, args...; kwargs...)
+propagate_to_epoch(::Val{:propagator}, jd::Number, args...; kwargs...)
 ```
 
 The symbol `:propagator`, the arguments `args...`, and the keywords `kwargs...` are the same
@@ -173,9 +150,8 @@ propagators might not support them.
 For example, we can propagate by 60 s a set of mean elements using a J2 analytical
 propagator as follows:
 
-```jldoctest J2
-julia> Propagators.propagate(Val(:J2), 60, orb)
-([1.433577581999473e6, -2.5460150747451796e6, 6.562531225282293e6], [784.1942683097858, -6851.527297258613, -2825.9666374272706], J2 Orbit Propagator (Epoch = 2023-01-01T00:00:00, Δt = 60.0 s))
+```@repl usage
+Propagators.propagate(Val(:J2), 60, orb)
 ```
 
 ## Helpers
@@ -184,60 +160,49 @@ We have the following functions that provide some useful information related to 
 propagators.
 
 ```julia
-function epoch(orbp::OrbitPropagator{Tepoch, T}) where {Tepoch<:Number, T<:Number}
+epoch(orbp::OrbitPropagator{Tepoch, T}) where {Tepoch<:Number, T<:Number}
 ```
 
 It returns the initial elements' epoch of the propagator `orbp` [JD].
 
-```jldoctest J2
-julia> Propagators.epoch(orbp)
-2.4599455e6
+```@repl usage
+Propagators.epoch(orbp)
 ```
 
 ---
 
 ```julia
-function last_instant(orbp::OrbitPropagator{Tepoch, T}) where {Tepoch<:Number, T<:Number}
+last_instant(orbp::OrbitPropagator{Tepoch, T}) where {Tepoch<:Number, T<:Number}
 ```
 
 It returns the last propagation instant [s] measured from the input elements' epoch.
 
-```jldoctest J2
-julia> Propagators.last_instant(orbp)
-86460.0
+```@repl usage
+Propagators.last_instant(orbp)
 ```
 
 ---
 
 ```julia
-function name(orbp::OrbitPropagator)
+name(orbp::OrbitPropagator)
 ```
 
 It returns the propagator name.
 
-```jldoctest J2
-julia> Propagators.name(orbp)
-"J2 Orbit Propagator"
+```@repl usage
+Propagators.name(orbp)
 ```
 
 ---
 
 ```julia
-function mean_elements(orbp::OrbitPropagator)
+mean_elements(orbp::OrbitPropagator)
 ```
 
 It returns the mean elements using the structure `KeplerianElements` of the latest
 propagation performed by `orbp`. Notice that this is an optional funciton in the
 propagators' API. If a propagator does not support it, this function returns `nothing`.
 
-```jldoctest J2
-julia> Propagators.mean_elements(orbp)
-KeplerianElements{Float64, Float64}:
-           Epoch :    2.45995e6 (2023-01-02T00:01:00)
- Semi-major axis : 7190.98     km
-    Eccentricity :    0.001111
-     Inclination :   98.405    °
-            RAAN :  100.957    °
- Arg. of Perigee :   87.0755   °
-    True Anomaly :  104.918    °
+```@repl usage
+Propagators.mean_elements(orbp)
 ```

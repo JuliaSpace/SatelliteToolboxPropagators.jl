@@ -81,9 +81,9 @@ function last_instant end
 """
     mean_elements(orbp::OrbitPropagator) -> Union{Nothing, KeplerianElements}
 
-Return the mean elements using the structure [`KeplerianElements`](@ref) of the latest
-propagation performed by `orbp`. This is an optinal function in the API. It will return
-`nothing` if the propagator does not support it.
+Return the mean elements using the structure `KeplerianElements` of the latest propagation
+performed by `orbp`. This is an optinal function in the API. It will return `nothing` if the
+propagator does not support it.
 """
 mean_elements(orbp::OrbitPropagator) = nothing
 

@@ -1,11 +1,11 @@
-Two Body Analytical Propagator
-==============================
+# Two Body Analytical Propagator
 
 ```@meta
 CurrentModule = SatelliteToolboxPropagators
-DocTestSetup = quote
-    using SatelliteToolboxPropagators
-end
+```
+
+```@setup tb
+using SatelliteToolboxPropagators
 ```
 
 The two-body analytical orbit propagator considers the Earth a perfect sphere with uniform
@@ -33,7 +33,7 @@ where ``t_0`` is the initial mean elements' epoch, ``a_0`` is the mean semi-majo
 We can initialize the two-body analytical propagator with the following function:
 
 ```julia
-function Propagators.init(Val(:TwoBody), orb₀::KeplerianElements; kwargs...)
+Propagators.init(Val(:TwoBody), orb₀::KeplerianElements; kwargs...) -> OrbitPropagatorTwoBody
 ```
 
 which creates a two-body propagator structure [`OrbitPropagatorTwoBody`](@ref) with the mean
@@ -42,7 +42,7 @@ parameter for the propagation algorithm:
 
 - `m0::T`: Standard gravitational parameter of the central body [m³/s²].
     (**Default** = `tbc_m0`)
-    
+
 This package contains some pre-built gravitational parameters of the Earth for this
 propagator:
 
@@ -52,11 +52,12 @@ propagator:
 |                     `tbc_m0_f32` | Earth's standard gravitational parameter | `Float32` |
 
 !!! note
+
     The type used in the propagation will be the same as used to define the gravitational
     constant `μ`.
-    
-```jldoctest
-julia> orb = KeplerianElements(
+
+```@repl tb
+orb = KeplerianElements(
            date_to_jd(2023, 1, 1, 0, 0, 0),
            7190.982e3,
            0.001111,
@@ -65,20 +66,8 @@ julia> orb = KeplerianElements(
            90     |> deg2rad,
            19     |> deg2rad
        )
-KeplerianElements{Float64, Float64}:
-           Epoch :    2.45995e6 (2023-01-01T00:00:00)
- Semi-major axis : 7190.98     km
-    Eccentricity :    0.001111
-     Inclination :   98.405    °
-            RAAN :  100.0      °
- Arg. of Perigee :   90.0      °
-    True Anomaly :   19.0      °
 
-julia> orbp = Propagators.init(Val(:TwoBody), orb)
-OrbitPropagatorTwoBody{Float64, Float64}:
-   Propagator name : Two-Body Orbit Propagator
-  Propagator epoch : 2023-01-01T00:00:00
-  Last propagation : 2023-01-01T00:00:00
+orbp = Propagators.init(Val(:TwoBody), orb)
 ```
 
 ## References
