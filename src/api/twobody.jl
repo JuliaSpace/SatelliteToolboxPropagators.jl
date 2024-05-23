@@ -1,11 +1,8 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## Description #############################################################################
 #
-# Description
-# ==========================================================================================
+#  API implementation for two-body orbit propagator.
 #
-#    API implementation for two-body orbit propagator.
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 Propagators.epoch(orbp::OrbitPropagatorTwoBody)         = orbp.tbd.orb₀.t
 Propagators.last_instant(orbp::OrbitPropagatorTwoBody)  = orbp.tbd.Δt
@@ -19,6 +16,7 @@ Create and initialize the two-body orbit propagator structure using the mean Kep
 elements `orb₀`.
 
 !!! note
+
     The type used in the propagation will be the same as used to define the gravitational
     constant `m0`.
 
@@ -39,6 +37,7 @@ Initialize the two-body orbit propagator structure `orbp` using the mean Kepleri
 `orb₀`.
 
 !!! warning
+
     The propagation constant `m0::Number` in `tbd` will not be changed. Hence, it must be
     initialized.
 
@@ -58,6 +57,7 @@ Initialize the two-body propagator structure using the input elements `orb₀` a
 the orbit until the time Δt [s].
 
 !!! note
+
     The type used in the propagation will be the same as used to define the gravitational
     constant `m0`.
 

@@ -1,26 +1,20 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## Description #############################################################################
 #
-# Description
-# ==========================================================================================
+# J2 orbit propagator algorithm.
 #
-#   J2 orbit propagator algorithm.
+# This algorithm propagates the orbit considering the perturbed two-body equations as
+# presented in [2, p. 372]. It uses the first-order approximation of Kepler's problem,
+# considering the effects of secular gravitational perturbations.
 #
-#   This algorithm propagates the orbit considering the perturbed two-body equations as
-#   presented in [2, p. 372]. It uses the first-order approximation of Kepler's problem,
-#   considering the effects of secular gravitational perturbations.
+## References ##############################################################################
 #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# [1] Vallado, D. A (2013). Fundamentals of Astrodynamics and Applications. Microcosm
+#     Press, Hawthorn, CA, USA.
 #
-# References
-# ==========================================================================================
+# [2] Kozai, Y (1959). The Motion of a Close Earth Satellite. The Astronomical Journal,
+#     v. 64, no. 1274, pp. 367 -- 377.
 #
-#   [1] Vallado, D. A (2013). Fundamentals of Astrodynamics and Applications. Microcosm
-#       Press, Hawthorn, CA, USA.
-#
-#   [2] Kozai, Y (1959). The Motion of a Close Earth Satellite. The Astronomical Journal,
-#       v. 64, no. 1274, pp. 367 -- 377.
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 export j2c_egm2008, j2c_egm1996, j2c_jgm02, j2c_jgm03
 export j2c_egm2008_f32, j2c_egm1996_f32, j2c_jgm02_f32, j2c_jgm03_f32
@@ -29,7 +23,7 @@ export fit_j2_mean_elements, fit_j2_mean_elements!
 export update_j2_mean_elements_epoch, update_j2_mean_elements_epoch!
 
 ############################################################################################
-#                                           TODO
+#                                           TODO                                           #
 ############################################################################################
 #
 # 1. Analyze the reference frame representation of the inputs for this algorithm.
@@ -49,7 +43,7 @@ export update_j2_mean_elements_epoch, update_j2_mean_elements_epoch!
 ############################################################################################
 
 ############################################################################################
-#                                        Constants
+#                                        Constants                                         #
 ############################################################################################
 
 # These constants were obtained from the GFC files. Remember that:
@@ -110,7 +104,7 @@ const j2c_jgm03_f32 = J2PropagatorConstants{Float32}(
 )
 
 ############################################################################################
-#                                        Functions
+#                                        Functions                                         #
 ############################################################################################
 
 """
@@ -120,13 +114,15 @@ Create and initialize the J2 orbit propagator structure using the mean Keplerian
 `orb₀` [SI units].
 
 !!! note
+
     The type used in the propagation will be the same as used to define the constants in the
     structure `j2c`.
 
 # Keywords
 
 - `j2c::J2PropagatorConstants`: J2 orbit propagator constants (see
-  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm2008`)
+    [`J2PropagatorConstants`](@ref)).
+    (**Default** = `j2c_egm2008`)
 """
 function j2_init(
     orb₀::KeplerianElements{Tepoch, Tkepler};
@@ -151,6 +147,7 @@ Initialize the J2 orbit propagator structure `j2d` using the mean Keplerian elem
 [SI units].
 
 !!! warning
+
     The propagation constants `j2c::J2PropagatorConstants` in `j2d` will not be changed.
     Hence, they must be initialized.
 """
@@ -215,13 +212,15 @@ Initialize the J2 propagator structure using the input elements `orb₀` [SI uni
 propagate the orbit until the time Δt [s].
 
 !!! note
+
     The type used in the propagation will be the same as used to define the constants in the
     structure `j2c`.
 
 # Keywords
 
 - `j2c::J2PropagatorConstants`: J2 orbit propagator constants (see
-    [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm2008`)
+    [`J2PropagatorConstants`](@ref)).
+    (**Default** = `j2c_egm2008`)
 
 # Returns
 
@@ -250,6 +249,7 @@ Propagate the orbit defined in `j2d` (see [`J2Propagator`](@ref)) to `t` [s] aft
 epoch of the input mean elements in `j2d`.
 
 !!! note
+
     The internal values in `j2d` will be modified.
 
 # Returns
@@ -313,6 +313,7 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 [Julian Day].
 
 !!! note
+
     This algorithm version will allocate a new J2 propagator with the default constants
     `j2c_egm2008`. If another set of constants are required, use the function
     [`fit_j2_mean_elements!`](@ref) instead.
@@ -320,19 +321,24 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 # Keywords
 
 - `atol::Number`: Tolerance for the residue absolute value. If the residue is lower than
-    `atol` at any iteration, the computation loop stops. (**Default** = 2e-4)
+    `atol` at any iteration, the computation loop stops.
+    (**Default** = 2e-4)
 - `rtol::Number`: Tolerance for the relative difference between the residues. If the
     relative difference between the residues in two consecutive iterations is lower than
-    `rtol`, the computation loop stops. (**Default** = 2e-4)
+    `rtol`, the computation loop stops.
+    (**Default** = 2e-4)
 - `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
-    the osculating elements in `vr_i` and `vv_i`. (**Default** = nothing)
+    the osculating elements in `vr_i` and `vv_i`.
+    (**Default** = nothing)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix. (**Default** = 1e-3)
+    finite-difference when calculating the Jacobian matrix.
+    (**Default** = 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until it absolute value is higher than
-    `jacobian_perturbation_tol`. (**Default** = 1e-7)
+    `jacobian_perturbation_tol`.
+    (**Default** = 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
     (**Default** = 50)
 - `mean_elements_epoch::Number`: Epoch for the fitted mean elements.
@@ -341,7 +347,8 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
     (**Default** = true)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
-    `weight_vector` at its diagonal. (**Default** = `@SVector(ones(Bool, 6))`)
+    `weight_vector` at its diagonal.
+    (**Default** = `@SVector(ones(Bool, 6))`)
 
 # Returns
 
@@ -421,25 +428,31 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 [Julian Day].
 
 !!! note
+
     The J2 orbit propagator `j2d` will be initialized with the Keplerian elements returned
     by the function.
 
 # Keywords
 
 - `atol::Number`: Tolerance for the residue absolute value. If the residue is lower than
-    `atol` at any iteration, the computation loop stops. (**Default** = 2e-4)
+    `atol` at any iteration, the computation loop stops.
+    (**Default** = 2e-4)
 - `rtol::Number`: Tolerance for the relative difference between the residues. If the
     relative difference between the residues in two consecutive iterations is lower than
-    `rtol`, the computation loop stops. (**Default** = 2e-4)
+    `rtol`, the computation loop stops.
+    (**Default** = 2e-4)
 - `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
-    the osculating elements in `vr_i` and `vv_i`. (**Default** = nothing)
+    the osculating elements in `vr_i` and `vv_i`.
+    (**Default** = nothing)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix. (**Default** = 1e-3)
+    finite-difference when calculating the Jacobian matrix.
+    (**Default** = 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until it absolute value is higher than
-    `jacobian_perturbation_tol`. (**Default** = 1e-7)
+    `jacobian_perturbation_tol`.
+    (**Default** = 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
     (**Default** = 50)
 - `mean_elements_epoch::Number`: Epoch for the fitted mean elements.
@@ -448,7 +461,8 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
     (**Default** = true)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
-    `weight_vector` at its diagonal. (**Default** = `@SVector(ones(Bool, 6))`)
+    `weight_vector` at its diagonal.
+    (**Default** = `@SVector(ones(Bool, 6))`)
 
 # Returns
 
@@ -739,6 +753,7 @@ Update the epoch of the mean elements `orb` using a J2 orbit propagator to `new_
 which can be represented by a Julian Day or a `DateTime`.
 
 !!! note
+
     This algorithm version will allocate a new J2 propagator with the default constants
     `j2c_egm2008`. If another set of constants are required, use the function
     [`update_j2osc_mean_elements_epoch!`](@ref) instead.
@@ -795,6 +810,7 @@ Update the epoch of the mean elements `orb` using the propagator `j2d` to `new_e
 can be represented by a Julian Day or a `DateTime`.
 
 !!! note
+
     The J2 orbit propagator `j2d` will be initialized with the Keplerian elements returned
     by the function.
 
@@ -864,7 +880,7 @@ function update_j2_mean_elements_epoch!(
 end
 
 ############################################################################################
-#                                    Private Functions
+#                                    Private Functions                                     #
 ############################################################################################
 
 """
@@ -881,10 +897,12 @@ at instant `Δt` considering the input mean elements `x₁` that must provide th
 # Keywords
 
 - `perturbation::T`: Initial state perturbation to compute the finite-difference:
-    `Δx = x * perturbation`. (**Default** = 1e-3)
+    `Δx = x * perturbation`.
+    (**Default** = 1e-3)
 - `perturbation_tol::T`: Tolerance to accept the perturbation. If the computed perturbation
     is lower than `perturbation_tol`, we increase it until it absolute value is higher than
-    `perturbation_tol`. (**Default** = 1e-7)
+    `perturbation_tol`.
+    (**Default** = 1e-7)
 """
 function _j2_jacobian!(
     J::AbstractMatrix{T},

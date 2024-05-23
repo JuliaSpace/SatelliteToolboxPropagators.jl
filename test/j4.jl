@@ -1,29 +1,22 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
-# Description
-# ==========================================================================================
+## Description #############################################################################
 #
 #   Tests of the J4 orbit propagator.
 #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## References ##############################################################################
 #
-# References
-# ==========================================================================================
+# [1] Vallado, D. A (2013). Fundamentals of Astrodynamics and Applications. Microcosm Press,
+#     Hawthorn, CA, USA.
 #
-#   [1] Vallado, D. A (2013). Fundamentals of Astrodynamics and Applications.
-#       Microcosm Press, Hawthorn, CA, USA.
+# [2] Hoots, F. R., Roehrich, R. L (1980). Models for Propagation of NORAD Elements Set.
+#     Spacetrack Report No. 3.
 #
-#   [2] Hoots, F. R., Roehrich, R. L (1980). Models for Propagation of NORAD
-#       Elements Set. Spacetrack Report No. 3.
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 ############################################################################################
-#                                       Test Results
+#                                       Test Results                                       #
 ############################################################################################
 #
-# Scenario 01
-# ==========================================================================================
+# == Scenario 01 ===========================================================================
 #
 # Source: https://github.com/JuliaSpace/SatelliteToolbox.jl/issues/91
 #
@@ -62,8 +55,7 @@
     jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
     jd₁ = date_to_jd(2023, 1, 5, 0, 0, 0)
 
-    # Constructor
-    # ======================================================================================
+    # == Constructor =======================================================================
 
     @testset "Constructor" begin
         orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
@@ -75,8 +67,7 @@
         @test j4d.j4c == j4c_egm2008
     end
 
-    # General API Functions
-    # ======================================================================================
+    # == General API Functions =============================================================
 
     @testset "General API Functions" begin
         orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
@@ -84,8 +75,7 @@
         @test Propagators.name(orbp) == "J4 Orbit Propagator"
     end
 
-    # Float64
-    # ======================================================================================
+    # == Float64 ===========================================================================
 
     @testset "Float64" begin
         T = Float64
@@ -171,8 +161,7 @@
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
     end
 
-    # Float32
-    # ======================================================================================
+    # == Float32 ===========================================================================
 
     @testset "Float32" begin
         T = Float32
@@ -446,15 +435,13 @@ end
     end
 
     @testset "Errors" begin
-        # Wrong dimensions in the input vectors
-        # ==================================================================================
+        # == Wrong dimensions in the input vectors =========================================
 
         @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J4), vjd[1:end-1], vr_i, vv_i)
         @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J4), vjd, vr_i[1:end-1], vv_i)
         @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J4), vjd, vr_i, vv_i[1:end-1])
 
-        # Wrong dimensions in the weight vector
-        # ==================================================================================
+        # == Wrong dimensions in the weight vector =========================================
 
         @test_throws ArgumentError Propagators.fit_mean_elements(
             Val(:J4),

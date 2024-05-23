@@ -1,11 +1,8 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
-# Description
-# ==========================================================================================
+## Description #############################################################################
 #
 #   Definition of types and structures.
 #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 export J2PropagatorConstants, J2Propagator, J2OsculatingPropagator
 export J4PropagatorConstants, J4Propagator, J4OsculatingPropagator
@@ -18,7 +15,7 @@ export OrbitPropagatorSgp4
 export OrbitPropagatorTwoBody
 
 ############################################################################################
-#                                   J2 Orbit Propagator
+#                                   J2 Orbit Propagator                                    #
 ############################################################################################
 
 """
@@ -49,23 +46,21 @@ mutable struct J2Propagator{Tepoch<:Number, T<:Number}
     j2c::J2PropagatorConstants{T}      # .............................. Propagator constants
     Δt::T                              # ..... Timespan from the initial elements' epoch [s]
 
-    # Auxiliary Variables
-    # ======================================================================================
+    # == Auxiliary Variables ===============================================================
 
     M₀::T # ................................................ Initial mean mean anomaly [rad]
     ∂Ω::T # ................................................. RAAN time derivative [rad / s]
     ∂ω::T # .................................. Argument of perigee time derivative [rad / s]
     n̄::T  # ................................................ Perturbed mean motion [rad / s]
 
-    # Constructors
-    # ======================================================================================
+    # == Constructors ======================================================================
 
     J2Propagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
     J2Propagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
 end
 
 ############################################################################################
-#                              J2 Osculating Orbit Propagator
+#                              J2 Osculating Orbit Propagator                              #
 ############################################################################################
 
 """
@@ -83,15 +78,14 @@ mutable struct J2OsculatingPropagator{Tepoch<:Number, T<:Number}
     # Current osculating Keplerian elements.
     orbk::KeplerianElements{Tepoch, T}
 
-    # Constructors
-    # ======================================================================================
+    # == Constructors ======================================================================
 
     J2OsculatingPropagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
     J2OsculatingPropagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
 end
 
 ############################################################################################
-#                                   J4 Orbit Propagator
+#                                   J4 Orbit Propagator                                    #
 ############################################################################################
 
 """
@@ -124,23 +118,21 @@ mutable struct J4Propagator{Tepoch, T}
     j4c::J4PropagatorConstants{T}      # .............................. Propagator constants
     Δt::T                              # ..... Timespan from the initial elements' epoch [s]
 
-    # Auxiliary Variables
-    # ======================================================================================
+    # == Auxiliary Variables ===============================================================
 
     M₀::T # .,,,,........................................... Initial mean mean anomaly [rad]
     ∂Ω::T # .,,,,............................................ RAAN time derivative [rad / s]
     ∂ω::T # .,,,,............................. Argument of perigee time derivative [rad / s]
     n̄::T  # ................................................ Perturbed mean motion [rad / s]
 
-    # Constructors
-    # ======================================================================================
+    # == Constructors ======================================================================
 
     J4Propagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
     J4Propagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
 end
 
 ############################################################################################
-#                              J4 Osculating Orbit Propagator
+#                              J4 Osculating Orbit Propagator                              #
 ############################################################################################
 
 """
@@ -158,15 +150,14 @@ mutable struct J4OsculatingPropagator{Tepoch<:Number, T<:Number}
     # Current osculating Keplerian elements.
     orbk::KeplerianElements{Tepoch, T}
 
-    # Constructors
-    # ======================================================================================
+    # == Constructors ======================================================================
 
     J4OsculatingPropagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
     J4OsculatingPropagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
 end
 
 ############################################################################################
-#                                   Two Body Propagator
+#                                   Two Body Propagator                                    #
 ############################################################################################
 
 """
@@ -180,25 +171,22 @@ mutable struct TwoBodyPropagator{Tepoch<:Number, T<:Number}
     μ::T                               # . Central body std. gravitational parameter [m³/s²]
     Δt::T                              # ..... Timespan from the initial elements' epoch [s]
 
-    # Auxiliary Variables
-    # ======================================================================================
+    # == Auxiliary Variables ===============================================================
 
     M₀::T  # ............................................... Initial mean mean anomaly [rad]
     n₀::T  # ........................................................  Mean motion [rad / s]
 
-    # Constructors
-    # ======================================================================================
+    # == Constructors ======================================================================
 
     TwoBodyPropagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
     TwoBodyPropagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
 end
 
 ############################################################################################
-#                                           API
+#                                           API                                            #
 ############################################################################################
 
-#                                   J2 Orbit Propagator
-# ==========================================================================================
+# == J2 Orbit Propagator ===================================================================
 
 """
     OrbitPropagatorJ2{Tepoch, T} <: OrbitPropagator{Tepoch, T}
@@ -213,8 +201,7 @@ struct OrbitPropagatorJ2{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T
     j2d::J2Propagator{Tepoch, T}
 end
 
-#                              J2 Osculating Orbit Propagator
-# ==========================================================================================
+# == J2 Osculating Orbit Propagator ========================================================
 
 """
     OrbitPropagatorJ2Osculating{Tepoch, T} <: OrbitPropagator{Tepoch, T}
@@ -230,8 +217,7 @@ struct OrbitPropagatorJ2Osculating{Tepoch<:Number, T<:Number} <: OrbitPropagator
     j2oscd::J2OsculatingPropagator{Tepoch, T}
 end
 
-#                                   J4 Orbit Propagator
-# ==========================================================================================
+# == J4 Orbit Propagator ===================================================================
 
 """
     OrbitPropagatorJ4{Tepoch, T} <: OrbitPropagator{Tepoch, T}
@@ -246,8 +232,7 @@ struct OrbitPropagatorJ4{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T
     j4d::J4Propagator{Tepoch, T}
 end
 
-#                              J4 Osculating Orbit Propagator
-# ==========================================================================================
+# == J4 Osculating Orbit Propagator ========================================================
 
 """
     OrbitPropagatorJ4Osculating{Tepoch, T} <: OrbitPropagator{Tepoch, T}
@@ -263,8 +248,7 @@ struct OrbitPropagatorJ4Osculating{Tepoch<:Number, T<:Number} <: OrbitPropagator
     j4oscd::J4OsculatingPropagator{Tepoch, T}
 end
 
-#                                  SGP4 Orbit Propagator
-# ==========================================================================================
+# == SGP4 Orbit Propagator =================================================================
 
 """
     OrbitPropagatorSgp4{Tepoch, T} <: OrbitPropagator{Tepoch, T}
@@ -279,8 +263,7 @@ struct OrbitPropagatorSgp4{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch,
     sgp4d::Sgp4Propagator{Tepoch, T}
 end
 
-#                                  Two Orbit Propagator
-# ==========================================================================================
+# == Two Orbit Propagator ==================================================================
 
 """
     OrbitPropagatorTwoBody{Tepoch, T} <: OrbitPropagator{Tepoch, T}

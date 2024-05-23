@@ -1,18 +1,14 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
-# Description
-# ==========================================================================================
+## Description #############################################################################
 #
 #   Tests related to the J2 orbit propagator.
 #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 ############################################################################################
-#                                       Test Results
+#                                       Test Results                                       #
 ############################################################################################
 #
-# Scenario 01
-# ==========================================================================================
+# == Scenario 01 ===========================================================================
 #
 # Source: https://github.com/JuliaSpace/SatelliteToolbox.jl/issues/91
 #
@@ -40,8 +36,7 @@
     jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
     jd₁ = date_to_jd(2023, 1, 5, 0, 0, 0)
 
-    # Constructor
-    # ======================================================================================
+    # == Constructor =======================================================================
 
     @testset "Constructor" begin
         orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
@@ -53,8 +48,7 @@
         @test j2d.j2c == j2c_egm2008
     end
 
-    # General API Functions
-    # ======================================================================================
+    # == General API Functions =============================================================
 
     @testset "General API Functions" begin
         orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
@@ -62,8 +56,7 @@
         @test Propagators.name(orbp) == "J2 Orbit Propagator"
     end
 
-    # Float64
-    # ======================================================================================
+    # == Float64 ===========================================================================
 
     @testset "Float64" begin
         T = Float64
@@ -163,8 +156,7 @@
         @test eltype(v) == T
     end
 
-    # Float32
-    # ======================================================================================
+    # == Float32 ===========================================================================
 
     @testset "Float32" verbose = true begin
         T = Float32
@@ -452,15 +444,13 @@ end
     end
 
     @testset "Errors" begin
-        # Wrong dimensions in the input vectors
-        # ==================================================================================
+        # == Wrong dimensions in the input vectors =========================================
 
         @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J2), vjd[1:end-1], vr_i, vv_i)
         @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J2), vjd, vr_i[1:end-1], vv_i)
         @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J2), vjd, vr_i, vv_i[1:end-1])
 
-        # Wrong dimensions in the weight vector
-        # ==================================================================================
+        # == Wrong dimensions in the weight vector =========================================
 
         @test_throws ArgumentError Propagators.fit_mean_elements(
             Val(:J2),

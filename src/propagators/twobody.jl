@@ -1,28 +1,22 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
-# Description
-# ==========================================================================================
+## Description #############################################################################
 #
 #   Two-Body orbit propagator.
 #
 #   This algorithm considers a perfect Keplerian orbit. In other words, no perturbation is
 #   considered during the propagation and the Earth is modeled as a perfect sphere.
 #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## References ##############################################################################
 #
-# References
-# ==========================================================================================
+# [1] Vallado, D. A (2013). Fundamentals of Astrodynamics and Applications. Microcosm
+#     Press, Hawthorn, CA, USA.
 #
-#   [1] Vallado, D. A (2013). Fundamentals of Astrodynamics and Applications. Microcosm
-#       Press, Hawthorn, CA, USA.
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 export tbc_m0, tbc_m0_f32
 export twobody_init, twobody_init!, twobody, twobody!
 
 ############################################################################################
-#                                        Constants
+#                                        Constants                                         #
 ############################################################################################
 
 # Earth's standard gravitational parameter [m³/s²]
@@ -30,7 +24,7 @@ const tbc_m0     = 3.986004415e14
 const tbc_m0_f32 = 3.986004415f14
 
 ############################################################################################
-#                                        Functions
+#                                        Functions                                         #
 ############################################################################################
 
 """
@@ -40,6 +34,7 @@ Create and initialize the two-body propagator structure using the mean Keplerian
 `orb₀`.
 
 !!! note
+
     The type used in the propagation will be the same as used to define the gravitational
     constant `m0`.
 
@@ -70,6 +65,7 @@ end
 Initialize the two-body propagator structure `tbd` using the mean Keplerian elements `orb₀`.
 
 !!! warning
+
     The propagation constant `μ::Number` in `tbd` will not be changed. Hence, it must be
     initialized.
 """
@@ -100,6 +96,7 @@ Initialize the two-body propagator structure using the input elements `orb₀` a
 the orbit until the time Δt [s].
 
 !!! note
+
     The type used in the propagation will be the same as used to define the gravitational
     constant `m0`.
 
@@ -134,6 +131,7 @@ Propagate the orbit defined in `tbd` (see [`TwoBodyPropagator`](@ref)) to `t` [s
 epoch of the input mean elements in `tbd`.
 
 !!! note
+
     The internal values in `tbd` will be modified.
 
 # Returns

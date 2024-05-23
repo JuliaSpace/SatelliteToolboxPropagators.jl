@@ -1,11 +1,8 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
-# Description
-# ==========================================================================================
+## Description #############################################################################
 #
 #   Precompilation.
 #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 import PrecompileTools
 
@@ -43,8 +40,7 @@ PrecompileTools.@setup_workload begin
 
     redirect_stdout(devnull) do
         PrecompileTools.@compile_workload begin
-            #                             J2 Orbit Propagator
-            # ==============================================================================
+            # == J2 Orbit Propagator =======================================================
 
             orbp = Propagators.init(Val(:J2), orb)
             Propagators.propagate!(orbp, 0.0)
@@ -54,8 +50,7 @@ PrecompileTools.@setup_workload begin
             orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm2008_f32)
             Propagators.propagate!(orbp, 0.0f0)
 
-            #                        J2 Osculating Orbit Propagator
-            # ==============================================================================
+            # == J2 Osculating Orbit Propagator ============================================
 
             orbp = Propagators.init(Val(:J2osc), orb)
             Propagators.propagate!(orbp, 0.0)
@@ -65,8 +60,7 @@ PrecompileTools.@setup_workload begin
             orbp = Propagators.init(Val(:J2osc), orb; j2c = j2c_egm2008_f32)
             Propagators.propagate!(orbp, 0.0f0)
 
-            #                             J4 Orbit Propagator
-            # ==============================================================================
+            # == J4 Orbit Propagator =======================================================
 
             orbp = Propagators.init(Val(:J4), orb)
             Propagators.propagate!(orbp, 0.0)
@@ -76,8 +70,7 @@ PrecompileTools.@setup_workload begin
             orbp = Propagators.init(Val(:J4), orb; j4c = j4c_egm2008_f32)
             Propagators.propagate!(orbp, 0.0f0)
 
-            #                        J4 Osculating Orbit Propagator
-            # ==============================================================================
+            # == J4 Osculating Orbit Propagator ============================================
 
             orbp = Propagators.init(Val(:J4osc), orb)
             Propagators.propagate!(orbp, 0.0)
@@ -87,8 +80,7 @@ PrecompileTools.@setup_workload begin
             orbp = Propagators.init(Val(:J4osc), orb; j4c = j4c_egm2008_f32)
             Propagators.propagate!(orbp, 0.0f0)
 
-            #                            SGP4 Orbit Propagator
-            # ==============================================================================
+            # == SGP4 Orbit Propagator =====================================================
 
             orbp = Propagators.init(Val(:SGP4), tle)
             Propagators.propagate!(orbp, 0.0)
@@ -98,8 +90,7 @@ PrecompileTools.@setup_workload begin
             orbp = Propagators.init(Val(:SGP4), tle; sgp4c = sgp4c_wgs84_f32)
             Propagators.propagate!(orbp, 0.0f0)
 
-            #                          Two Body Orbit Propagator
-            # ==============================================================================
+            # == Two Body Orbit Propagator =================================================
 
             orbp = Propagators.init(Val(:TwoBody), orb)
             Propagators.propagate!(orbp, 0.0)

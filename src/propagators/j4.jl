@@ -1,38 +1,32 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## Description #############################################################################
 #
-# Description
-# ==========================================================================================
+# J4 orbit propagator algorithm.
 #
-#   J4 orbit propagator algorithm.
+# This algorithm propagates the orbit considering the secular perturbations of central
+# body zonal harmonics as presented in [1, p. 647-654, 692-692] and [2], which is Kozai's
+# method but neglecting long-periodic and short-periodic perturbations.
 #
-#   This algorithm propagates the orbit considering the secular perturbations of central
-#   body zonal harmonics as presented in [1, p. 647-654, 692-692] and [2], which is Kozai's
-#   method but neglecting long-periodic and short-periodic perturbations.
+# The terms J2, J2², and J4 are considered, i.e. J6 is assumed to be 0. This can be used
+# as a propagator of mean elements for mission analysis in which the satellite orbit is
+# maintained.
 #
-#   The terms J2, J2², and J4 are considered, i.e. J6 is assumed to be 0. This can be used
-#   as a propagator of mean elements for mission analysis in which the satellite orbit is
-#   maintained.
+## References ##############################################################################
 #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# [1] Vallado, D. A (2013). Fundamentals of Astrodynamics and Applications. Microcosm
+#     Press, Hawthorn, CA, USA.
 #
-# References
-# ==========================================================================================
+# [2] Kozai, Y (1959). The Motion of a Close Earth Satellite. The Astronomical Journal,
+#     v. 64, no. 1274, pp. 367 -- 377.
 #
-#   [1] Vallado, D. A (2013). Fundamentals of Astrodynamics and Applications. Microcosm
-#       Press, Hawthorn, CA, USA.
+# [3] Hoots, F. R., Roehrich, R. L (1980). Models for Propagation of NORAD Elements Set.
+#     Spacetrack Report No. 3.
 #
-#   [2] Kozai, Y (1959). The Motion of a Close Earth Satellite. The Astronomical Journal,
-#       v. 64, no. 1274, pp. 367 -- 377.
+# [4] Blitzer, L. Handbook of Orbital Perturbations. Astronautics 453. University of
+#     Arizona.
 #
-#   [3] Hoots, F. R., Roehrich, R. L (1980). Models for Propagation of NORAD Elements Set.
-#       Spacetrack Report No. 3.
+# [5] https://www.mathworks.com/matlabcentral/fileexchange/43333-sun-synchronous-orbit-design
 #
-#   [4] Blitzer, L. Handbook of Orbital Perturbations. Astronautics 453. University of
-#       Arizona.
-#
-#   [5] https://www.mathworks.com/matlabcentral/fileexchange/43333-sun-synchronous-orbit-design
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 export j4c_egm2008, j4c_egm1996, j4c_jgm02, j4c_jgm03
 export j4c_egm2008_f32, j4c_egm1996_f32, j4c_jgm02_f32, j4c_jgm03_f32
@@ -41,7 +35,7 @@ export fit_j4_mean_elements, fit_j4_mean_elements!
 export update_j4_mean_elements_epoch, update_j4_mean_elements_epoch!
 
 ############################################################################################
-#                                        Constants
+#                                        Constants                                         #
 ############################################################################################
 
 # These constants were obtained from the GFC files. Remember that:
@@ -110,7 +104,7 @@ const j4c_jgm03_f32 = J4PropagatorConstants{Float32}(
 )
 
 ############################################################################################
-#                                        Functions
+#                                        Functions                                         #
 ############################################################################################
 
 """
@@ -120,13 +114,15 @@ Create and initialize the J4 orbit propagator structure using the mean Keplerian
 `orb₀`.
 
 !!! note
+
     The type used in the propagation will be the same as used to define the constants in the
     structure `j4c`.
 
 # Keywords
 
 - `j4c::J4PropagatorConstants`: J4 orbit propagator constants (see
-  [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm2008`)
+    [`J4PropagatorConstants`](@ref)).
+    (**Default** = `j4c_egm2008`)
 """
 function j4_init(
     orb₀::KeplerianElements{Tepoch, Tkepler};
@@ -150,6 +146,7 @@ end
 Initialize the J4 orbit propagator structure `j4d` using the mean Keplerian elements `orb₀`.
 
 !!! warning
+
     The propagation constants `j4c::J4PropagatorConstants` in `j4d` will not be changed.
     Hence, they must be initialized.
 """
@@ -249,13 +246,15 @@ Initialize the J4 propagator structure using the input elements `orb₀` and pro
 orbit until the time Δt [s].
 
 !!! note
+
     The type used in the propagation will be the same as used to define the constants in the
     structure `j4c`.
 
 # Keywords
 
 - `j4c::J4PropagatorConstants`: J4 orbit propagator constants (see
-  [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm2008`)
+    [`J4PropagatorConstants`](@ref)).
+    (**Default** = `j4c_egm2008`)
 
 # Returns
 
@@ -284,6 +283,7 @@ Propagate the orbit defined in `j4d` (see [`J4Propagator`](@ref)) to `t` [s] aft
 epoch of the input mean elements in `j4d`.
 
 !!! note
+
     The internal values in `j4d` will be modified.
 
 # Returns
@@ -347,6 +347,7 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 [Julian Day].
 
 !!! note
+
     This algorithm version will allocate a new J4 propagator with the default constants
     `j4c_egm2008`. If another set of constants are required, use the function
     [`fit_j4_mean_elements!`](@ref) instead.
@@ -354,19 +355,24 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 # Keywords
 
 - `atol::Number`: Tolerance for the residue absolute value. If the residue is lower than
-    `atol` at any iteration, the computation loop stops. (**Default** = 2e-4)
+    `atol` at any iteration, the computation loop stops.
+    (**Default** = 2e-4)
 - `rtol::Number`: Tolerance for the relative difference between the residues. If the
     relative difference between the residues in two consecutive iterations is lower than
-    `rtol`, the computation loop stops. (**Default** = 2e-4)
+    `rtol`, the computation loop stops.
+    (**Default** = 2e-4)
 - `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
-    the osculating elements in `vr_i` and `vv_i`. (**Default** = nothing)
+    the osculating elements in `vr_i` and `vv_i`.
+    (**Default** = nothing)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix. (**Default** = 1e-3)
+    finite-difference when calculating the Jacobian matrix.
+    (**Default** = 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until it absolute value is higher than
-    `jacobian_perturbation_tol`. (**Default** = 1e-7)
+    `jacobian_perturbation_tol`.
+    (**Default** = 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
     (**Default** = 50)
 - `mean_elements_epoch::Number`: Epoch for the fitted mean elements.
@@ -375,7 +381,8 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
     (**Default** = true)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
-    `weight_vector` at its diagonal. (**Default** = `@SVector(ones(Bool, 6))`)
+    `weight_vector` at its diagonal.
+    (**Default** = `@SVector(ones(Bool, 6))`)
 
 # Returns
 
@@ -455,25 +462,31 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 [Julian Day].
 
 !!! note
+
     The J4 orbit propagator `j4d` will be initialized with the Keplerian elements returned
     by the function.
 
 # Keywords
 
 - `atol::Number`: Tolerance for the residue absolute value. If the residue is lower than
-    `atol` at any iteration, the computation loop stops. (**Default** = 2e-4)
+    `atol` at any iteration, the computation loop stops.
+    (**Default** = 2e-4)
 - `rtol::Number`: Tolerance for the relative difference between the residues. If the
     relative difference between the residues in two consecutive iterations is lower than
-    `rtol`, the computation loop stops. (**Default** = 2e-4)
+    `rtol`, the computation loop stops.
+    (**Default** = 2e-4)
 - `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
-    the osculating elements in `vr_i` and `vv_i`. (**Default** = nothing)
+    the osculating elements in `vr_i` and `vv_i`.
+    (**Default** = nothing)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix. (**Default** = 1e-3)
+    finite-difference when calculating the Jacobian matrix.
+    (**Default** = 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until it absolute value is higher than
-    `jacobian_perturbation_tol`. (**Default** = 1e-7)
+    `jacobian_perturbation_tol`.
+    (**Default** = 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
     (**Default** = 50)
 - `mean_elements_epoch::Number`: Epoch for the fitted mean elements.
@@ -482,7 +495,8 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
     (**Default** = true)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
-    `weight_vector` at its diagonal. (**Default** = `@SVector(ones(Bool, 6))`)
+    `weight_vector` at its diagonal.
+    (**Default** = `@SVector(ones(Bool, 6))`)
 
 # Returns
 
@@ -773,6 +787,7 @@ Update the epoch of the mean elements `orb` using a J4 orbit propagator to `new_
 which can be represented by a Julian Day or a `DateTime`.
 
 !!! note
+
     This algorithm version will allocate a new J4 propagator with the default constants
     `j4c_egm2008`. If another set of constants are required, use the function
     [`update_j4osc_mean_elements_epoch!`](@ref) instead.
@@ -829,6 +844,7 @@ Update the epoch of the mean elements `orb` using the propagator `j4d` to `new_e
 can be represented by a Julian Day or a `DateTime`.
 
 !!! note
+
     The J4 orbit propagator `j4d` will be initialized with the Keplerian elements returned
     by the function.
 
@@ -898,7 +914,7 @@ function update_j4_mean_elements_epoch!(
 end
 
 ############################################################################################
-#                                    Private Functions
+#                                    Private Functions                                     #
 ############################################################################################
 
 """
@@ -915,10 +931,12 @@ at instant `Δt` considering the input mean elements `x₁` that must provide th
 # Keywords
 
 - `perturbation::T`: Initial state perturbation to compute the finite-difference:
-    `Δx = x * perturbation`. (**Default** = 1e-3)
+    `Δx = x * perturbation`.
+    (**Default** = 1e-3)
 - `perturbation_tol::T`: Tolerance to accept the perturbation. If the computed perturbation
     is lower than `perturbation_tol`, we increase it until it absolute value is higher than
-    `perturbation_tol`. (**Default** = 1e-7)
+    `perturbation_tol`.
+    (**Default** = 1e-7)
 """
 function _j4_jacobian!(
     J::AbstractMatrix{T},

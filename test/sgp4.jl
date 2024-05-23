@@ -1,18 +1,14 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
-# Description
-# ==========================================================================================
+## Description #############################################################################
 #
 #   Tests of the SGP4 orbit propagator.
 #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 ############################################################################################
-#                                       Test Results
+#                                       Test Results                                       #
 ############################################################################################
 #
-# Scenario 01
-# ==========================================================================================
+# == Scenario 01 ===========================================================================
 #
 # The SGP4 algorithm is highly tested in the package SatelliteToolboxSgp4.jl. Hence, we are
 # only performing one of the test sets here to check the interface using the API.
@@ -91,8 +87,7 @@
 
     jd₀ = tle_epoch(tle)
 
-    # General API Functions
-    # ======================================================================================
+    # == General API Functions =============================================================
 
     @testset "General API Functions" begin
         orbp = Propagators.init(Val(:SGP4), tle)
@@ -108,14 +103,12 @@
         @test orbk.f == mean_to_true_anomaly(orbp.sgp4d.e₀, orbp.sgp4d.M₀)
     end
 
-    # Float64
-    # ======================================================================================
+    # == Float64 ===========================================================================
 
     @testset "Float64" begin
         T = Float64
 
-        # Initialization Using TLE
-        # ----------------------------------------------------------------------------------
+        # -- Initialization Using TLE ------------------------------------------------------
 
         orbp = Propagators.init(Val(:SGP4), tle; sgp4c = sgp4c_wgs72)
 
@@ -204,8 +197,7 @@
         @test v_teme[2] ≈ 1000 * expected_results[end, 6] atol = 1e-6
         @test v_teme[3] ≈ 1000 * expected_results[end, 7] atol = 1e-6
 
-        # Initialization Using Individual Elements
-        # ----------------------------------------------------------------------------------
+        # -- Initialization Using Individual Elements --------------------------------------
 
         orbp = Propagators.init(
             Val(:SGP4),
@@ -330,14 +322,12 @@
         @test v_teme[3] ≈ 1000 * expected_results[end, 7] atol = 1e-6
     end
 
-    # Float32
-    # ======================================================================================
+    # == Float32 ===========================================================================
 
     @testset "Float32" begin
         T = Float32
 
-        # Initialization Using TLE
-        # ----------------------------------------------------------------------------------
+        # -- Initialization Using TLE ------------------------------------------------------
 
         orbp = Propagators.init(Val(:SGP4), tle; sgp4c = sgp4c_wgs72_f32)
 
@@ -426,8 +416,7 @@
         @test v_teme[2] ≈ 1000 * expected_results[end, 6] atol = 8e-1
         @test v_teme[3] ≈ 1000 * expected_results[end, 7] atol = 8e-1
 
-        # Initialization Using Individual Elements
-        # ----------------------------------------------------------------------------------
+        # -- Initialization Using Individual Elements --------------------------------------
 
         orbp = Propagators.init(
             Val(:SGP4),

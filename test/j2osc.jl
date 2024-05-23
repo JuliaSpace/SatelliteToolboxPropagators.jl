@@ -1,22 +1,18 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
-# Description
-# ==========================================================================================
+## Description #############################################################################
 #
 #   Tests related to the J2 osculating orbit propagator.
 #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 ############################################################################################
-#                                       Test Results
+#                                       Test Results                                       #
 ############################################################################################
 #
 # The following test results were obtained using a numerical propagator as shown in:
 #
 #   https://github.com/JuliaSpace/PropagatorTests/
 #
-# Initial Mean Elements (TOD)
-# ==========================================================================================
+# == Initial Mean Elements (TOD) ===========================================================
 #
 #            Epoch :    2.45995e6 (2023-01-01T00:00:00)
 #  Semi-major axis : 7190.98     km
@@ -26,8 +22,7 @@
 #  Arg. of Perigee :  200.0      °
 #     True Anomaly :   45.0      °
 #
-# Numerical Propagation Results
-# ==========================================================================================
+# == Numerical Propagation Results =========================================================
 #
 # Gravity model         : EGM-2008 (Degree 4, Order 0)
 # Integration algorithm : AutoVern7(Rodas5())
@@ -68,8 +63,7 @@
         6000.0  -910.991 -3540.650 -6189.318 -0.543  6.478 -3.629
     ]
 
-    # Constructor
-    # ======================================================================================
+    # == Constructor =======================================================================
 
     @testset "Constructor" begin
         orb    = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
@@ -82,8 +76,7 @@
         @test j2d.orbk   == orb
     end
 
-    # General API Functions
-    # ======================================================================================
+    # == General API Functions =============================================================
 
     @testset "General API Functions" begin
         orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
@@ -91,8 +84,7 @@
         @test Propagators.name(orbp) == "J2 Osculating Orbit Propagator"
     end
 
-    # Float64
-    # ======================================================================================
+    # == Float64 ===========================================================================
 
     @testset "Float64" begin
         T = Float64
@@ -212,8 +204,7 @@
         @test eltype(v) == T
     end
 
-    # Float32
-    # ======================================================================================
+    # == Float32 ===========================================================================
 
     @testset "Float32" begin
         T = Float32
@@ -527,15 +518,13 @@ end
     end
 
     @testset "Errors" begin
-        # Wrong dimensions in the input vectors
-        # ==================================================================================
+        # == Wrong dimensions in the input vectors =========================================
 
         @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J2osc), vjd[1:end-1], vr_i, vv_i)
         @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J2osc), vjd, vr_i[1:end-1], vv_i)
         @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J2osc), vjd, vr_i, vv_i[1:end-1])
 
-        # Wrong dimensions in the weight vector
-        # ==================================================================================
+        # == Wrong dimensions in the weight vector =========================================
 
         @test_throws ArgumentError Propagators.fit_mean_elements(
             Val(:J2osc),

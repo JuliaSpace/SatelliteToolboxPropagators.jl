@@ -1,7 +1,4 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
-# Description
-# ==========================================================================================
+## Description #############################################################################
 #
 #   J4 osculating orbit propagator algorithm.
 #
@@ -10,22 +7,19 @@
 #   gravitation term only. The algorithm is based on Kwok version as indicated in
 #   [1, p. 708-710].
 #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## References ##############################################################################
 #
-# References
-# ==========================================================================================
+# [1] Vallado, D. A (2013). Fundamentals of Astrodynamics and Applications. 4th ed.
+#     Microcosm Press, Hawthorn, CA, USA.
 #
-#   [1] Vallado, D. A (2013). Fundamentals of Astrodynamics and Applications. 4th ed.
-#       Microcosm Press, Hawthorn, CA, USA.
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 export j4osc_init, j4osc_init!, j4osc, j4osc!
 export fit_j4osc_mean_elements, fit_j4osc_mean_elements!
 export update_j4osc_mean_elements_epoch, update_j4osc_mean_elements_epoch!
 
 ############################################################################################
-#                                        Functions
+#                                        Functions                                         #
 ############################################################################################
 
 """
@@ -35,6 +29,7 @@ Create and initialize the J4 osculating orbit propagator structure using the mea
 elements `orb₀`.
 
 !!! note
+
     The type used in the propagation will be the same as used to define the constants in the
     structure `j4c`.
 
@@ -70,6 +65,7 @@ Initialize the J4 osculating orbit propagator structure `j4oscd` using the mean 
 elements `orb₀`.
 
 !!! warning
+
     The propagation constants `j4c::J4PropagatorConstants` in `j4oscd.j4d` will not be
     changed. Hence, they must be initialized.
 """
@@ -90,6 +86,7 @@ Initialize the J4 osculating propagator structure using the input elements `orb�
 propagate the orbit until the time Δt [s].
 
 !!! note
+
     The type used in the propagation will be the same as used to define the constants in the
     structure `j4c`.
 
@@ -125,6 +122,7 @@ Propagate the orbit defined in `j4oscd` (see [`J4OsculatingPropagator`](@ref)) t
 after the epoch of the input mean elements in `j4d`.
 
 !!! note
+
     The internal values in `j4oscd` will be modified.
 
 # Returns
@@ -265,6 +263,7 @@ velocity vectors `vv_i` [m / s] represented in an inertial reference frame at in
 the array `vjd` [Julian Day].
 
 !!! note
+
     This algorithm version will allocate a new J4 osculating propagator with the default
     constants `j4c_egm2008`. If another set of constants are required, use the function
     [`fit_j4osc_mean_elements!`](@ref) instead.
@@ -272,19 +271,24 @@ the array `vjd` [Julian Day].
 # Keywords
 
 - `atol::Number`: Tolerance for the residue absolute value. If the residue is lower than
-    `atol` at any iteration, the computation loop stops. (**Default** = 2e-4)
+    `atol` at any iteration, the computation loop stops.
+    (**Default** = 2e-4)
 - `rtol::Number`: Tolerance for the relative difference between the residues. If the
     relative difference between the residues in two consecutive iterations is lower than
-    `rtol`, the computation loop stops. (**Default** = 2e-4)
+    `rtol`, the computation loop stops.
+    (**Default** = 2e-4)
 - `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
-    the osculating elements in `vr_i` and `vv_i`. (**Default** = nothing)
+    the osculating elements in `vr_i` and `vv_i`.
+    (**Default** = nothing)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix. (**Default** = 1e-3)
+    finite-difference when calculating the Jacobian matrix.
+    (**Default** = 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until it absolute value is higher than
-    `jacobian_perturbation_tol`. (**Default** = 1e-7)
+    `jacobian_perturbation_tol`.
+    (**Default** = 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
     (**Default** = 50)
 - `mean_elements_epoch::Number`: Epoch for the fitted mean elements.
@@ -293,7 +297,8 @@ the array `vjd` [Julian Day].
     (**Default** = true)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
-    `weight_vector` at its diagonal. (**Default** = `@SVector(ones(Bool, 6))`)
+    `weight_vector` at its diagonal.
+    (**Default** = `@SVector(ones(Bool, 6))`)
 
 # Returns
 
@@ -365,25 +370,31 @@ velocity vectors `vv_i` [m / s] represented in an inertial reference frame at in
 the array `vjd` [Julian Day].
 
 !!! note
+
     The J4 osculating orbit propagator `j4oscd` will be initialized with the Keplerian
     elements returned by the function.
 
 # Keywords
 
 - `atol::Number`: Tolerance for the residue absolute value. If the residue is lower than
-    `atol` at any iteration, the computation loop stops. (**Default** = 2e-4)
+    `atol` at any iteration, the computation loop stops.
+    (**Default** = 2e-4)
 - `rtol::Number`: Tolerance for the relative difference between the residues. If the
     relative difference between the residues in two consecutive iterations is lower than
-    `rtol`, the computation loop stops. (**Default** = 2e-4)
+    `rtol`, the computation loop stops.
+    (**Default** = 2e-4)
 - `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
-    the osculating elements in `vr_i` and `vv_i`. (**Default** = nothing)
+    the osculating elements in `vr_i` and `vv_i`.
+    (**Default** = nothing)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix. (**Default** = 1e-3)
+    finite-difference when calculating the Jacobian matrix.
+    (**Default** = 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until it absolute value is higher than
-    `jacobian_perturbation_tol`. (**Default** = 1e-7)
+    `jacobian_perturbation_tol`.
+    (**Default** = 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
     (**Default** = 50)
 - `mean_elements_epoch::Number`: Epoch for the fitted mean elements.
@@ -392,7 +403,8 @@ the array `vjd` [Julian Day].
     (**Default** = true)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
-    `weight_vector` at its diagonal. (**Default** = `@SVector(ones(Bool, 6))`)
+    `weight_vector` at its diagonal.
+    (**Default** = `@SVector(ones(Bool, 6))`)
 
 # Returns
 
@@ -679,6 +691,7 @@ Update the epoch of the mean elements `orb` using a J4 osculating orbit propagat
 `new_epoch`, which can be represented by a Julian Day or a `DateTime`.
 
 !!! note
+
     This algorithm version will allocate a new J4 osculating propagator with the default
     constants `j4c_egm2008`. If another set of constants are required, use the function
     [`update_j4osc_mean_elements_epoch!`](@ref) instead.
@@ -739,6 +752,7 @@ Update the epoch of the mean elements `orb` using the propagator `j4oscd` to `ne
 which can be represented by a Julian Day or a `DateTime`.
 
 !!! note
+
     The J4 osculating orbit propagator `j4oscd` will be initialized with the Keplerian
     elements returned by the function.
 
@@ -808,7 +822,7 @@ function update_j4osc_mean_elements_epoch!(
 end
 
 ############################################################################################
-#                                    Private Functions
+#                                    Private Functions                                     #
 ############################################################################################
 
 """
@@ -825,10 +839,12 @@ provide the output vector `y₁`. The result is written to the matrix `J`. Hence
 # Keywords
 
 - `perturbation::T`: Initial state perturbation to compute the finite-difference:
-    `Δx = x * perturbation`. (**Default** = 1e-3)
+    `Δx = x * perturbation`.
+    (**Default** = 1e-3)
 - `perturbation_tol::T`: Tolerance to accept the perturbation. If the computed perturbation
     is lower than `perturbation_tol`, we increase it until it absolute value is higher than
-    `perturbation_tol`. (**Default** = 1e-7)
+    `perturbation_tol`.
+    (**Default** = 1e-7)
 """
 function _j4osc_jacobian!(
     J::AbstractMatrix{T},

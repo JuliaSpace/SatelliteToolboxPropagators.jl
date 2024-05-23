@@ -1,5 +1,4 @@
-API for the Orbit Propagators
-=============================
+# API for the Orbit Propagators
 
 This document describes the design of orbit propagators.
 
