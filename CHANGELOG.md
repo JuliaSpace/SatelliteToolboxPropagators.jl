@@ -1,6 +1,13 @@
 SatelliteToolboxPropagator.jl Changelog
 =======================================
 
+Version 0.3.1
+-------------
+
+- ![Enhancement][badge-enhancement] Minor source-code updates.
+- ![Enhancement][badge-enhancement] We reduced the allocations in all functions that fit
+  mean elements.
+
 Version 0.3.0
 -------------
 
