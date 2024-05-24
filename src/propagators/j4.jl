@@ -586,9 +586,9 @@ function fit_j4_mean_elements!(
 
     # Check if stdout supports colors.
     has_color = get(stdout, :color, false)::Bool
-    cd = has_color ? string(_D) : ""
-    cb = has_color ? string(_B) : ""
-    cy = has_color ? string(_Y) : ""
+    cd = has_color ? _D : ""
+    cb = has_color ? _B : ""
+    cy = has_color ? _Y : ""
 
     # Assemble the weight matrix.
     W = Diagonal(

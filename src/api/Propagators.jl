@@ -13,8 +13,9 @@ import Base: eltype, length, iterate, show
 
 export OrbitPropagator
 
-const _D = Crayon(reset = true)
-const _B = crayon"bold"
+# Escape sequences related to the crayons.
+const _D = string(Crayon(reset = true))
+const _B = string(crayon"bold")
 
 """
     abstract type OrbitPropagator{Tepoch<:Number, T<:Number}
@@ -203,8 +204,8 @@ end
 function show(io::IO, mime::MIME"text/plain", orbp::T) where T<:OrbitPropagator
     # Check for color support in the `io`.
     color = get(io, :color, false)
-    b = color ? string(_B) : ""
-    d = color ? string(_D) : ""
+    b = color ? _B : ""
+    d = color ? _D : ""
 
     prop_name       = name(orbp)
     prop_epoch      = epoch(orbp)

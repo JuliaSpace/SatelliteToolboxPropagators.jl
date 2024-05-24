@@ -32,9 +32,9 @@ include("./types.jl")
 ############################################################################################
 
 # Escape sequences related to the crayons.
-const _D = Crayon(reset = true)
-const _B = crayon"bold"
-const _Y = crayon"bold yellow"
+const _D = string(Crayon(reset = true))
+const _B = string(crayon"bold")
+const _Y = string(crayon"bold yellow")
 
 ############################################################################################
 #                                         Includes                                         #
