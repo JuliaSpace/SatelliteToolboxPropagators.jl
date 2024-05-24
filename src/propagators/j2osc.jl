@@ -514,11 +514,13 @@ function fit_j2osc_mean_elements!(
     else
         # In this case, we must find the closest osculating vector to the desired epoch.
         id = firstindex(vjd)
-        v  = vjd[1] - mean_elements_epoch
+        v  = abs(vjd[1] - mean_elements_epoch)
 
         for k in eachindex(vjd)
-            if v < (vjd[k] - mean_elements_epoch)
+            vk = abs(vjd[k] - mean_elements_epoch)
+            if vk < v
                 id = k
+                v  = vk
             end
         end
 
