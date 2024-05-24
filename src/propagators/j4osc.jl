@@ -512,19 +512,19 @@ function fit_j4osc_mean_elements!(
         x₁ = SVector{6, T}(r_i..., v_i...)
     else
         # In this case, we must find the closest osculating vector to the desired epoch.
-        ~, id = findmin(abs.(vjd .- mean_elements_epoch))
-        epoch = vjd[id]
+        id = firstindex(vjd)
+        v  = vjd[1] - mean_elements_epoch
+
+        for k in eachindex(vjd)
+            if v < (vjd[k] - mean_elements_epoch)
+                id = k
+            end
+        end
+
+        epoch = T(vjd[id])
         r_i   = vr_i[id]
         v_i   = vv_i[id]
-
-        x₁ = SVector{6, T}(
-            r_i[1],
-            r_i[2],
-            r_i[3],
-            v_i[1],
-            v_i[2],
-            v_i[3],
-        )
+        x₁    = SVector{6, T}(r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3],)
     end
 
     x₂ = x₁
@@ -532,21 +532,15 @@ function fit_j4osc_mean_elements!(
     # Number of states in the input vector.
     num_states = 6
 
-    # Number of observations in each instant.
-    num_observations = 6
-
     # Covariance matrix.
     P = SMatrix{num_states, num_states, T}(I)
 
     # Variable to store the last residue.
-    σ_i_₁ = nothing
+    local σ_i_₁
 
     # Variable to store how many iterations the residue increased. This is used to account
     # for divergence.
     Δd = 0
-
-    # Allocate the Jacobian matrix.
-    J = zeros(T, num_observations, num_states)
 
     # Header.
     if verbose
@@ -558,7 +552,7 @@ function fit_j4osc_mean_elements!(
 
     # We need a reference to the covariance inverse because we will invert it and return
     # after the iterations.
-    ΣJ′WJ = nothing
+    local ΣJ′WJ
 
     # Loop until the maximum allowed iteration.
     @inbounds @views for it in 1:max_iterations
@@ -575,14 +569,14 @@ function fit_j4osc_mean_elements!(
 
         for k in 1:num_measurements
             # Obtain the measured ephemerides.
-            y = vcat(vr_i[k], vv_i[k])
+            y = vcat(vr_i[k - 1 + begin], vv_i[k - 1 + begin])
 
             # Initialize the SGP4 with the current estimated mean elements.
             orb = rv_to_kepler(x₁[1:3], x₁[4:6], epoch)
             j4osc_init!(j4oscd, orb)
 
             # Obtain the propagation time for this measurement.
-            Δt = (vjd[k] - epoch) * 86400
+            Δt = (vjd[k - 1 + begin] - epoch) * 86400
 
             # Propagate the orbit.
             r̂_i, v̂_i = j4osc!(j4oscd, Δt)
@@ -592,8 +586,7 @@ function fit_j4osc_mean_elements!(
             b = y - ŷ
 
             # Compute the Jacobian in-place.
-            _j4osc_jacobian!(
-                J,
+            J = _j4osc_jacobian(
                 j4oscd,
                 Δt,
                 x₁,
@@ -602,16 +595,12 @@ function fit_j4osc_mean_elements!(
                 perturbation_tol = jacobian_perturbation_tol
             )
 
-            # Convert the Jacobian matrix to a static matrix, leading to substantial
-            # performance gains in the following computation.
-            Js = SMatrix{num_observations, num_states, T}(J)
-
             # Accumulation.
-            ΣJ′WJ += Js' * W * Js
-            ΣJ′Wb += Js' * W * b
-            σ_i   += b'  * W * b
-            σp_i  += @views b[1:3]' * b[1:3]
-            σv_i  += @views b[4:6]' * b[4:6]
+            ΣJ′WJ += J' * W * J
+            ΣJ′Wb += J' * W * b
+            σ_i   += b' * W * b
+            σp_i  += dot(b[1:3], b[1:3])
+            σv_i  += dot(b[4:6], b[4:6])
         end
 
         # Normalize and compute the RMS errors.
@@ -826,11 +815,11 @@ end
 ############################################################################################
 
 """
-    _j4osc_jacobian!(J::AbstractMatrix{T}, j4oscd::J4OsculatingPropagator{Tepoch, T}, Δt::Number, x₁::SVector{6, T}, y₁::SVector{6, T}; kwargs...)) where {T<:Number, Tepoch<:Number}
+    _j4osc_jacobian(j4oscd::J4OsculatingPropagator{Tepoch, T}, Δt::Number, x₁::SVector{6, T}, y₁::SVector{6, T}; kwargs...)) where {T<:Number, Tepoch<:Number} -> SMatrix{6, 6, T}
 
 Compute the J4 osculating orbit propagator Jacobian by finite-differences using the
 propagator `j4oscd` at instant `Δt` considering the input mean elements `x₁` that must
-provide the output vector `y₁`. The result is written to the matrix `J`. Hence:
+provide the output vector `y₁`. Hence:
 
         ∂j4osc(x, Δt) │
     J = ───────────── │
@@ -846,8 +835,7 @@ provide the output vector `y₁`. The result is written to the matrix `J`. Hence
     `perturbation_tol`.
     (**Default** = 1e-7)
 """
-function _j4osc_jacobian!(
-    J::AbstractMatrix{T},
+function _j4osc_jacobian(
     j4oscd::J4OsculatingPropagator{Tepoch, T},
     Δt::Number,
     x₁::SVector{6, T},
@@ -856,13 +844,13 @@ function _j4osc_jacobian!(
     perturbation_tol::Number = T(1e-7)
 ) where {T<:Number, Tepoch<:Number}
 
-    num_states = 6
-    dim_obs    = 6
+    # Allocate the `MMatrix` that will have the Jacobian.
+    J = MMatrix{6, 6, T}(undef)
 
     # Auxiliary variables.
     x₂ = x₁
 
-    @inbounds @views for j in 1:num_states
+    @inbounds @views for j in 1:6
         # State that will be perturbed.
         α = x₂[j]
 
@@ -904,5 +892,8 @@ function _j4osc_jacobian!(
         x₂ = setindex(x₂, x₁[j], j)
     end
 
-    return nothing
+    # Convert the Jacobian to a static matrix to avoid allocations.
+    Js = SMatrix{6, 6, T}(J)
+
+    return Js
 end
