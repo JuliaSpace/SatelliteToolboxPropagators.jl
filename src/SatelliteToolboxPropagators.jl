@@ -11,6 +11,8 @@ using StaticArrays
 @reexport using SatelliteToolboxBase
 @reexport using SatelliteToolboxSgp4
 
+import Base: copy
+
 ############################################################################################
 #                                           API                                            #
 ############################################################################################
@@ -46,6 +48,8 @@ include("./api/j4.jl")
 include("./api/j4osc.jl")
 include("./api/sgp4.jl")
 include("./api/twobody.jl")
+
+include("./copy.jl")
 
 include("./propagators/j2.jl")
 include("./propagators/j2osc.jl")

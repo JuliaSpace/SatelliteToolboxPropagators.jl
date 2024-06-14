@@ -8,14 +8,24 @@ module Propagators
 
 using Dates
 using Crayons
+using StaticArrays
 
-import Base: eltype, length, iterate, show
+import Base: copy, eltype, length, iterate, show
+import SatelliteToolboxBase: @maybe_threads, get_partition
 
 export OrbitPropagator
+
+############################################################################################
+#                                         Contants                                         #
+############################################################################################
 
 # Escape sequences related to the crayons.
 const _D = string(Crayon(reset = true))
 const _B = string(crayon"bold")
+
+############################################################################################
+#                                          Types                                           #
+############################################################################################
 
 """
     abstract type OrbitPropagator{Tepoch<:Number, T<:Number}
@@ -23,6 +33,10 @@ const _B = string(crayon"bold")
 Abstract type for the orbit propagators.
 """
 abstract type OrbitPropagator{Tepoch<:Number, T<:Number} end
+
+############################################################################################
+#                                     Public Functions                                     #
+############################################################################################
 
 """
     fit_mean_elements(::Val{:propagator}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector} -> <Mean elements>
@@ -128,6 +142,74 @@ Propagate the orbit using `orbp` by `t` [s] from the initial orbit epoch.
 function propagate! end
 
 """
+    propagate!(orbp::OrbitPropagator{Tepoch, T}, vt::AbstractVector; kwargs...) where {Tepoch <: Number, T <: Number} -> Vector{SVector{3, T}}, Vector{SVector{3, T}}
+
+Propagate the orbit using `orbp` for every instant defined in `vt` [s].
+
+# Keywords
+
+- `ntasks::Integer`: Number of parallel tasks to propagate the orbit. If it is set to a
+    number equal or lower than 1, the function will propagate the orbit sequentially.
+    (**Default** = `Threads.nthreads()`)
+
+# Returns
+
+- `Vector{SVector{3, T}}`: Array with the position vectors [m] in the inertial frame at each
+    propagation instant defined in `vt`.
+- `Vector{SVector{3, T}}`: Array with the velocity vectors [m / s] in the inertial frame at
+    each propagation instant defined in `vt`.
+"""
+function propagate!(
+    orbp::OrbitPropagator{Tepoch, T},
+    vt::AbstractVector;
+    ntasks::Integer = Threads.nthreads()
+) where {Tepoch<:Number, T<:Number}
+    # We need to perform the first propagation to obtain the return type of the propagator.
+    r₀, v₀ = Propagators.propagate!(orbp, first(vt))
+
+    # Number of propagation points.
+    len_vt = length(vt)
+
+    # Allocate the output vectors.
+    vr = Vector{typeof(r₀)}(undef, len_vt)
+    vv = Vector{typeof(v₀)}(undef, len_vt)
+
+    vr[begin] = r₀
+    vv[begin] = v₀
+
+    len_vt == 1 && return vr, vv
+
+    inds = eachindex(vt)
+
+    # We need to store the first index offset of `vt` to allow filling the output vectors
+    # correctly.
+    Δi = firstindex(vt) - 1
+
+    # Make sure the number of tasks is not higher than the number of propagation points.
+    ntasks = min(ntasks, len_vt)
+
+    @maybe_threads ntasks for c in 1:ntasks
+        # We already propagated for the first instant, and we must ensure we propagate the
+        # last instant at the end of the function.
+        i₀, i₁ = get_partition(c, inds[(1 + begin):(end - 1)], ntasks)
+
+        # The propagation usually modifies the structure. Hence we need to copy it for each
+        # task.
+        corbp = c == 1 ? orbp : copy(orbp)
+
+        @inbounds for i in i₀:i₁
+            vr[i - Δi], vv[i - Δi] = Propagators.propagate!(corbp, vt[i])
+        end
+    end
+
+    # We must ensure that the last propagation instant is the obtained at the end to keep
+    # the internal data of the propagation consistent.
+    vr[end], vv[end] = Propagators.propagate!(orbp, last(vt))
+
+    return vr, vv
+end
+
+"""
     propagate_to_epoch(::Val{:propagator}, jd::Number, args...; kwargs...)
 
 Initialize the orbit `propagator` and propagate the orbit until the epoch `jd` [s] from the
@@ -165,6 +247,28 @@ function propagate_to_epoch!(orbp::OrbitPropagator, jd::Number)
 end
 
 """
+    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, vjd::AbstractVector; kwargs...) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+
+Propagate the orbit using `orbp` for every epoch defined in `jd` [Julian Day].
+
+# Keywords
+
+- `ntasks::Integer`: Number of parallel tasks to propagate the orbit. If it is set to a
+    number equal or lower than 1, the function will propagate the orbit sequentially.
+    (**Default** = `Threads.nthreads()`)
+
+# Returns
+
+- `Vector{SVector{3, T}}`: Array with the position vectors [m] in the inertial frame at each
+    propagation instant defined in `vt`.
+- `Vector{SVector{3, T}}`: Array with the velocity vectors [m / s] in the inertial frame at
+    each propagation instant defined in `vt`.
+"""
+function propagate_to_epoch!(orbp::OrbitPropagator, vjd::AbstractVector)
+    return propagate!(orbp, 86400 .* (vjd .- epoch(orbp)))
+end
+
+"""
     step!(orbp::OrbitPropagator{Tepoch, T}, Δt::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
 
 Propagate the orbit using `orbp` by `Δt` [s] from the current orbit epoch.
@@ -179,6 +283,13 @@ Propagate the orbit using `orbp` by `Δt` [s] from the current orbit epoch.
 function step!(orbp::OrbitPropagator, Δt::Number)
     return propagate!(orbp, last_instant(orbp) + Δt)
 end
+
+############################################################################################
+#                                           Copy                                           #
+############################################################################################
+
+# Define a fallback copy method if the propagator has not implemented one.
+Base.copy(orbp::OrbitPropagator) = deepcopy(orbp)
 
 ############################################################################################
 #                                    Iterator Interface                                    #
