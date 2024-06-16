@@ -631,7 +631,7 @@ end
 @testset "Copying Structure" verbose = true begin
     for (T, sgp4c) in ((Float64, sgp4c_wgs84), (Float32, sgp4c_wgs84_f32))
         @testset "$T" begin
-            tle_input = tle"""
+            tle = tle"""
                 AMAZONIA 1
                 1 47699U 21015A   21270.48626105 -.00000044  00000-0  19860-2 0  9993
                 2 47699  98.4889 344.6059 0001597  74.4244 285.7135 14.40801240 30436
