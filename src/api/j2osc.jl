@@ -212,3 +212,13 @@ function Propagators.propagate!(orbp::OrbitPropagatorJ2Osculating, t::Number)
     # Propagate the orbit.
     return j2osc!(j2oscd, t)
 end
+
+############################################################################################
+#                                        Julia API                                         #
+############################################################################################
+
+function Base.copy(
+    orbp::OrbitPropagatorJ2Osculating{Tepoch, T}
+) where {Tepoch<:Number, T<:Number}
+    return OrbitPropagatorJ2Osculating{Tepoch, T}(copy(orbp.j2oscd))
+end

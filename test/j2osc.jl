@@ -560,40 +560,37 @@ end
 end
 
 @testset "Copying Structure" verbose = true begin
-    @testset "J2OsculatingPropagator" verbose = true begin
-        for (T, j2c) in ((Float64, j2c_egm2008), (Float32, j2c_egm2008_f32))
-            @testset "$T" begin
-                jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+    for (T, j2c) in ((Float64, j2c_egm2008), (Float32, j2c_egm2008_f32))
+        @testset "$T" begin
+            jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
 
-                orb = KeplerianElements(
-                    jd₀,
-                    T(8000e3),
-                    T(0.015),
-                    T(28.5) |> deg2rad,
-                    T(100)  |> deg2rad,
-                    T(200)  |> deg2rad,
-                    T(25)   |> deg2rad
-                )
+            orb = KeplerianElements(
+                jd₀,
+                T(8000e3),
+                T(0.015),
+                T(28.5) |> deg2rad,
+                T(100)  |> deg2rad,
+                T(200)  |> deg2rad,
+                T(25)   |> deg2rad
+            )
 
-                orbp = Propagators.init(Val(:J2osc), orb; j2c = j2c)
-                j2oscd = orbp.j2oscd
-                new_j2oscd = copy(j2oscd)
+            orbp = Propagators.init(Val(:J2osc), orb; j2c = j2c)
+            new_orbp = copy(orbp)
 
-                for f in fieldnames(typeof(j2oscd))
-                    f == :j2d && continue
-                    @test getfield(new_j2oscd, f) == getfield(j2oscd, f)
-                end
-
-                for f in fieldnames(typeof(j2oscd.j2d))
-                    @test getfield(new_j2oscd.j2d, f) == getfield(j2oscd.j2d, f)
-                end
-
-                new_j2oscd.Δt = 1000
-                @test new_j2oscd.Δt != j2oscd.Δt
-
-                new_j2oscd.j2d.Δt = 1000
-                @test new_j2oscd.j2d.Δt != j2oscd.j2d.Δt
+            for f in fieldnames(typeof(orbp.j2oscd))
+                f == :j2d && continue
+                @test getfield(new_orbp.j2oscd, f) == getfield(orbp.j2oscd, f)
             end
+
+            for f in fieldnames(typeof(orbp.j2oscd.j2d))
+                @test getfield(new_orbp.j2oscd.j2d, f) == getfield(orbp.j2oscd.j2d, f)
+            end
+
+            new_orbp.j2oscd.Δt = 1000
+            @test new_orbp.j2oscd.Δt != orbp.j2oscd.Δt
+
+            new_orbp.j2oscd.j2d.Δt = 1000
+            @test new_orbp.j2oscd.j2d.Δt != orbp.j2oscd.j2d.Δt
         end
     end
 end

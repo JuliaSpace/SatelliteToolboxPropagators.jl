@@ -477,32 +477,29 @@ end
 end
 
 @testset "Copying Structure" verbose = true begin
-    @testset "J4Propagator" verbose = true begin
-        for (T, j4c) in ((Float64, j4c_egm2008), (Float32, j4c_egm2008_f32))
-            @testset "$T" begin
-                jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+    for (T, j4c) in ((Float64, j4c_egm2008), (Float32, j4c_egm2008_f32))
+        @testset "$T" begin
+            jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
 
-                orb = KeplerianElements(
-                    jd₀,
-                    T(8000e3),
-                    T(0.015),
-                    T(28.5) |> deg2rad,
-                    T(100)  |> deg2rad,
-                    T(400)  |> deg2rad,
-                    T(45)   |> deg2rad
-                )
+            orb = KeplerianElements(
+                jd₀,
+                T(8000e3),
+                T(0.015),
+                T(28.5) |> deg2rad,
+                T(100)  |> deg2rad,
+                T(400)  |> deg2rad,
+                T(45)   |> deg2rad
+            )
 
-                orbp = Propagators.init(Val(:J4), orb; j4c = j4c)
-                j4d = orbp.j4d
-                new_j4d = copy(j4d)
+            orbp = Propagators.init(Val(:J4), orb; j4c = j4c)
+            new_orbp = copy(orbp)
 
-                for f in fieldnames(typeof(j4d))
-                    @test getfield(new_j4d, f) == getfield(j4d, f)
-                end
-
-                new_j4d.Δt = 1000
-                @test new_j4d.Δt != j4d.Δt
+            for f in fieldnames(typeof(orbp.j4d))
+                @test getfield(new_orbp.j4d, f) == getfield(orbp.j4d, f)
             end
+
+            new_orbp.j4d.Δt = 1000
+            @test new_orbp.j4d.Δt != orbp.j4d.Δt
         end
     end
 end

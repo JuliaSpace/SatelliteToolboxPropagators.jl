@@ -627,3 +627,27 @@ end
     @test tle.raan                ≈  tle_input.raan                atol = 1e-4
     @test tle.argument_of_perigee ≈  tle_input.argument_of_perigee atol = 1e-4
 end
+
+@testset "Copying Structure" verbose = true begin
+    for (T, sgp4c) in ((Float64, sgp4c_wgs84), (Float32, sgp4c_wgs84_f32))
+        @testset "$T" begin
+            tle_input = tle"""
+                AMAZONIA 1
+                1 47699U 21015A   21270.48626105 -.00000044  00000-0  19860-2 0  9993
+                2 47699  98.4889 344.6059 0001597  74.4244 285.7135 14.40801240 30436
+                """
+
+            orbp = Propagators.init(Val(:SGP4), tle; sgp4c = sgp4c)
+            Propagators.propagate!(orbp, 10)
+            new_orbp = copy(orbp)
+
+            for f in fieldnames(typeof(orbp.sgp4d))
+                f == :sgp4ds && continue
+                @test getfield(new_orbp.sgp4d, f) == getfield(orbp.sgp4d, f)
+            end
+
+            new_orbp.sgp4d.Δt = 1000
+            @test new_orbp.sgp4d.Δt != orbp.sgp4d.Δt
+        end
+    end
+end

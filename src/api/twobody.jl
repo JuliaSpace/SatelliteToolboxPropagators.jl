@@ -91,3 +91,11 @@ function Propagators.propagate!(orbp::OrbitPropagatorTwoBody, t::Number)
     # Propagate the orbit.
     return twobody!(tbd, t)
 end
+
+############################################################################################
+#                                        Julia API                                         #
+############################################################################################
+
+function Base.copy(orbp::OrbitPropagatorTwoBody{Tepoch, T}) where {Tepoch<:Number, T<:Number}
+    return OrbitPropagatorTwoBody{Tepoch, T}(copy(orbp.tbd))
+end

@@ -49,8 +49,6 @@ include("./api/j4osc.jl")
 include("./api/sgp4.jl")
 include("./api/twobody.jl")
 
-include("./copy.jl")
-
 include("./propagators/j2.jl")
 include("./propagators/j2osc.jl")
 include("./propagators/j4.jl")
