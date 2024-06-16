@@ -484,3 +484,34 @@ end
     # synchronous. Thus, the RAAN moves approximately 0.9856002605° per day.
     @test orb.Ω ≈ orb_input.Ω + deg2rad(0.9856002605) atol = 2e-5
 end
+
+@testset "Copying Structure" verbose = true begin
+    @testset "J2Propagator" verbose = true begin
+        for (T, j2c) in ((Float64, j2c_egm2008), (Float32, j2c_egm2008_f32))
+            @testset "$T" begin
+                jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+
+                orb = KeplerianElements(
+                    jd₀,
+                    T(8000e3),
+                    T(0.015),
+                    T(28.5) |> deg2rad,
+                    T(100)  |> deg2rad,
+                    T(200)  |> deg2rad,
+                    T(45)   |> deg2rad
+                )
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+                j2d = orbp.j2d
+                new_j2d = copy(j2d)
+
+                for f in fieldnames(typeof(j2d))
+                    @test getfield(new_j2d, f) == getfield(j2d, f)
+                end
+
+                new_j2d.Δt = 1000
+                @test new_j2d.Δt != j2d.Δt
+            end
+        end
+    end
+end

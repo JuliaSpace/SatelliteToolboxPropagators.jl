@@ -104,6 +104,27 @@ const j2c_jgm03_f32 = J2PropagatorConstants{Float32}(
 )
 
 ############################################################################################
+#                                        Julia API                                         #
+############################################################################################
+
+# Define `copy` for the propagator structure.
+let
+    fields = fieldnames(J2Propagator)
+    expressions = [
+        :(new_j2d.$f = j2d.$f)
+        for f in fields
+    ]
+
+    @eval begin
+        function Base.copy(j2d::J2Propagator{Tepoch, T}) where {Tepoch<:Number, T<:Number}
+            new_j2d = J2Propagator{Tepoch, T}()
+            $(expressions...)
+            return new_j2d
+        end
+    end
+end
+
+############################################################################################
 #                                        Functions                                         #
 ############################################################################################
 

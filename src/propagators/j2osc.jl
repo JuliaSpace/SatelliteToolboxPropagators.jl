@@ -18,6 +18,32 @@ export fit_j2osc_mean_elements, fit_j2osc_mean_elements!
 export update_j2osc_mean_elements_epoch, update_j2osc_mean_elements_epoch!
 
 ############################################################################################
+#                                        Julia API                                         #
+############################################################################################
+
+# Define `copy` for the propagator structure.
+let
+    fields = fieldnames(J2OsculatingPropagator)
+    expressions = vcat(
+        :(new_j2oscd.j2d = copy(j2oscd.j2d)),
+        [
+            :(new_j2oscd.$f = j2oscd.$f)
+            for f in fields if f != :j2d
+        ]
+    )
+
+    @eval begin
+        function Base.copy(
+            j2oscd::J2OsculatingPropagator{Tepoch, T}
+        ) where {Tepoch<:Number, T<:Number}
+            new_j2oscd = J2OsculatingPropagator{Tepoch, T}()
+            $(expressions...)
+            return new_j2oscd
+        end
+    end
+end
+
+############################################################################################
 #                                        Functions                                         #
 ############################################################################################
 

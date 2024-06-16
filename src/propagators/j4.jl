@@ -104,6 +104,27 @@ const j4c_jgm03_f32 = J4PropagatorConstants{Float32}(
 )
 
 ############################################################################################
+#                                        Julia API                                         #
+############################################################################################
+
+# Define `copy` for the propagator structure.
+let
+    fields = fieldnames(J4Propagator)
+    expressions = [
+        :(new_j4d.$f = j4d.$f)
+        for f in fields
+    ]
+
+    @eval begin
+        function Base.copy(j4d::J4Propagator{Tepoch, T}) where {Tepoch<:Number, T<:Number}
+            new_j4d = J4Propagator{Tepoch, T}()
+            $(expressions...)
+            return new_j4d
+        end
+    end
+end
+
+############################################################################################
 #                                        Functions                                         #
 ############################################################################################
 

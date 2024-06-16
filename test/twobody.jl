@@ -254,3 +254,34 @@
         @test eltype(v) == T
     end
 end
+
+@testset "Copying Structure" verbose = true begin
+    @testset "TwoBodyPropagator" verbose = true begin
+        for (T, tbc) in ((Float64, tbc_m0), (Float32, tbc_m0_f32))
+            @testset "$T" begin
+                jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+
+                orb = KeplerianElements(
+                    jd₀,
+                    T(8000e3),
+                    T(0.015),
+                    T(28.5) |> deg2rad,
+                    T(100)  |> deg2rad,
+                    T(400)  |> deg2rad,
+                    T(45)   |> deg2rad
+                )
+
+                orbp = Propagators.init(Val(:TwoBody), orb; m0 = tbc)
+                tbd = orbp.tbd
+                new_tbd = copy(tbd)
+
+                for f in fieldnames(typeof(tbd))
+                    @test getfield(new_tbd, f) == getfield(tbd, f)
+                end
+
+                new_tbd.Δt = 1000
+                @test new_tbd.Δt != tbd.Δt
+            end
+        end
+    end
+end

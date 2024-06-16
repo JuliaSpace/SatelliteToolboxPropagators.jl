@@ -19,6 +19,32 @@ export fit_j4osc_mean_elements, fit_j4osc_mean_elements!
 export update_j4osc_mean_elements_epoch, update_j4osc_mean_elements_epoch!
 
 ############################################################################################
+#                                        Julia API                                         #
+############################################################################################
+
+# Define `copy` for the propagator structure.
+let
+    fields = fieldnames(J4OsculatingPropagator)
+    expressions = vcat(
+        :(new_j4oscd.j4d = copy(j4oscd.j4d)),
+        [
+            :(new_j4oscd.$f = j4oscd.$f)
+            for f in fields if f != :j4d
+        ]
+    )
+
+    @eval begin
+        function Base.copy(
+            j4oscd::J4OsculatingPropagator{Tepoch, T}
+        ) where {Tepoch<:Number, T<:Number}
+            new_j4oscd = J4OsculatingPropagator{Tepoch, T}()
+            $(expressions...)
+            return new_j4oscd
+        end
+    end
+end
+
+############################################################################################
 #                                        Functions                                         #
 ############################################################################################
 
