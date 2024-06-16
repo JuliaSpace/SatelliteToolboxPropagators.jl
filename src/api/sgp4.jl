@@ -10,7 +10,7 @@ Propagators.name(orbp::OrbitPropagatorSgp4)          = "SGP4 Orbit Propagator"
 
 function Propagators.mean_elements(orbp::OrbitPropagatorSgp4)
     # We need to copy the propagator to avoid modifying it.
-    sgp4d = deepcopy(orbp.sgp4d)
+    sgp4d = copy(orbp.sgp4d)
     sgp4c = sgp4d.sgp4c
 
     # First, we need to create a TLE based on the initial parameters.
