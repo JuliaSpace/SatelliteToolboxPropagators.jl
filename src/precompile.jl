@@ -44,59 +44,71 @@ PrecompileTools.@setup_workload begin
 
             orbp = Propagators.init(Val(:J2), orb)
             Propagators.propagate!(orbp, 0.0)
+            Propagators.propagate!(orbp, [0.0, 1.0])
             Propagators.fit_mean_elements!(orbp, vjd, vr_i, vv_i)
             Propagators.fit_mean_elements(Val(:J2), vjd, vr_i, vv_i)
 
             orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm2008_f32)
             Propagators.propagate!(orbp, 0.0f0)
+            Propagators.propagate!(orbp, [0.0f0, 1.0f0])
 
             # == J2 Osculating Orbit Propagator ============================================
 
             orbp = Propagators.init(Val(:J2osc), orb)
             Propagators.propagate!(orbp, 0.0)
+            Propagators.propagate!(orbp, [0.0, 1.0])
             Propagators.fit_mean_elements!(orbp, vjd, vr_i, vv_i)
             Propagators.fit_mean_elements(Val(:J2osc), vjd, vr_i, vv_i)
 
             orbp = Propagators.init(Val(:J2osc), orb; j2c = j2c_egm2008_f32)
             Propagators.propagate!(orbp, 0.0f0)
+            Propagators.propagate!(orbp, [0.0f0, 1.0f0])
 
             # == J4 Orbit Propagator =======================================================
 
             orbp = Propagators.init(Val(:J4), orb)
             Propagators.propagate!(orbp, 0.0)
+            Propagators.propagate!(orbp, [0.0, 1.0])
             Propagators.fit_mean_elements!(orbp, vjd, vr_i, vv_i)
             Propagators.fit_mean_elements(Val(:J4), vjd, vr_i, vv_i)
 
             orbp = Propagators.init(Val(:J4), orb; j4c = j4c_egm2008_f32)
             Propagators.propagate!(orbp, 0.0f0)
+            Propagators.propagate!(orbp, [0.0f0, 1.0f0])
 
             # == J4 Osculating Orbit Propagator ============================================
 
             orbp = Propagators.init(Val(:J4osc), orb)
             Propagators.propagate!(orbp, 0.0)
+            Propagators.propagate!(orbp, [0.0, 1.0])
             Propagators.fit_mean_elements!(orbp, vjd, vr_i, vv_i)
             Propagators.fit_mean_elements(Val(:J4osc), vjd, vr_i, vv_i)
 
             orbp = Propagators.init(Val(:J4osc), orb; j4c = j4c_egm2008_f32)
             Propagators.propagate!(orbp, 0.0f0)
+            Propagators.propagate!(orbp, [0.0f0, 1.0f0])
 
             # == SGP4 Orbit Propagator =====================================================
 
             orbp = Propagators.init(Val(:SGP4), tle)
             Propagators.propagate!(orbp, 0.0)
+            Propagators.propagate!(orbp, [0.0, 1.0])
             Propagators.fit_mean_elements!(orbp, vjd, vr_i, vv_i)
             Propagators.fit_mean_elements(Val(:SGP4), vjd, vr_i, vv_i)
 
             orbp = Propagators.init(Val(:SGP4), tle; sgp4c = sgp4c_wgs84_f32)
             Propagators.propagate!(orbp, 0.0f0)
+            Propagators.propagate!(orbp, [0.0f0, 1.0f0])
 
             # == Two Body Orbit Propagator =================================================
 
             orbp = Propagators.init(Val(:TwoBody), orb)
             Propagators.propagate!(orbp, 0.0)
+            Propagators.propagate!(orbp, [0.0, 1.0])
 
             orbp = Propagators.init(Val(:TwoBody), orb; m0 = tbc_m0_f32)
             Propagators.propagate!(orbp, 0.0f0)
+            Propagators.propagate!(orbp, [0.0f0, 1.0f0])
         end
     end
 end
