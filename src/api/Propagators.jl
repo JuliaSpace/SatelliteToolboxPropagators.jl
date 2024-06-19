@@ -111,7 +111,7 @@ structure name is used: `typeof(orbp) |> string`.
 name(orbp::OrbitPropagator) = typeof(orbp) |> string
 
 """
-    propagate(::Val{:propagator}, Δt::Number, args...; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagator
+    propagate(::Val{:propagator}, Δt::Number, args...; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagator{Tepoch, T}
 
 Initialize the orbit `propagator` and propagate the orbit by `t` [s] from the initial orbit
 epoch. The initialization arguments `args...` and `kwargs...` are the same as in the
