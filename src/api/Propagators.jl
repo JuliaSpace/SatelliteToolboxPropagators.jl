@@ -231,13 +231,14 @@ function propagate!(
     @maybe_threads ntasks for c in 1:ntasks
         # We already propagated for the first instant, and we must ensure we propagate the
         # last instant at the end of the function.
-        i₀, i₁ = get_partition(c, inds[(1 + begin):(end - 1)], ntasks)
+        cinds = @views inds[(1 + begin):(end - 1)]
+        i₀, i₁ = get_partition(c, cinds, ntasks)
 
         # The propagation usually modifies the structure. Hence we need to copy it for each
         # task.
         corbp = c == 1 ? orbp : copy(orbp)
 
-        @inbounds for i in i₀:i₁
+        length(cinds) != 0 && @inbounds for i in i₀:i₁
             vr[i - Δi], vv[i - Δi] = Propagators.propagate!(corbp, vt[i])
         end
     end
