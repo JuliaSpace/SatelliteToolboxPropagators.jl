@@ -228,18 +228,21 @@ function propagate!(
     # Make sure the number of tasks is not higher than the number of propagation points.
     ntasks = min(ntasks, len_vt)
 
-    @maybe_threads ntasks for c in 1:ntasks
-        # We already propagated for the first instant, and we must ensure we propagate the
-        # last instant at the end of the function.
-        cinds = @views inds[(1 + begin):(end - 1)]
-        i₀, i₁ = get_partition(c, cinds, ntasks)
+    # If we have only two instants in the time vector, we will not spawn any threads,
+    # because the first and the last instants are propagated separately.
+    if len_vt > 2
+        @maybe_threads ntasks for c in 1:ntasks
+            # We already propagated for the first instant, and we must ensure we propagate
+            # the last instant at the end of the function.
+            i₀, i₁ = @views get_partition(c, inds[(1 + begin):(end - 1)], ntasks)
 
-        # The propagation usually modifies the structure. Hence we need to copy it for each
-        # task.
-        corbp = c == 1 ? orbp : copy(orbp)
+            # The propagation usually modifies the structure. Hence we need to copy it for each
+            # task.
+            corbp = c == 1 ? orbp : copy(orbp)
 
-        length(cinds) != 0 && @inbounds for i in i₀:i₁
-            vr[i - Δi], vv[i - Δi] = Propagators.propagate!(corbp, vt[i])
+            @inbounds for i in i₀:i₁
+                vr[i - Δi], vv[i - Δi] = Propagators.propagate!(corbp, vt[i])
+            end
         end
     end
 
