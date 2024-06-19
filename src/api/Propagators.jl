@@ -136,6 +136,38 @@ function propagate(prop, Δt::Number, args...; kwargs...)
 end
 
 """
+    propagate(::Val{:propagator}, vt::AbstractVector, args...; kwargs...) -> Vector{SVector{3, T}}, Vector{SVector{3, T}}, OrbitPropagator{Tepoch, T}
+
+Initialize the orbit `propagator` and propagate the orbit for every instant defined in `vt`
+[s] from the initial orbit epoch. The initialization arguments `args...` and `kwargs...`
+(except for `ntasks`) are the same as in the initialization function
+[`Propagators.init`](@ref).
+
+!!! note
+
+    `T` is the propagator number type. For more information, see [`Propagators.init`](@ref).
+
+# Keywords
+
+- `ntasks::Integer`: Number of parallel tasks to propagate the orbit. If it is set to a
+    number equal or lower than 1, the function will propagate the orbit sequentially.
+    (**Default** = `Threads.nthreads()`)
+
+# Returns
+
+- `Vector{SVector{3, T}}`: Array with the position vectors [m] in the inertial frame at each
+    propagation instant defined in `vt`.
+- `Vector{SVector{3, T}}`: Array with the velocity vectors [m / s] in the inertial frame at
+    each propagation instant defined in `vt`.
+- [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized propagator.
+"""
+function propagate(prop, vt::AbstractVector, args...; kwargs...)
+    orbp = Propagators.init(prop, args...; kwargs...)
+    vr_i, vv_i = Propagators.propagate!(orbp, vt)
+    return vr_i, vv_i, orbp
+end
+
+"""
     propagate!(orbp::OrbitPropagator{Tepoch, T}, t::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
 
 Propagate the orbit using `orbp` by `t` [s] from the initial orbit epoch.

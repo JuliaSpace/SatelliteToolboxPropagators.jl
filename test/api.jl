@@ -117,6 +117,24 @@ end
                 @test ret[k][1] == r[k]
                 @test ret[k][2] == v[k]
             end
+
+            # == Simultaneous Initialization and Propagation ===============================
+
+            ret = Propagators.propagate!.(orbp, 1:1:100)
+            r, v, orbp = Propagators.propagate(Val(:J2), 1:1:100, orb; j2c = j2c)
+
+            @test length(r) == 100
+            @test length(v) == 100
+            @test r isa Vector{SVector{3, T}}
+            @test v isa Vector{SVector{3, T}}
+            @test orbp isa OrbitPropagatorJ2{Float64, T}
+            @test Propagators.last_instant(orbp) == 100.0
+
+            for k in 1:100
+                @test ret[k][1] == r[k]
+                @test ret[k][2] == v[k]
+            end
+
         end
     end
 end
