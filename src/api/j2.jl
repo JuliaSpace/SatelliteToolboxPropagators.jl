@@ -171,40 +171,6 @@ function Propagators.init!(orbp::OrbitPropagatorJ2, orb₀::KeplerianElements)
     return nothing
 end
 
-"""
-    Propagators.propagate(Val(:J2), Δt::Number, orb₀::KeplerianElements; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagatorJ2
-
-Initialize the J2 propagator structure using the input elements `orb₀` [SI units] and
-propagate the orbit until the time Δt [s].
-
-!!! note
-
-    The type used in the propagation will be the same as used to define the constants in the
-    structure `j2c`.
-
-# Keywords
-
-- `j2c::J2PropagatorConstants{T}`: J2 orbit propagator constants (see
-  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm2008`)
-
-# Returns
-
-- `SVector{3, T}`: Position vector [m] represented in the inertial frame at propagation
-    instant.
-- `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
-    instant.
-- [`OrbitPropagatorJ2`](@ref): Structure with the initialized parameters.
-"""
-function Propagators.propagate(
-    ::Val{:J2},
-    Δt::Number,
-    orb₀::KeplerianElements;
-    j2c::J2PropagatorConstants = j2c_egm2008
-)
-    r_i, v_i, j2d = j2(Δt, orb₀; j2c = j2c)
-    return r_i, v_i, OrbitPropagatorJ2(j2d)
-end
-
 function Propagators.propagate!(orbp::OrbitPropagatorJ2, t::Number)
     # Auxiliary variables.
     j2d = orbp.j2d

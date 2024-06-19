@@ -180,18 +180,6 @@ Propagators.name(orbp)
 to return its name. The system uses this information to display the object using the
 function `show`. If the function is not provided, the structure name is used by default.
 
-### Simultaneous Initialization and Propagation (Optional)
-
-If the propagator supports, it can overload the functions:
-
-```julia
-Propagators.propagate(t, args...; kwargs...)
-```
-
-that simultaneously initialize and propagate the orbit to the instant `t` [s] after the
-input elements. `args...` and `kwargs...` must be the same as in the initialization function
-`Propagators.init`.
-
 ### Fitting Mean Elements (Optional)
 
 The propagator can implement the following functions to fit a set of osculating state

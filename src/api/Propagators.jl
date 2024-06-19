@@ -111,11 +111,15 @@ structure name is used: `typeof(orbp) |> string`.
 name(orbp::OrbitPropagator) = typeof(orbp) |> string
 
 """
-    propagate(::Val{:propagator}, Δt::Number, args...; kwargs...)
+    propagate(::Val{:propagator}, Δt::Number, args...; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagator
 
 Initialize the orbit `propagator` and propagate the orbit by `t` [s] from the initial orbit
 epoch. The initialization arguments `args...` and `kwargs...` are the same as in the
 initialization function [`Propagators.init`](@ref).
+
+!!! note
+
+    `T` is the propagator number type. For more information, see [`Propagators.init`](@ref).
 
 # Returns
 
@@ -123,9 +127,13 @@ initialization function [`Propagators.init`](@ref).
     instant.
 - `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
     instant.
-- [`OrbitPropagator`](@ref): Structure with the initialized parameters.
+- [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized propagator.
 """
-function propagate end
+function propagate(prop, Δt::Number, args...; kwargs...)
+    orbp = Propagators.init(prop, args...; kwargs...)
+    r_i, v_i = Propagators.propagate!(orbp, Δt)
+    return r_i, v_i, orbp
+end
 
 """
     propagate!(orbp::OrbitPropagator{Tepoch, T}, t::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
