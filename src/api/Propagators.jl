@@ -255,10 +255,12 @@ end
 
 """
     propagate_to_epoch(::Val{:propagator}, jd::Number, args...; kwargs...)
+    propagate_to_epoch(::Val{:propagator}, dt::DateTime, args...; kwargs...)
 
-Initialize the orbit `propagator` and propagate the orbit until the epoch `jd` [s] from the
-initial orbit epoch. The initialization arguments `args...` and `kwargs...` are the same as
-in the initialization function [`Propagators.init`](@ref).
+Initialize the orbit `propagator` and propagate the orbit until the epoch defined by either
+the Julian Day `jd` [UTC] or by a `DateTime` object `dt` [UTC] from the initial orbit epoch.
+The initialization arguments `args...` and `kwargs...` are the same as in the initialization
+function [`Propagators.init`](@ref).
 
 # Returns
 
@@ -268,6 +270,11 @@ in the initialization function [`Propagators.init`](@ref).
     instant.
 - [`OrbitPropagator`](@ref): Structure with the initialized parameters.
 """
+function propagate_to_epoch(T::Val, dt::DateTime, args...; kwargs...)
+    jd = datetime2julian(dt)
+    return propagate_to_epoch(T, jd, args...; kwargs...)
+end
+
 function propagate_to_epoch(T::Val, jd::Number, args...; kwargs...)
     orbp = init(T, args...; kwargs...)
     r_i, v_i = propagate_to_epoch!(orbp, jd)
@@ -276,8 +283,10 @@ end
 
 """
     propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, jd::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, dt::DateTime) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
 
-Propagate the orbit using `orbp` until the epoch `jd` [Julian Day].
+Propagate the orbit using `orbp` until the epoch defined either by the Julian Day `jd`
+[UTC] or by the `DateTime` object `dt` [UTC].
 
 # Returns
 
@@ -286,14 +295,21 @@ Propagate the orbit using `orbp` until the epoch `jd` [Julian Day].
 - `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
     instant.
 """
+function propagate_to_epoch!(orbp::OrbitPropagator, dt::DateTime)
+    jd = datetime2julian(dt)
+    return propagate_to_epoch!(orbp, jd)
+end
+
 function propagate_to_epoch!(orbp::OrbitPropagator, jd::Number)
     return propagate!(orbp, 86400 * (jd - epoch(orbp)))
 end
 
 """
     propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, vjd::AbstractVector; kwargs...) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, vdt::AbstractVector{DateTime}; kwargs...) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
 
-Propagate the orbit using `orbp` for every epoch defined in `jd` [Julian Day].
+Propagate the orbit using `orbp` for every epoch defined in the vector of Julian Days `vjd`
+[UTC] or in the vector of `DateTime` objects `vdt` [UTC].
 
 # Keywords
 
@@ -308,6 +324,11 @@ Propagate the orbit using `orbp` for every epoch defined in `jd` [Julian Day].
 - `Vector{SVector{3, T}}`: Array with the velocity vectors [m / s] in the inertial frame at
     each propagation instant defined in `vt`.
 """
+function propagate_to_epoch!(orbp::OrbitPropagator, vdt::AbstractVector{T}) where T<:DateTime
+    vjd = datetime2julian.(vdt)
+    return propagate_to_epoch!(orbp, vjd)
+end
+
 function propagate_to_epoch!(orbp::OrbitPropagator, vjd::AbstractVector)
     return propagate!(orbp, 86400 .* (vjd .- epoch(orbp)))
 end

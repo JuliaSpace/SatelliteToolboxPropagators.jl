@@ -67,6 +67,56 @@ struct DummyPropagator{Tepoch, T} <: OrbitPropagator{Tepoch, T} end
     end
 end
 
+@testset "DateTime Support" verbose = true begin
+    jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+
+    for (T, j2c) in ((Float64, j2c_egm2008), (Float32, j2c_egm2008_f32))
+        orb = KeplerianElements(
+            jd₀,
+            T(8000e3),
+            T(0.015),
+            T(28.5) |> deg2rad,
+            T(100)  |> deg2rad,
+            T(200)  |> deg2rad,
+            T(45)   |> deg2rad
+        )
+
+        orbp_ref = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+        # == propagate_to_epoch ============================================================
+
+        r, v, orbp = Propagators.propagate_to_epoch(
+            Val(:J2),
+            DateTime("2024-01-01"),
+            orb;
+            j2c = j2c
+        )
+
+        r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
+
+        @test orbp isa typeof(orbp_ref)
+        @test r isa SVector{3, T}
+        @test v isa SVector{3, T}
+        @test r ≈ r_ref
+        @test v ≈ v_ref
+        @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+        # == propagate_to_epoch! ===========================================================
+
+        orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+        r, v = Propagators.propagate_to_epoch!(orbp, DateTime("2024-01-01"))
+
+        r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
+
+        @test r isa SVector{3, T}
+        @test v isa SVector{3, T}
+        @test r ≈ r_ref
+        @test v ≈ v_ref
+        @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+    end
+end
+
 @testset "Multi-thread Propagation" verbose = true begin
     for (T, j2c) in ((Float64, j2c_egm2008), (Float32, j2c_egm2008_f32))
         @testset "$T" begin
@@ -114,6 +164,23 @@ end
             @test Propagators.last_instant(orbp) == 345600.0
 
             for k in 1:41
+                @test ret[k][1] == r[k]
+                @test ret[k][2] == v[k]
+            end
+
+            # -- DateTime Support ----------------------------------------------------------
+
+            vdt  = [DateTime(2024, 1, i) for i in 1:30]
+            ret  = Propagators.propagate_to_epoch!.(orbp, vdt)
+            r, v = Propagators.propagate_to_epoch!(orbp, vdt)
+
+            @test length(r) == 30
+            @test length(v) == 30
+            @test r isa Vector{SVector{3, T}}
+            @test v isa Vector{SVector{3, T}}
+            @test Propagators.last_instant(orbp) == 3.40416e7
+
+            for k in 1:30
                 @test ret[k][1] == r[k]
                 @test ret[k][2] == v[k]
             end
