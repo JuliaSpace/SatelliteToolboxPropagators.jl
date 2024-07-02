@@ -1,6 +1,24 @@
 SatelliteToolboxPropagator.jl Changelog
 =======================================
 
+Version 0.3.2
+-------------
+
+- ![Feature][badge-feature] The functions `propagate`, `propagate!`, `propagate_to_epoch`,
+  and `propagate_to_epoch!` of `Propagators` can now receive a vector of instants and the
+  propagation will happen in multiple threads, if possible. The number of tasks can be
+  configured using the keyword `ntasks`. If `ntasks = 1`, the algorithm falls back to the
+  single thread version, leading to no overhead.
+- ![Feature][badge-feature] We added support for the objects defined in `Dates` in the
+  propagation functions. `propagate`, `propagate!`, and `step!` can now receive an object of
+  type `Dates.Period` or `Dates.CompoundPeriod`. On the other hand, `propagate_to_epoch` and
+  `propagate_to_epoch!` now supports an epoch specified using `DateTime`.
+- ![Enhancement][badge-enhancement] We implemented dedicate `copy` to all propagators
+  defined here, leading to a substantial gain compared to the previous version that relies
+  on `deepcopy`.
+- ![Enhancement][badge-enhancement] We increase the number of precompiled function
+  signatures.
+
 Version 0.3.1
 -------------
 
