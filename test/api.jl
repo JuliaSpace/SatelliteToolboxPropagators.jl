@@ -67,53 +67,88 @@ struct DummyPropagator{Tepoch, T} <: OrbitPropagator{Tepoch, T} end
     end
 end
 
-@testset "DateTime Support" verbose = true begin
+@testset "Dates Support" verbose = true begin
     jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
 
     for (T, j2c) in ((Float64, j2c_egm2008), (Float32, j2c_egm2008_f32))
-        orb = KeplerianElements(
-            jd₀,
-            T(8000e3),
-            T(0.015),
-            T(28.5) |> deg2rad,
-            T(100)  |> deg2rad,
-            T(200)  |> deg2rad,
-            T(45)   |> deg2rad
-        )
+        @testset "$T" begin
+            orb = KeplerianElements(
+                jd₀,
+                T(8000e3),
+                T(0.015),
+                T(28.5) |> deg2rad,
+                T(100)  |> deg2rad,
+                T(200)  |> deg2rad,
+                T(45)   |> deg2rad
+            )
 
-        orbp_ref = Propagators.init(Val(:J2), orb; j2c = j2c)
+            orbp_ref = Propagators.init(Val(:J2), orb; j2c = j2c)
 
-        # == propagate_to_epoch ============================================================
+            # == propagate =================================================================
 
-        r, v, orbp = Propagators.propagate_to_epoch(
-            Val(:J2),
-            DateTime("2024-01-01"),
-            orb;
-            j2c = j2c
-        )
+            r, v, orbp = Propagators.propagate(
+                Val(:J2),
+                Dates.Minute(1) + Dates.Second(1),
+                orb;
+                j2c = j2c
+            )
 
-        r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
+            r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
 
-        @test orbp isa typeof(orbp_ref)
-        @test r isa SVector{3, T}
-        @test v isa SVector{3, T}
-        @test r ≈ r_ref
-        @test v ≈ v_ref
-        @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+            @test orbp isa typeof(orbp_ref)
+            @test r isa SVector{3, T}
+            @test v isa SVector{3, T}
+            @test r ≈ r_ref
+            @test v ≈ v_ref
+            @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
-        # == propagate_to_epoch! ===========================================================
+            # == propagate! ================================================================
 
-        orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+            orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
-        r, v = Propagators.propagate_to_epoch!(orbp, DateTime("2024-01-01"))
+            r, v = Propagators.propagate!(orbp, Dates.Minute(1) + Dates.Second(1))
 
-        r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
+            r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
 
-        @test r isa SVector{3, T}
-        @test v isa SVector{3, T}
-        @test r ≈ r_ref
-        @test v ≈ v_ref
-        @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+            @test orbp isa typeof(orbp_ref)
+            @test r isa SVector{3, T}
+            @test v isa SVector{3, T}
+            @test r ≈ r_ref
+            @test v ≈ v_ref
+            @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+            # == propagate_to_epoch ========================================================
+
+            r, v, orbp = Propagators.propagate_to_epoch(
+                Val(:J2),
+                DateTime("2024-01-01"),
+                orb;
+                j2c = j2c
+            )
+
+            r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
+
+            @test orbp isa typeof(orbp_ref)
+            @test r isa SVector{3, T}
+            @test v isa SVector{3, T}
+            @test r ≈ r_ref
+            @test v ≈ v_ref
+            @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+            # == propagate_to_epoch! =======================================================
+
+            orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+            r, v = Propagators.propagate_to_epoch!(orbp, DateTime("2024-01-01"))
+
+            r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
+
+            @test r isa SVector{3, T}
+            @test v isa SVector{3, T}
+            @test r ≈ r_ref
+            @test v ≈ v_ref
+            @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+        end
     end
 end
 
@@ -151,6 +186,23 @@ end
                 @test ret[k][2] == v[k]
             end
 
+            # -- Dates Support -------------------------------------------------------------
+
+            vp   = [Dates.Second(i) for i in 1:1:100]
+            ret  = Propagators.propagate!.(orbp, 1:1:100)
+            r, v = Propagators.propagate!(orbp, vp)
+
+            @test length(r) == 100
+            @test length(v) == 100
+            @test r isa Vector{SVector{3, T}}
+            @test v isa Vector{SVector{3, T}}
+            @test Propagators.last_instant(orbp) == 100.0
+
+            for k in 1:100
+                @test ret[k][1] == r[k]
+                @test ret[k][2] == v[k]
+            end
+
             # == propagate_to_epoch! =======================================================
 
             vjd  = collect(jd₀:0.1:jd₁)
@@ -168,7 +220,7 @@ end
                 @test ret[k][2] == v[k]
             end
 
-            # -- DateTime Support ----------------------------------------------------------
+            # -- Dates Support -------------------------------------------------------------
 
             vdt  = [DateTime(2024, 1, i) for i in 1:30]
             ret  = Propagators.propagate_to_epoch!.(orbp, vdt)
@@ -189,6 +241,24 @@ end
 
             ret = Propagators.propagate!.(orbp, 1:1:100)
             r, v, orbp = Propagators.propagate(Val(:J2), 1:1:100, orb; j2c = j2c)
+
+            @test length(r) == 100
+            @test length(v) == 100
+            @test r isa Vector{SVector{3, T}}
+            @test v isa Vector{SVector{3, T}}
+            @test orbp isa OrbitPropagatorJ2{Float64, T}
+            @test Propagators.last_instant(orbp) == 100.0
+
+            for k in 1:100
+                @test ret[k][1] == r[k]
+                @test ret[k][2] == v[k]
+            end
+
+            # -- Dates Support -------------------------------------------------------------
+
+            vp = [Dates.Second(i) for i in 1:1:100]
+            ret = Propagators.propagate!.(orbp, 1:1:100)
+            r, v, orbp = Propagators.propagate(Val(:J2), vp, orb; j2c = j2c)
 
             @test length(r) == 100
             @test length(v) == 100

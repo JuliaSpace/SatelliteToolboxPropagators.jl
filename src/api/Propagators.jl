@@ -112,10 +112,11 @@ name(orbp::OrbitPropagator) = typeof(orbp) |> string
 
 """
     propagate(::Val{:propagator}, Δt::Number, args...; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagator{Tepoch, T}
+    propagate(::Val{:propagator}, p::Union{Dates.Period, Dates.CompundPeriod}, args...; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagator{Tepoch, T}
 
-Initialize the orbit `propagator` and propagate the orbit by `t` [s] from the initial orbit
-epoch. The initialization arguments `args...` and `kwargs...` are the same as in the
-initialization function [`Propagators.init`](@ref).
+Initialize the orbit `propagator` and propagate the orbit by `Δt` [s] or by the period
+defined by `p` from the initial orbit epoch. The initialization arguments `args...` and
+`kwargs...` are the same as in the initialization function [`Propagators.init`](@ref).
 
 !!! note
 
@@ -129,7 +130,12 @@ initialization function [`Propagators.init`](@ref).
     instant.
 - [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized propagator.
 """
-function propagate(prop, Δt::Number, args...; kwargs...)
+function propagate(prop::Val, p::Union{Dates.Period, Dates.CompoundPeriod}, args...; kwargs...)
+    Δt = _toms(p) / 1000
+    return propagate(prop, Δt, args...; kwargs...)
+end
+
+function propagate(prop::Val, Δt::Number, args...; kwargs...)
     orbp = Propagators.init(prop, args...; kwargs...)
     r_i, v_i = Propagators.propagate!(orbp, Δt)
     return r_i, v_i, orbp
@@ -137,11 +143,12 @@ end
 
 """
     propagate(::Val{:propagator}, vt::AbstractVector, args...; kwargs...) -> Vector{SVector{3, T}}, Vector{SVector{3, T}}, OrbitPropagator{Tepoch, T}
+    propagate(::Val{:propagator}, vp::AbstractVector{Union{Dates.Period, Dates.CompundPeriod}}, args...; kwargs...) -> Vector{SVector{3, T}}, Vector{SVector{3, T}}, OrbitPropagator{Tepoch, T}
 
 Initialize the orbit `propagator` and propagate the orbit for every instant defined in `vt`
-[s] from the initial orbit epoch. The initialization arguments `args...` and `kwargs...`
-(except for `ntasks`) are the same as in the initialization function
-[`Propagators.init`](@ref).
+[s] or for every period defined in `vp` from the initial orbit epoch. The initialization
+arguments `args...` and `kwargs...` (except for `ntasks`) are the same as in the
+initialization function [`Propagators.init`](@ref).
 
 !!! note
 
@@ -161,16 +168,28 @@ Initialize the orbit `propagator` and propagate the orbit for every instant defi
     each propagation instant defined in `vt`.
 - [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized propagator.
 """
-function propagate(prop, vt::AbstractVector, args...; kwargs...)
+function propagate(
+    prop::Val,
+    vp::AbstractVector{T},
+    args...;
+    kwargs...
+) where T<:Dates.CompoundPeriod
+    vt = _toms.(vp) ./ 1000
+    return propagate(prop, vt, args...; kwargs...)
+end
+
+function propagate(prop::Val, vt::AbstractVector, args...; kwargs...)
     orbp = Propagators.init(prop, args...; kwargs...)
     vr_i, vv_i = Propagators.propagate!(orbp, vt)
     return vr_i, vv_i, orbp
 end
 
 """
-    propagate!(orbp::OrbitPropagator{Tepoch, T}, t::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    propagate!(orbp::OrbitPropagator{Tepoch, T}, Δt::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    propagate!(orbp::OrbitPropagator{Tepoch, T}, p::Union{Dates.Period, Dates.CompoundPeriod}) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
 
-Propagate the orbit using `orbp` by `t` [s] from the initial orbit epoch.
+Propagate the orbit using `orbp` by `Δt` [s] or by the period defined by `p` from the
+initial orbit epoch.
 
 # Returns
 
@@ -181,10 +200,17 @@ Propagate the orbit using `orbp` by `t` [s] from the initial orbit epoch.
 """
 function propagate! end
 
+function propagate!(orbp::OrbitPropagator, p::Union{Dates.Period, Dates.CompoundPeriod})
+    Δt = _toms(p) / 1000
+    return propagate!(orbp, Δt)
+end
+
 """
     propagate!(orbp::OrbitPropagator{Tepoch, T}, vt::AbstractVector; kwargs...) where {Tepoch <: Number, T <: Number} -> Vector{SVector{3, T}}, Vector{SVector{3, T}}
+    propagate!(orbp::OrbitPropagator{Tepoch, T}, vp::AbstractVector{Union{Dates.Period, Dates.CompundPeriod}}; kwargs...) where {Tepoch <: Number, T <: Number} -> Vector{SVector{3, T}}, Vector{SVector{3, T}}
 
-Propagate the orbit using `orbp` for every instant defined in `vt` [s].
+Propagate the orbit using `orbp` for every instant defined in `vt` [s] or for every period
+defined in `vp` from the initial orbit epoch.
 
 # Keywords
 
@@ -199,6 +225,15 @@ Propagate the orbit using `orbp` for every instant defined in `vt` [s].
 - `Vector{SVector{3, T}}`: Array with the velocity vectors [m / s] in the inertial frame at
     each propagation instant defined in `vt`.
 """
+function propagate!(
+    orbp::OrbitPropagator,
+    vp::AbstractVector{T};
+    kwargs...
+) where T<:Union{Dates.Period, Dates.CompoundPeriod}
+    vt = _toms.(vp) ./ 1000
+    return propagate!(orbp, vt; kwargs...)
+end
+
 function propagate!(
     orbp::OrbitPropagator{Tepoch, T},
     vt::AbstractVector;
@@ -394,6 +429,20 @@ function show(io::IO, mime::MIME"text/plain", orbp::T) where T<:OrbitPropagator
     print(  io, "$(b)  Last propagation :$(d) ", last_instant_dt)
 
     return nothing
+end
+
+############################################################################################
+#                                    Private Functions                                     #
+############################################################################################
+
+# These functions replace `Dates.toms` because the latter is type unstable. For more
+# information, see:
+#
+#   https://github.com/JuliaLang/julia/pull/54995
+
+_toms(p::Dates.Period) = Dates.toms(p)
+function _toms(p::Dates.CompoundPeriod)
+    return isempty(p.periods) ? 0.0 : Float64(sum(Dates.toms, p.periods))::Float64
 end
 
 end # module Propagator
