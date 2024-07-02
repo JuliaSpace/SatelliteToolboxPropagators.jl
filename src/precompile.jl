@@ -49,21 +49,59 @@ PrecompileTools.@setup_workload begin
                 (:TwoBody, (; m0 = tbc_m0_f32))
             )
                 mean_elements = prop != :SGP4 ? orb : tle
+
+                # == Float64 ===============================================================
+
                 orbp = Propagators.init(Val(prop), mean_elements)
 
                 Propagators.propagate!(orbp, 0.0)
                 Propagators.propagate!(orbp, [0.0, 1.0])
                 Propagators.propagate!(orbp, [0.0, 1.0, 2.0])
 
+                Propagators.propagate!(orbp, Dates.Second(1))
+                Propagators.propagate!(orbp, Dates.Second(1) + Dates.Minute(1))
+                Propagators.propagate!(orbp, [Dates.Second(1) for _ in 1:2])
+                Propagators.propagate!(orbp, [Dates.Second(i) + Dates.Minute(1) for i in 1:2])
+
+                Propagators.propagate_to_epoch!(orbp, JD_J2000)
+                Propagators.propagate_to_epoch!(orbp, [JD_J2000, JD_J2000])
+
+                Propagators.propagate_to_epoch!(orbp, DateTime(2024, 1, 1))
+                Propagators.propagate_to_epoch!(orbp, [DateTime(2024, 1, i) for i in 1:2])
+
+                Propagators.step!(orbp, 1.0)
+
+                Propagators.step!(orbp, Dates.Second(1))
+                Propagators.step!(orbp, Dates.Second(1) + Dates.Minute(1))
+
                 if prop != :TwoBody
                     Propagators.fit_mean_elements!(orbp, vjd, vr_i, vv_i)
                     Propagators.fit_mean_elements(Val(prop), vjd, vr_i, vv_i)
                 end
 
+                # == Float32 ===============================================================
+
                 orbp = Propagators.init(Val(prop), mean_elements; f32_kwargs...)
+
                 Propagators.propagate!(orbp, 0.0f0)
                 Propagators.propagate!(orbp, [0.0f0, 1.0f0])
                 Propagators.propagate!(orbp, [0.0f0, 1.0f0, 2.0f0])
+
+                Propagators.propagate!(orbp, Dates.Second(1))
+                Propagators.propagate!(orbp, Dates.Second(1) + Dates.Minute(1))
+                Propagators.propagate!(orbp, [Dates.Second(1) for _ in 1:2])
+                Propagators.propagate!(orbp, [Dates.Second(1) + Dates.Minute(1) for _ in 1:2])
+
+                Propagators.propagate_to_epoch!(orbp, JD_J2000)
+                Propagators.propagate_to_epoch!(orbp, [JD_J2000, JD_J2000])
+
+                Propagators.propagate_to_epoch!(orbp, DateTime(2024, 1, 1))
+                Propagators.propagate_to_epoch!(orbp, [DateTime(2024, 1, i) for i in 1:2])
+
+                Propagators.step!(orbp, 1.0f0)
+
+                Propagators.step!(orbp, Dates.Second(1))
+                Propagators.step!(orbp, Dates.Second(1) + Dates.Minute(1))
             end
         end
     end
