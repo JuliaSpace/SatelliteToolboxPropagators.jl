@@ -289,13 +289,17 @@ function propagate!(
 end
 
 """
-    propagate_to_epoch(::Val{:propagator}, jd::Number, args...; kwargs...)
-    propagate_to_epoch(::Val{:propagator}, dt::DateTime, args...; kwargs...)
+    propagate_to_epoch(::Val{:propagator}, jd::Number, args...; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagator{Tepoch, T}
+    propagate_to_epoch(::Val{:propagator}, dt::DateTime, args...; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagator{Tepoch, T}
 
 Initialize the orbit `propagator` and propagate the orbit until the epoch defined by either
 the Julian Day `jd` [UTC] or by a `DateTime` object `dt` [UTC] from the initial orbit epoch.
 The initialization arguments `args...` and `kwargs...` are the same as in the initialization
 function [`Propagators.init`](@ref).
+
+!!! note
+
+    `T` is the propagator number type. For more information, see [`Propagators.init`](@ref).
 
 # Returns
 
@@ -303,7 +307,7 @@ function [`Propagators.init`](@ref).
     instant.
 - `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
     instant.
-- [`OrbitPropagator`](@ref): Structure with the initialized parameters.
+- [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized parameters.
 """
 function propagate_to_epoch(T::Val, dt::DateTime, args...; kwargs...)
     jd = datetime2julian(dt)
@@ -341,7 +345,7 @@ the initialization function [`Propagators.init`](@ref).
     instant.
 - `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
     instant.
-- [`OrbitPropagator`](@ref): Structure with the initialized parameters.
+- [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized parameters.
 """
 function propagate_to_epoch(
     prop::Val,
