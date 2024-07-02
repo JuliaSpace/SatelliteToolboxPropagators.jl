@@ -317,6 +317,49 @@ function propagate_to_epoch(T::Val, jd::Number, args...; kwargs...)
 end
 
 """
+    propagate_to_epoch(::Val{:propagator}, vjd::AbstractVector, args...; kwargs...) -> Vector{SVector{3, T}}, Vector{SVector{3, T}}, OrbitPropagator{Tepoch, T}
+    propagate_to_epoch(::Val{:propagator}, vdt::DateTime, args...; kwargs...) -> Vector{SVector{3, T}}, Vector{SVector{3, T}}, OrbitPropagator{Tepoch, T}
+
+Initialize the orbit `propagator` and propagate the orbit for every epoch defined in the
+vector of Julian Days `vjd` [UTC] or in the vector of `DateTime` objects `vdt` [UTC]. The
+initialization arguments `args...` and `kwargs...` (except for `ntasks`) are the same as in
+the initialization function [`Propagators.init`](@ref).
+
+!!! note
+
+    `T` is the propagator number type. For more information, see [`Propagators.init`](@ref).
+
+# Keywords
+
+- `ntasks::Integer`: Number of parallel tasks to propagate the orbit. If it is set to a
+    number equal or lower than 1, the function will propagate the orbit sequentially.
+    (**Default** = `Threads.nthreads()`)
+
+# Returns
+
+- `SVector{3, T}`: Position vector [m] represented in the inertial frame at propagation
+    instant.
+- `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
+    instant.
+- [`OrbitPropagator`](@ref): Structure with the initialized parameters.
+"""
+function propagate_to_epoch(
+    prop::Val,
+    vdt::AbstractVector{T},
+    args...;
+    kwargs...
+) where T<:DateTime
+    jd = datetime2julian.(vdt)
+    return propagate_to_epoch(prop, jd, args...; kwargs...)
+end
+
+function propagate_to_epoch(prop::Val, vjd::AbstractVector, args...; kwargs...)
+    orbp = init(prop, args...; kwargs...)
+    r_i, v_i = propagate_to_epoch!(orbp, vjd)
+    return r_i, v_i, orbp
+end
+
+"""
     propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, jd::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
     propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, dt::DateTime) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
 

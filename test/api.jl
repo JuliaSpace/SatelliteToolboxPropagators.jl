@@ -268,6 +268,22 @@ end
                 @test ret[k][2] == v[k]
             end
 
+            vjd  = collect(jd₀:0.1:jd₁)
+            ret = Propagators.propagate_to_epoch!.(orbp, vjd)
+            r, v, orbp = Propagators.propagate_to_epoch(Val(:J2), vjd, orb; j2c = j2c)
+
+            @test length(r) == 41
+            @test length(v) == 41
+            @test r isa Vector{SVector{3, T}}
+            @test v isa Vector{SVector{3, T}}
+            @test orbp isa OrbitPropagatorJ2{Float64, T}
+            @test Propagators.last_instant(orbp) == 345600.0
+
+            for k in 1:41
+                @test ret[k][1] == r[k]
+                @test ret[k][2] == v[k]
+            end
+
             # -- Dates Support -------------------------------------------------------------
 
             vp = [Dates.Second(i) for i in 1:1:100]
@@ -286,6 +302,21 @@ end
                 @test ret[k][2] == v[k]
             end
 
+            vdt = [DateTime(2024, 1, i) for i in 1:30]
+            ret = Propagators.propagate_to_epoch!.(orbp, vdt)
+            r, v, orbp = Propagators.propagate_to_epoch(Val(:J2), vdt, orb; j2c = j2c)
+
+            @test length(r) == 30
+            @test length(v) == 30
+            @test r isa Vector{SVector{3, T}}
+            @test v isa Vector{SVector{3, T}}
+            @test orbp isa OrbitPropagatorJ2{Float64, T}
+            @test Propagators.last_instant(orbp) == 3.40416e7
+
+            for k in 1:30
+                @test ret[k][1] == r[k]
+                @test ret[k][2] == v[k]
+            end
         end
     end
 end
