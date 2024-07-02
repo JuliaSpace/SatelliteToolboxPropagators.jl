@@ -154,6 +154,20 @@
         @test v[2] / 1000 ≈ -6.699518 atol = 1e-5
         @test v[3] / 1000 ≈ -1.266334 atol = 1e-5
         @test eltype(v) == T
+
+        r, v, j2d = j2((jd₁ - jd₀) * 86400, orb)
+
+        @test j2d isa J2Propagator{Float64, Float64}
+
+        @test r[1] / 1000 ≈ -6849.654348 atol = 5e-3
+        @test r[2] / 1000 ≈ -2253.059809 atol = 5e-3
+        @test r[3] / 1000 ≈ +3574.529667 atol = 5e-3
+        @test eltype(r) == T
+
+        @test v[1] / 1000 ≈ +1.656142 atol = 1e-5
+        @test v[2] / 1000 ≈ -6.699518 atol = 1e-5
+        @test v[3] / 1000 ≈ -1.266334 atol = 1e-5
+        @test eltype(v) == T
     end
 
     # == Float32 ===========================================================================
@@ -244,6 +258,20 @@
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{Float64, Float32}
+
+        @test r[1] / 1000 ≈ -6849.654348 atol = 5e-1
+        @test r[2] / 1000 ≈ -2253.059809 atol = 5e-1
+        @test r[3] / 1000 ≈ +3574.529667 atol = 5e-1
+        @test eltype(r) == T
+
+        @test v[1] / 1000 ≈ +1.656142 atol = 1e-3
+        @test v[2] / 1000 ≈ -6.699518 atol = 1e-3
+        @test v[3] / 1000 ≈ -1.266334 atol = 1e-3
+        @test eltype(v) == T
+
+        r, v, j2d = j2((jd₁ - jd₀) * 86400, orb; j2c = j2c_egm2008_f32)
+
+        @test j2d isa J2Propagator{Float64, Float32}
 
         @test r[1] / 1000 ≈ -6849.654348 atol = 5e-1
         @test r[2] / 1000 ≈ -2253.059809 atol = 5e-1

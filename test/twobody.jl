@@ -152,6 +152,20 @@
         @test v[2] / 1000 ≈ -1.916735 atol = 1e-6
         @test v[3] / 1000 ≈ -6.112511 atol = 1e-6
         @test eltype(v) == T
+
+        r, v, tbd = twobody(40 * 60, orb)
+
+        @test tbd isa TwoBodyPropagator{Float64, Float64}
+
+        @test r[1] / 1000 ≈ -4219.7527 atol = 1e-3
+        @test r[2] / 1000 ≈ +4363.0292 atol = 1e-3
+        @test r[3] / 1000 ≈ -3958.7666 atol = 1e-3
+        @test eltype(r) == T
+
+        @test v[1] / 1000 ≈ +3.689866 atol = 1e-6
+        @test v[2] / 1000 ≈ -1.916735 atol = 1e-6
+        @test v[3] / 1000 ≈ -6.112511 atol = 1e-6
+        @test eltype(v) == T
     end
 
     # == Float32 ===========================================================================
@@ -242,6 +256,20 @@
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{Float64, Float32}
+
+        @test r[1] / 1000 ≈ -4219.7527 atol = 5e-1
+        @test r[2] / 1000 ≈ +4363.0292 atol = 5e-1
+        @test r[3] / 1000 ≈ -3958.7666 atol = 5e-1
+        @test eltype(r) == T
+
+        @test v[1] / 1000 ≈ +3.689866 atol = 5e-3
+        @test v[2] / 1000 ≈ -1.916735 atol = 5e-3
+        @test v[3] / 1000 ≈ -6.112511 atol = 5e-3
+        @test eltype(v) == T
+
+        r, v, tbd = twobody(40 * 60, orb; m0 = tbc_m0_f32)
+
+        @test tbd isa TwoBodyPropagator{Float64, Float32}
 
         @test r[1] / 1000 ≈ -4219.7527 atol = 5e-1
         @test r[2] / 1000 ≈ +4363.0292 atol = 5e-1

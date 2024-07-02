@@ -202,6 +202,19 @@
         @test results[end, 7] ≈ v[3] / 1000 atol = 1e-3
         @test eltype(r) == T
         @test eltype(v) == T
+
+        r, v, j2oscd = j2osc(results[end, 1], orb)
+
+        @test j2oscd isa J2OsculatingPropagator{Float64, Float64}
+
+        @test results[end, 2] ≈ r[1] / 1000 atol = 2e-1
+        @test results[end, 3] ≈ r[2] / 1000 atol = 2e-1
+        @test results[end, 4] ≈ r[3] / 1000 atol = 2e-1
+        @test results[end, 5] ≈ v[1] / 1000 atol = 1e-3
+        @test results[end, 6] ≈ v[2] / 1000 atol = 1e-3
+        @test results[end, 7] ≈ v[3] / 1000 atol = 1e-3
+        @test eltype(r) == T
+        @test eltype(v) == T
     end
 
     # == Float32 ===========================================================================
@@ -319,6 +332,19 @@
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{Float64, Float32}
+
+        @test results[end, 2] ≈ r[1] / 1000 atol = 2e-1
+        @test results[end, 3] ≈ r[2] / 1000 atol = 2e-1
+        @test results[end, 4] ≈ r[3] / 1000 atol = 2e-1
+        @test results[end, 5] ≈ v[1] / 1000 atol = 1e-3
+        @test results[end, 6] ≈ v[2] / 1000 atol = 1e-3
+        @test results[end, 7] ≈ v[3] / 1000 atol = 1e-3
+        @test eltype(r) == T
+        @test eltype(v) == T
+
+        r, v, j2oscd = j2osc(results[end, 1], orb; j2c = j2c_egm2008_f32)
+
+        @test j2oscd isa J2OsculatingPropagator{Float64, Float32}
 
         @test results[end, 2] ≈ r[1] / 1000 atol = 2e-1
         @test results[end, 3] ≈ r[2] / 1000 atol = 2e-1
