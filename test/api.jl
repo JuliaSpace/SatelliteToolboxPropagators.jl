@@ -148,6 +148,20 @@ end
             @test r ≈ r_ref
             @test v ≈ v_ref
             @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+            # == step! =====================================================================
+
+            orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+            r, v = Propagators.step!(orbp, Dates.Day(365))
+
+            r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
+
+            @test r isa SVector{3, T}
+            @test v isa SVector{3, T}
+            @test r ≈ r_ref
+            @test v ≈ v_ref
+            @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
         end
     end
 end

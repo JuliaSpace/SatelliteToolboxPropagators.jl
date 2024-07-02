@@ -370,8 +370,10 @@ end
 
 """
     step!(orbp::OrbitPropagator{Tepoch, T}, Δt::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    step!(orbp::OrbitPropagator{Tepoch, T}, p::Union{Dates.Period, Dates.CompoundPeriod}) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
 
-Propagate the orbit using `orbp` by `Δt` [s] from the current orbit epoch.
+Propagate the orbit using `orbp` by `Δt` [s] or by the period defined by `p` from the
+current orbit epoch.
 
 # Returns
 
@@ -380,6 +382,11 @@ Propagate the orbit using `orbp` by `Δt` [s] from the current orbit epoch.
 - `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
     instant.
 """
+function step!(orbp::OrbitPropagator, p::Union{Dates.Period, Dates.CompoundPeriod})
+    Δt = _toms(p) / 1000
+    return step!(orbp, Δt)
+end
+
 function step!(orbp::OrbitPropagator, Δt::Number)
     return propagate!(orbp, last_instant(orbp) + Δt)
 end
