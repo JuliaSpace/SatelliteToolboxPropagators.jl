@@ -11,7 +11,7 @@ using Crayons
 using StaticArrays
 
 import Base: copy, eltype, length, iterate, show
-import SatelliteToolboxBase: @maybe_threads, get_partition
+import SatelliteToolboxBase: @maybe_threads, get_partition, OrbitStateVector
 
 export OrbitPropagator
 
@@ -111,12 +111,16 @@ structure name is used: `typeof(orbp) |> string`.
 name(orbp::OrbitPropagator) = typeof(orbp) |> string
 
 """
-    propagate(::Val{:propagator}, Δt::Number, args...; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagator{Tepoch, T}
-    propagate(::Val{:propagator}, p::Union{Dates.Period, Dates.CompundPeriod}, args...; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagator{Tepoch, T}
+    propagate([sink = Tuple, ]::Val{:propagator}, Δt::Number, args...; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagator{Tepoch, T}
+    propagate([sink = Tuple, ]::Val{:propagator}, p::Union{Dates.Period, Dates.CompundPeriod}, args...; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagator{Tepoch, T}
+    propagate(sink = OrbitStateVector, ::Val{:propagator}, Δt::Number, args...; kwargs...) -> OrbitStateVector{Tepoch, T}, OrbitPropagator{Tepoch, T}
+    propagate(sink = OrbitStateVector, ::Val{:propagator}, p::Union{Dates.Period, Dates.CompundPeriod}, args...; kwargs...) -> OrbitStateVector{Tepoch, T}, OrbitPropagator{Tepoch, T}
 
 Initialize the orbit `propagator` and propagate the orbit by `Δt` [s] or by the period
 defined by `p` from the initial orbit epoch. The initialization arguments `args...` and
-`kwargs...` are the same as in the initialization function [`Propagators.init`](@ref).
+`kwargs...` are the same as in the initialization function [`Propagators.init`](@ref). The
+output type depends on the parameter `sink`. If it is omitted, it defaults to `Tuple` and
+the output is a tuple with the position and velocity vectors.
 
 !!! note
 
@@ -124,10 +128,18 @@ defined by `p` from the initial orbit epoch. The initialization arguments `args.
 
 # Returns
 
+If `sink` is `Tuple`:
+
 - `SVector{3, T}`: Position vector [m] represented in the inertial frame at propagation
     instant.
 - `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
     instant.
+- [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized propagator.
+
+If `sink` is `OrbitStateVector`:
+
+- `OrbitStateVector{Tepoch, T}`: Structure with the orbit state vector [SI] at the
+    propagation instant.
 - [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized propagator.
 """
 function propagate(prop::Val, p::Union{Dates.Period, Dates.CompoundPeriod}, args...; kwargs...)
@@ -141,14 +153,55 @@ function propagate(prop::Val, Δt::Number, args...; kwargs...)
     return r_i, v_i, orbp
 end
 
+function propagate(
+    ::Type{Tuple},
+    prop::Val,
+    p::Union{Dates.Period, Dates.CompoundPeriod},
+    args...;
+    kwargs...
+)
+    return propagate(prop, p, args...; kwargs...)
+end
+
+function propagate(::Type{Tuple}, prop::Val, Δt::Number, args...; kwargs...)
+    return propagate(prop, Δt, args...; kwargs...)
+end
+
+function propagate(
+    ::Type{OrbitStateVector},
+    prop::Val,
+    p::Union{Dates.Period, Dates.CompoundPeriod},
+    args...;
+    kwargs...
+)
+    Δt = _toms(p) / 1000
+    return propagate(OrbitStateVector, prop, Δt, args...; kwargs...)
+end
+
+function propagate(
+    ::Type{OrbitStateVector},
+    prop::Val,
+    Δt::Number,
+    args...;
+    kwargs...
+)
+    orbp = Propagators.init(prop, args...; kwargs...)
+    sv_i = Propagators.propagate!(orbp, Δt, OrbitStateVector)
+    return sv_i, orbp
+end
+
 """
-    propagate(::Val{:propagator}, vt::AbstractVector, args...; kwargs...) -> Vector{SVector{3, T}}, Vector{SVector{3, T}}, OrbitPropagator{Tepoch, T}
-    propagate(::Val{:propagator}, vp::AbstractVector{Union{Dates.Period, Dates.CompundPeriod}}, args...; kwargs...) -> Vector{SVector{3, T}}, Vector{SVector{3, T}}, OrbitPropagator{Tepoch, T}
+    propagate([sink = Tuple, ]::Val{:propagator}, vt::AbstractVector, args...; kwargs...) -> Vector{SVector{3, T}}, Vector{SVector{3, T}}, OrbitPropagator{Tepoch, T}
+    propagate([sink = Tuple, ]::Val{:propagator}, vp::AbstractVector{Union{Dates.Period, Dates.CompundPeriod}}, args...; kwargs...) -> Vector{SVector{3, T}}, Vector{SVector{3, T}}, OrbitPropagator{Tepoch, T}
+    propagate(sink = OrbitStateVector, ::Val{:propagator}, vt::AbstractVector, args...; kwargs...) -> Vector{OrbitStateVector{Tepoch, T}}, OrbitPropagator{Tepoch, T}
+    propagate(sink = OrbitStateVector, ::Val{:propagator}, vp::AbstractVector{Union{Dates.Period, Dates.CompundPeriod}}, args...; kwargs...) -> Vector{OrbitStateVector{Tepoch, T}}, OrbitPropagator{Tepoch, T}
 
 Initialize the orbit `propagator` and propagate the orbit for every instant defined in `vt`
 [s] or for every period defined in `vp` from the initial orbit epoch. The initialization
 arguments `args...` and `kwargs...` (except for `ntasks`) are the same as in the
-initialization function [`Propagators.init`](@ref).
+initialization function [`Propagators.init`](@ref). The output type depends on the parameter
+`sink`. If it is omitted, it defaults to `Tuple`, and the output is a tuple with the arrays
+containing the position and velocity vectors.
 
 !!! note
 
@@ -162,10 +215,18 @@ initialization function [`Propagators.init`](@ref).
 
 # Returns
 
+If `sink` is `Tuple`:
+
 - `Vector{SVector{3, T}}`: Array with the position vectors [m] in the inertial frame at each
-    propagation instant defined in `vt`.
+    propagation instant defined in `vt` or `vp`.
 - `Vector{SVector{3, T}}`: Array with the velocity vectors [m / s] in the inertial frame at
-    each propagation instant defined in `vt`.
+    each propagation instant defined in `vt` or `vp`.
+- [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized propagator.
+
+If `sink` is `OrbitStateVector`:
+
+- `Vector{OrbitStateVector{Tepoch, T}}`: Array with the orbit state vectors [SI] at each
+    propagation instant defined in `vt` or `vp`.
 - [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized propagator.
 """
 function propagate(
@@ -184,19 +245,62 @@ function propagate(prop::Val, vt::AbstractVector, args...; kwargs...)
     return vr_i, vv_i, orbp
 end
 
+function propagate(
+    ::Type{Tuple},
+    prop::Val,
+    v::AbstractVector,
+    args...;
+    kwargs...
+)
+    return propagate(prop, v, args...; kwargs...)
+end
+
+function propagate(
+    ::Type{OrbitStateVector},
+    prop::Val,
+    vp::AbstractVector{T},
+    args...;
+    kwargs...
+) where T<:Dates.CompoundPeriod
+    vt = _toms.(vp) ./ 1000
+    return propagate(OrbitStateVector, prop, vt, args...; kwargs...)
+end
+
+function propagate(
+    ::Type{OrbitStateVector},
+    prop::Val,
+    vt::AbstractVector,
+    args...;
+    kwargs...
+)
+    orbp = Propagators.init(prop, args...; kwargs...)
+    vsv_i = Propagators.propagate!(orbp, vt, OrbitStateVector)
+    return vsv_i, orbp
+end
+
 """
-    propagate!(orbp::OrbitPropagator{Tepoch, T}, Δt::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
-    propagate!(orbp::OrbitPropagator{Tepoch, T}, p::Union{Dates.Period, Dates.CompoundPeriod}) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    propagate!(orbp::OrbitPropagator{Tepoch, T}, Δt::Number[, sink = Tuple]) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    propagate!(orbp::OrbitPropagator{Tepoch, T}, p::Union{Dates.Period, Dates.CompoundPeriod}[, sink = Tuple]) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    propagate!(orbp::OrbitPropagator{Tepoch, T}, Δt::Number, sink = OrbitStateVector) where {Tepoch, T} -> OrbitStateVector{Tepoch, T}
+    propagate!(orbp::OrbitPropagator{Tepoch, T}, p::Union{Dates.Period, Dates.CompoundPeriod}, sink = OrbitStateVector) where {Tepoch, T} -> OrbitStateVector{Tepoch, T}
 
 Propagate the orbit using `orbp` by `Δt` [s] or by the period defined by `p` from the
-initial orbit epoch.
+initial orbit epoch. The output type depends on the parameter `sink`. If it is omitted, it
+defaults to `Tuple` and the output is a tuple with the position and velocity vectors.
 
 # Returns
+
+If `sink` is `Tuple`:
 
 - `SVector{3, T}`: Position vector [m] represented in the inertial frame at propagation
     instant.
 - `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
     instant.
+
+If `sink` is `OrbitStateVector`:
+
+- `OrbitStateVector{Tepoch, T}`: Structure with the orbit state vector [SI] at the
+    propagation instant.
 """
 function propagate! end
 
@@ -205,12 +309,44 @@ function propagate!(orbp::OrbitPropagator, p::Union{Dates.Period, Dates.Compound
     return propagate!(orbp, Δt)
 end
 
+propagate!(orbp::OrbitPropagator, Δt::Number, ::Type{Tuple}) = propagate!(orbp, Δt)
+
+function propagate!(
+    orbp::OrbitPropagator,
+    p::Union{Dates.Period, Dates.CompoundPeriod},
+    ::Type{Tuple}
+)
+    return propagate!(orbp, p)
+end
+
+function propagate!(
+    orbp::OrbitPropagator,
+    Δt::Number,
+    ::Type{OrbitStateVector}
+)
+    r_i, v_i = propagate!(orbp, Δt)
+    return OrbitStateVector(Propagators.epoch(orbp) + Δt / 86400, r_i, v_i)
+end
+
+function propagate!(
+    orbp::OrbitPropagator,
+    p::Union{Dates.Period, Dates.CompoundPeriod},
+    ::Type{OrbitStateVector}
+)
+    Δt = _toms(p) / 1000
+    return propagate!(orbp, Δt, OrbitStateVector)
+end
+
 """
-    propagate!(orbp::OrbitPropagator{Tepoch, T}, vt::AbstractVector; kwargs...) where {Tepoch <: Number, T <: Number} -> Vector{SVector{3, T}}, Vector{SVector{3, T}}
-    propagate!(orbp::OrbitPropagator{Tepoch, T}, vp::AbstractVector{Union{Dates.Period, Dates.CompundPeriod}}; kwargs...) where {Tepoch <: Number, T <: Number} -> Vector{SVector{3, T}}, Vector{SVector{3, T}}
+    propagate!(orbp::OrbitPropagator{Tepoch, T}, vt::AbstractVector[, sink = Tuple]; kwargs...) where {Tepoch <: Number, T <: Number} -> Vector{SVector{3, T}}, Vector{SVector{3, T}}
+    propagate!(orbp::OrbitPropagator{Tepoch, T}, vp::AbstractVector{Union{Dates.Period, Dates.CompundPeriod}}[, sink = Tuple]; kwargs...) where {Tepoch <: Number, T <: Number} -> Vector{SVector{3, T}}, Vector{SVector{3, T}}
+    propagate!(orbp::OrbitPropagator{Tepoch, T}, vt::AbstractVector, sink = OrbitStateVector; kwargs...) where {Tepoch <: Number, T <: Number} -> Vector{OrbitStateVector{Tepoch, T}}
+    propagate!(orbp::OrbitPropagator{Tepoch, T}, vp::AbstractVector{Union{Dates.Period, Dates.CompundPeriod}}, sink = OrbitStateVector; kwargs...) where {Tepoch <: Number, T <: Number} -> Vector{OrbitStateVector{Tepoch, T}}
 
 Propagate the orbit using `orbp` for every instant defined in `vt` [s] or for every period
-defined in `vp` from the initial orbit epoch.
+defined in `vp` from the initial orbit epoch. The output type depends on the parameter
+`sink`. If it is omitted, it defaults to `Tuple`, and the output is a tuple with the arrays
+containing the position and velocity vectors.
 
 # Keywords
 
@@ -220,10 +356,17 @@ defined in `vp` from the initial orbit epoch.
 
 # Returns
 
+If `sink` is `Tuple`:
+
 - `Vector{SVector{3, T}}`: Array with the position vectors [m] in the inertial frame at each
-    propagation instant defined in `vt`.
+    propagation instant defined in `vt` or `vp`.
 - `Vector{SVector{3, T}}`: Array with the velocity vectors [m / s] in the inertial frame at
-    each propagation instant defined in `vt`.
+    each propagation instant defined in `vt` or `vp`.
+
+If `sink` is `OrbitStateVector`:
+
+- `Vector{OrbitStateVector{Tepoch, T}}`: Array with the orbit state vectors [SI] at each
+    propagation instant defined in `vt` or `vp`.
 """
 function propagate!(
     orbp::OrbitPropagator,
@@ -288,14 +431,55 @@ function propagate!(
     return vr, vv
 end
 
+function propagate!(
+    orbp::OrbitPropagator,
+    vt::AbstractVector,
+    ::Type{Tuple};
+    kwargs...
+)
+    return propagate!(orbp, vt; kwargs...)
+end
+
+function propagate!(
+    orbp::OrbitPropagator,
+    vp::AbstractVector{T},
+    ::Type{OrbitStateVector};
+    kwargs...
+) where T<:Union{Dates.Period, Dates.CompoundPeriod}
+    vt = _toms.(vp) ./ 1000
+    return propagate!(orbp, vt, OrbitStateVector; kwargs...)
+end
+
+function propagate!(
+    orbp::OrbitPropagator{Tepoch, T},
+    vt::AbstractVector,
+    ::Type{OrbitStateVector};
+    kwargs...
+) where {Tepoch<:Number, T<:Number}
+
+    jd₀ = epoch(orbp)
+    vr_i, vv_i = propagate!(orbp, vt; kwargs...)
+
+    return map(
+        (t, r_i, v_i) -> OrbitStateVector(jd₀ + t / 86400, r_i, v_i),
+        vt,
+        vr_i,
+        vv_i
+    )
+end
+
 """
-    propagate_to_epoch(::Val{:propagator}, jd::Number, args...; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagator{Tepoch, T}
-    propagate_to_epoch(::Val{:propagator}, dt::DateTime, args...; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagator{Tepoch, T}
+    propagate_to_epoch([sink = Tuple, ]::Val{:propagator}, jd::Number, args...; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagator{Tepoch, T}
+    propagate_to_epoch([sink = Tuple, ]::Val{:propagator}, dt::DateTime, args...; kwargs...) -> SVector{3, T}, SVector{3, T}, OrbitPropagator{Tepoch, T}
+    propagate_to_epoch(sink = OrbitStateVector, ::Val{:propagator}, jd::Number, args...; kwargs...) -> OrbitStateVector{Tepoch, T}, OrbitPropagator{Tepoch, T}
+    propagate_to_epoch(sink = OrbitStateVector, ::Val{:propagator}, dt::DateTime, args...; kwargs...) -> OrbitStateVector{Tepoch, T}, OrbitPropagator{Tepoch, T}
 
 Initialize the orbit `propagator` and propagate the orbit until the epoch defined by either
 the Julian Day `jd` [UTC] or by a `DateTime` object `dt` [UTC] from the initial orbit epoch.
 The initialization arguments `args...` and `kwargs...` are the same as in the initialization
-function [`Propagators.init`](@ref).
+function [`Propagators.init`](@ref). The output type depends on the parameter `sink`. If it
+is omitted, it defaults to `Tuple` and the output is a tuple with the position and velocity
+vectors.
 
 !!! note
 
@@ -303,11 +487,19 @@ function [`Propagators.init`](@ref).
 
 # Returns
 
+If `sink` is `Tuple`:
+
 - `SVector{3, T}`: Position vector [m] represented in the inertial frame at propagation
     instant.
 - `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
     instant.
-- [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized parameters.
+- [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized propagator.
+
+If `sink` is `OrbitStateVector`:
+
+- `OrbitStateVector{Tepoch, T}`: Structure with the orbit state vector [SI] at the
+    propagation instant.
+- [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized propagator.
 """
 function propagate_to_epoch(T::Val, dt::DateTime, args...; kwargs...)
     jd = datetime2julian(dt)
@@ -320,14 +512,49 @@ function propagate_to_epoch(T::Val, jd::Number, args...; kwargs...)
     return r_i, v_i, orbp
 end
 
+function propagate_to_epoch(::Type{Tuple}, T::Val, dt::DateTime, args...; kwargs...)
+    return propagate_to_epoch(T, dt, args...; kwargs...)
+end
+
+function propagate_to_epoch(::Type{Tuple}, T::Val, jd::Number, args...; kwargs...)
+    return propagate_to_epoch(T, jd, args...; kwargs...)
+end
+
+function propagate_to_epoch(
+    ::Type{OrbitStateVector},
+    T::Val,
+    dt::DateTime,
+    args...;
+    kwargs...
+)
+    jd = datetime2julian(dt)
+    return propagate_to_epoch(OrbitStateVector, T, jd, args...; kwargs...)
+end
+
+function propagate_to_epoch(
+    ::Type{OrbitStateVector},
+    T::Val,
+    jd::Number,
+    args...;
+    kwargs...
+)
+    orbp = init(T, args...; kwargs...)
+    sv_i = propagate_to_epoch!(orbp, jd, OrbitStateVector)
+    return sv_i, orbp
+end
+
 """
-    propagate_to_epoch(::Val{:propagator}, vjd::AbstractVector, args...; kwargs...) -> Vector{SVector{3, T}}, Vector{SVector{3, T}}, OrbitPropagator{Tepoch, T}
-    propagate_to_epoch(::Val{:propagator}, vdt::DateTime, args...; kwargs...) -> Vector{SVector{3, T}}, Vector{SVector{3, T}}, OrbitPropagator{Tepoch, T}
+    propagate_to_epoch([sink = Tuple, ]::Val{:propagator}, vjd::AbstractVector, args...; kwargs...) -> Vector{SVector{3, T}}, Vector{SVector{3, T}}, OrbitPropagator{Tepoch, T}
+    propagate_to_epoch([sink = Tuple, ]::Val{:propagator}, vdt::DateTime, args...; kwargs...) -> Vector{SVector{3, T}}, Vector{SVector{3, T}}, OrbitPropagator{Tepoch, T}
+    propagate_to_epoch(sink = OrbitStateVector, ::Val{:propagator}, vjd::AbstractVector, args...; kwargs...) -> OrbitStateVector{Tepoch, T}, OrbitPropagator{Tepoch, T}
+    propagate_to_epoch(sink = OrbitStateVector, ::Val{:propagator}, vdt::DateTime, args...; kwargs...) -> OrbitStateVector{Tepoch, T}, OrbitPropagator{Tepoch, T}
 
 Initialize the orbit `propagator` and propagate the orbit for every epoch defined in the
 vector of Julian Days `vjd` [UTC] or in the vector of `DateTime` objects `vdt` [UTC]. The
 initialization arguments `args...` and `kwargs...` (except for `ntasks`) are the same as in
-the initialization function [`Propagators.init`](@ref).
+the initialization function [`Propagators.init`](@ref). The output type depends on the
+parameter `sink`. If it is omitted, it defaults to `Tuple`, and the output is a tuple with
+the arrays containing the position and velocity vectors.
 
 !!! note
 
@@ -341,10 +568,18 @@ the initialization function [`Propagators.init`](@ref).
 
 # Returns
 
-- `SVector{3, T}`: Position vector [m] represented in the inertial frame at propagation
-    instant.
-- `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
-    instant.
+If `sink` is `Tuple`:
+
+- `Vector{SVector{3, T}}`: Array with the position vectors [m] in the inertial frame at each
+    propagation instant defined in `vjd` or `vdt`.
+- `Vector{SVector{3, T}}`: Array with the velocity vectors [m / s] in the inertial frame at
+    each propagation instant defined in `vjd` or `vdt`.
+- [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized parameters.
+
+If `sink` is `OrbitStateVector`:
+
+- `Vector{OrbitStateVector{Tepoch, T}}`: Array with the orbit state vectors [SI] at each
+    propagation instant defined in `vjd` or `vdt`.
 - [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized parameters.
 """
 function propagate_to_epoch(
@@ -363,19 +598,63 @@ function propagate_to_epoch(prop::Val, vjd::AbstractVector, args...; kwargs...)
     return r_i, v_i, orbp
 end
 
+function propagate_to_epoch(
+    ::Type{Tuple},
+    prop::Val,
+    v::AbstractVector,
+    args...;
+    kwargs...
+)
+    return propagate_to_epoch(prop, v, args...; kwargs...)
+end
+
+function propagate_to_epoch(
+    ::Type{OrbitStateVector},
+    prop::Val,
+    vdt::AbstractVector{T},
+    args...;
+    kwargs...
+) where T<:DateTime
+    jd = datetime2julian.(vdt)
+    return propagate_to_epoch(OrbitStateVector, prop, jd, args...; kwargs...)
+end
+
+function propagate_to_epoch(
+    ::Type{OrbitStateVector},
+    prop::Val,
+    vjd::AbstractVector,
+    args...;
+    kwargs...
+)
+    orbp = init(prop, args...; kwargs...)
+    sv_i = propagate_to_epoch!(orbp, vjd, OrbitStateVector)
+    return sv_i, orbp
+end
+
 """
-    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, jd::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
-    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, dt::DateTime) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, jd::Number[, sink = Tuple]) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, dt::DateTime[, sink = Tuple]) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, jd::Number, sink = OrbitStateVector) where {Tepoch, T} -> OrbitStateVector{Tepoch, T}
+    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, dt::DateTime, sink = OrbitStateVector) where {Tepoch, T} -> OrbitStateVector{Tepoch, T}
 
 Propagate the orbit using `orbp` until the epoch defined either by the Julian Day `jd`
-[UTC] or by the `DateTime` object `dt` [UTC].
+[UTC] or by the `DateTime` object `dt` [UTC]. The output type depends on the parameter
+`sink`. If it is omitted, it defaults to `Tuple` and the output is a tuple with the position
+and velocity vectors.
 
 # Returns
+
+If `sink` is `Tuple`:
 
 - `SVector{3, T}`: Position vector [m] represented in the inertial frame at propagation
     instant.
 - `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
     instant.
+
+If `sink` is `OrbitStateVector`:
+
+- `OrbitStateVector{Tepoch, T}`: Structure with the orbit state vector [SI] at the
+    propagation instant.
 """
 function propagate_to_epoch!(orbp::OrbitPropagator, dt::DateTime)
     jd = datetime2julian(dt)
@@ -386,12 +665,33 @@ function propagate_to_epoch!(orbp::OrbitPropagator, jd::Number)
     return propagate!(orbp, 86400 * (jd - epoch(orbp)))
 end
 
+function propagate_to_epoch!(orbp::OrbitPropagator, dt::DateTime, ::Type{Tuple})
+    return propagate_to_epoch!(orbp, dt)
+end
+
+function propagate_to_epoch!(orbp::OrbitPropagator, jd::Number, ::Type{Tuple})
+    return propagate!(orbp, jd)
+end
+
+function propagate_to_epoch!(orbp::OrbitPropagator, dt::DateTime, ::Type{OrbitStateVector})
+    jd = datetime2julian(dt)
+    return propagate_to_epoch!(orbp, jd, OrbitStateVector)
+end
+
+function propagate_to_epoch!(orbp::OrbitPropagator, jd::Number, ::Type{OrbitStateVector})
+    return propagate!(orbp, 86400 * (jd - epoch(orbp)), OrbitStateVector)
+end
+
 """
-    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, vjd::AbstractVector; kwargs...) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
-    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, vdt::AbstractVector{DateTime}; kwargs...) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, vjd::AbstractVector[, sink = Tuple]; kwargs...) where {Tepoch, T} -> Vector{SVector{3, T}}, Vector{SVector{3, T}}
+    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, vdt::AbstractVector{DateTime}[, sink = Tuple]; kwargs...) where {Tepoch, T} -> Vector{SVector{3, T}}, Vector{SVector{3, T}}
+    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, vjd::AbstractVector, sink = OrbitStateVector; kwargs...) where {Tepoch, T} -> Vector{OrbitStateVector{Tepoch, T}}
+    propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, vdt::AbstractVector{DateTime}, sink = OrbitStateVector; kwargs...) where {Tepoch, T} -> Vector{OrbitStateVector{Tepoch, T}}
 
 Propagate the orbit using `orbp` for every epoch defined in the vector of Julian Days `vjd`
-[UTC] or in the vector of `DateTime` objects `vdt` [UTC].
+[UTC] or in the vector of `DateTime` objects `vdt` [UTC]. The output type depends on the
+parameter `sink`. If it is omitted, it defaults to `Tuple`, and the output is a tuple with
+the arrays containing the position and velocity vectors.
 
 # Keywords
 
@@ -401,10 +701,17 @@ Propagate the orbit using `orbp` for every epoch defined in the vector of Julian
 
 # Returns
 
+If `sink` is `Tuple`:
+
 - `Vector{SVector{3, T}}`: Array with the position vectors [m] in the inertial frame at each
-    propagation instant defined in `vt`.
+    propagation instant defined in `vjd` or `vdt`.
 - `Vector{SVector{3, T}}`: Array with the velocity vectors [m / s] in the inertial frame at
-    each propagation instant defined in `vt`.
+    each propagation instant defined in `vjd` or `vdt`.
+
+If `sink` is `OrbitStateVector`:
+
+- `Vector{OrbitStateVector{Tepoch, T}}`: Array with the orbit state vectors [SI] at each
+    propagation instant defined in `vjd` or `vdt`.
 """
 function propagate_to_epoch!(orbp::OrbitPropagator, vdt::AbstractVector{T}) where T<:DateTime
     vjd = datetime2julian.(vdt)
@@ -415,19 +722,50 @@ function propagate_to_epoch!(orbp::OrbitPropagator, vjd::AbstractVector)
     return propagate!(orbp, 86400 .* (vjd .- epoch(orbp)))
 end
 
+function propagate_to_epoch!(orbp::OrbitPropagator, v::AbstractVector, ::Type{Tuple})
+    return propagate_to_epoch!(orbp, v)
+end
+
+function propagate_to_epoch!(
+    orbp::OrbitPropagator,
+    vdt::AbstractVector{T},
+    ::Type{OrbitStateVector}
+) where T<:DateTime
+    vjd = datetime2julian.(vdt)
+    return propagate_to_epoch!(orbp, vjd, OrbitStateVector)
+end
+
+function propagate_to_epoch!(
+    orbp::OrbitPropagator,
+    vjd::AbstractVector,
+    ::Type{OrbitStateVector}
+)
+    return propagate!(orbp, 86400 .* (vjd .- epoch(orbp)), OrbitStateVector)
+end
+
 """
-    step!(orbp::OrbitPropagator{Tepoch, T}, Δt::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
-    step!(orbp::OrbitPropagator{Tepoch, T}, p::Union{Dates.Period, Dates.CompoundPeriod}) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    step!(orbp::OrbitPropagator{Tepoch, T}, Δt::Number[, sink = Tuple]) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    step!(orbp::OrbitPropagator{Tepoch, T}, p::Union{Dates.Period, Dates.CompoundPeriod}[, sink = Tuple]) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    step!(orbp::OrbitPropagator{Tepoch, T}, Δt::Number, sink = OrbitStateVector) where {Tepoch, T} -> OrbitStateVector{Tepoch, T}
+    step!(orbp::OrbitPropagator{Tepoch, T}, p::Union{Dates.Period, Dates.CompoundPeriod}, sink = OrbitStateVector) where {Tepoch, T} -> OrbitStateVector{Tepoch, T}
 
 Propagate the orbit using `orbp` by `Δt` [s] or by the period defined by `p` from the
-current orbit epoch.
+current orbit epoch. The output type depends on the parameter `sink`. If it is omitted, it
+defaults to `Tuple` and the output is a tuple with the position and velocity vectors.
 
 # Returns
+
+If `sink` is `Tuple`:
 
 - `SVector{3, T}`: Position vector [m] represented in the inertial frame at propagation
     instant.
 - `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
     instant.
+
+If `sink` is `OrbitStateVector`:
+
+- `OrbitStateVector{Tepoch, T}`: Structure with the orbit state vector [SI] at the
+    propagation instant.
 """
 function step!(orbp::OrbitPropagator, p::Union{Dates.Period, Dates.CompoundPeriod})
     Δt = _toms(p) / 1000
@@ -436,6 +774,29 @@ end
 
 function step!(orbp::OrbitPropagator, Δt::Number)
     return propagate!(orbp, last_instant(orbp) + Δt)
+end
+
+function step!(
+    orbp::OrbitPropagator,
+    p::Union{Dates.Period, Dates.CompoundPeriod},
+    ::Type{Tuple}
+)
+    return step!(orbp, p)
+end
+
+step!(orbp::OrbitPropagator, Δt::Number, ::Type{Tuple}) = step!(orbp, Δt)
+
+function step!(
+    orbp::OrbitPropagator,
+    p::Union{Dates.Period, Dates.CompoundPeriod},
+    ::Type{OrbitStateVector}
+)
+    Δt = _toms(p) / 1000
+    return step!(orbp, Δt, OrbitStateVector)
+end
+
+function step!(orbp::OrbitPropagator, Δt::Number, ::Type{OrbitStateVector})
+    return propagate!(orbp, last_instant(orbp) + Δt, OrbitStateVector)
 end
 
 ############################################################################################
