@@ -321,7 +321,7 @@ end
     end
 end
 
-@testset "OrbitStateVector Support"  verbose = true begin
+@testset "Sink Options"  verbose = true begin
     @testset "Julian Day" verbose = true begin
         jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
 
@@ -341,6 +341,23 @@ end
 
                 # == propagate =============================================================
 
+                r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
+
+                r, v, orbp = Propagators.propagate(
+                    Tuple,
+                    Val(:J2),
+                    61,
+                    orb;
+                    j2c = j2c
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test r isa SVector{3, T}
+                @test v isa SVector{3, T}
+                @test r ≈ r_ref
+                @test v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
                 sv, orbp = Propagators.propagate(
                     OrbitStateVector,
                     Val(:J2),
@@ -349,29 +366,116 @@ end
                     j2c = j2c
                 )
 
-                r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
-
                 @test orbp isa typeof(orbp_ref)
                 @test sv isa OrbitStateVector{Float64, T}
                 @test sv.r ≈ r_ref
                 @test sv.v ≈ v_ref
                 @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
+                # -- Array -----------------------------------------------------------------
+
+                vr_ref, vv_ref = Propagators.propagate!(orbp_ref, [60, 61])
+
+                vr, vv, orbp = Propagators.propagate(
+                    Tuple,
+                    Val(:J2),
+                    [60, 61],
+                    orb;
+                    j2c = j2c
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test vr isa Vector{SVector{3, T}}
+                @test vv isa Vector{SVector{3, T}}
+                @test vr ≈ vr_ref
+                @test vv ≈ vv_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                vsv, orbp = Propagators.propagate(
+                    OrbitStateVector,
+                    Val(:J2),
+                    [60, 61],
+                    orb;
+                    j2c = j2c
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test vsv isa Vector{OrbitStateVector{Float64, T}}
+                @test map(x -> x.r, vsv) ≈ vr_ref
+                @test map(x -> x.v, vsv) ≈ vv_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
                 # == propagate! ============================================================
+
+                r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                r, v = Propagators.propagate!(orbp, 61, Tuple)
+
+                @test orbp isa typeof(orbp_ref)
+                @test r isa SVector{3, T}
+                @test v isa SVector{3, T}
+                @test r ≈ r_ref
+                @test v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
                 sv = Propagators.propagate!(orbp, 61, OrbitStateVector)
 
-                r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
-
                 @test orbp isa typeof(orbp_ref)
                 @test sv isa OrbitStateVector{Float64, T}
                 @test sv.r ≈ r_ref
                 @test sv.v ≈ v_ref
                 @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
+                # -- Array -----------------------------------------------------------------
+
+                vr_ref, vv_ref = Propagators.propagate!(orbp_ref, [60, 61])
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                r, v = Propagators.propagate!(orbp, [60, 61], Tuple)
+
+                @test orbp isa typeof(orbp_ref)
+                @test vr isa Vector{SVector{3, T}}
+                @test vv isa Vector{SVector{3, T}}
+                @test vr ≈ vr_ref
+                @test vv ≈ vv_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                vsv = Propagators.propagate!(orbp, [60, 61], OrbitStateVector)
+
+                @test orbp isa typeof(orbp_ref)
+                @test vsv isa Vector{OrbitStateVector{Float64, T}}
+                @test map(x -> x.r, vsv) ≈ vr_ref
+                @test map(x -> x.v, vsv) ≈ vv_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
                 # == propagate_to_epoch ====================================================
+
+                r_ref, v_ref = Propagators.propagate_to_epoch!(
+                    orbp_ref,
+                    date_to_jd(2024, 1, 1)
+                )
+
+                r, v, orbp = Propagators.propagate_to_epoch(
+                    Tuple,
+                    Val(:J2),
+                    date_to_jd(2024, 1, 1),
+                    orb;
+                    j2c = j2c
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test r isa SVector{3, T}
+                @test v isa SVector{3, T}
+                @test r ≈ r_ref
+                @test v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
                 sv, orbp = Propagators.propagate_to_epoch(
                     OrbitStateVector,
@@ -381,15 +485,69 @@ end
                     j2c = j2c
                 )
 
-                r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
-
                 @test orbp isa typeof(orbp_ref)
                 @test sv isa OrbitStateVector{Float64, T}
                 @test sv.r ≈ r_ref
                 @test sv.v ≈ v_ref
                 @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
+                # -- Array -----------------------------------------------------------------
+
+                vr_ref, vv_ref = Propagators.propagate_to_epoch!(
+                    orbp_ref,
+                    [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)]
+                )
+
+                vr, vv, orbp = Propagators.propagate_to_epoch(
+                    Tuple,
+                    Val(:J2),
+                    [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)],
+                    orb;
+                    j2c = j2c
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test vr isa Vector{SVector{3, T}}
+                @test vv isa Vector{SVector{3, T}}
+                @test vr ≈ vr_ref
+                @test vv ≈ vv_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                vsv, orbp = Propagators.propagate_to_epoch(
+                    OrbitStateVector,
+                    Val(:J2),
+                    [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)],
+                    orb;
+                    j2c = j2c
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test vsv isa Vector{OrbitStateVector{Float64, T}}
+                @test map(x -> x.r, vsv) ≈ vr_ref
+                @test map(x -> x.v, vsv) ≈ vv_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
                 # == propagate_to_epoch! ===================================================
+
+                r_ref, v_ref = Propagators.propagate_to_epoch!(
+                    orbp_ref,
+                    date_to_jd(2024, 1, 1)
+                )
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                r, v = Propagators.propagate_to_epoch!(
+                    orbp,
+                    date_to_jd(2024, 1, 1),
+                    Tuple
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test r isa SVector{3, T}
+                @test v isa SVector{3, T}
+                @test r ≈ r_ref
+                @test v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
@@ -399,21 +557,69 @@ end
                     OrbitStateVector
                 )
 
-                r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
-
                 @test orbp isa typeof(orbp_ref)
                 @test sv isa OrbitStateVector{Float64, T}
                 @test sv.r ≈ r_ref
                 @test sv.v ≈ v_ref
                 @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
-                # == step! =====================================================================
+                # -- Array -----------------------------------------------------------------
+
+                r_ref, v_ref = Propagators.propagate_to_epoch!(
+                    orbp_ref,
+                    [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)]
+                )
 
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
-                sv = Propagators.step!(orbp, Dates.Day(365), OrbitStateVector)
+                vr, vv = Propagators.propagate_to_epoch!(
+                    orbp,
+                    [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)],
+                    Tuple
+                )
 
-                r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
+                @test orbp isa typeof(orbp_ref)
+                @test vr isa Vector{SVector{3, T}}
+                @test vv isa Vector{SVector{3, T}}
+                @test vr ≈ vr_ref
+                @test vv ≈ vv_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                vsv = Propagators.propagate_to_epoch!(
+                    orbp,
+                    [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)],
+                    OrbitStateVector
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test vsv isa Vector{OrbitStateVector{Float64, T}}
+                @test map(x -> x.r, vsv) ≈ vr_ref
+                @test map(x -> x.v, vsv) ≈ vv_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                # == step! =================================================================
+
+                r_ref, v_ref = Propagators.propagate_to_epoch!(
+                    orbp_ref,
+                    date_to_jd(2024, 1, 1)
+                )
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                r, v = Propagators.step!(orbp, 365 * 86400, Tuple)
+
+                @test orbp isa typeof(orbp_ref)
+                @test r isa SVector{3, T}
+                @test v isa SVector{3, T}
+                @test r ≈ r_ref
+                @test v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                sv = Propagators.step!(orbp, 365 * 86400, OrbitStateVector)
 
                 @test orbp isa typeof(orbp_ref)
                 @test sv isa OrbitStateVector{Float64, T}
@@ -443,6 +649,23 @@ end
 
                 # == propagate =============================================================
 
+                r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
+
+                r, v, orbp = Propagators.propagate(
+                    Tuple,
+                    Val(:J2),
+                    Dates.Minute(1) + Dates.Second(1),
+                    orb;
+                    j2c = j2c
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test r isa SVector{3, T}
+                @test v isa SVector{3, T}
+                @test r ≈ r_ref
+                @test v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
                 sv, orbp = Propagators.propagate(
                     OrbitStateVector,
                     Val(:J2),
@@ -451,15 +674,63 @@ end
                     j2c = j2c
                 )
 
-                r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
-
                 @test orbp isa typeof(orbp_ref)
                 @test sv isa OrbitStateVector{Float64, T}
                 @test sv.r ≈ r_ref
                 @test sv.v ≈ v_ref
                 @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
-                # == propagate! ================================================================
+                # -- Array -----------------------------------------------------------------
+
+                vr_ref, vv_ref = Propagators.propagate!(orbp_ref, [60, 61])
+
+                vr, vv, orbp = Propagators.propagate(
+                    Tuple,
+                    Val(:J2),
+                    [Dates.Minute(1) + Dates.Second(0), Dates.Minute(1) + Dates.Second(1)],
+                    orb;
+                    j2c = j2c
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test vr isa Vector{SVector{3, T}}
+                @test vv isa Vector{SVector{3, T}}
+                @test vr ≈ vr_ref
+                @test vv ≈ vv_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                vsv, orbp = Propagators.propagate(
+                    OrbitStateVector,
+                    Val(:J2),
+                    [Dates.Minute(1) + Dates.Second(0), Dates.Minute(1) + Dates.Second(1)],
+                    orb;
+                    j2c = j2c
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test vsv isa Vector{OrbitStateVector{Float64, T}}
+                @test map(x -> x.r, vsv) ≈ vr_ref
+                @test map(x -> x.v, vsv) ≈ vv_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                # == propagate! ============================================================
+
+                r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                r, v = Propagators.propagate!(
+                    orbp,
+                    Dates.Minute(1) + Dates.Second(1),
+                    Tuple
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test r isa SVector{3, T}
+                @test v isa SVector{3, T}
+                @test r ≈ r_ref
+                @test v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
@@ -469,15 +740,66 @@ end
                     OrbitStateVector
                 )
 
-                r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
-
                 @test orbp isa typeof(orbp_ref)
                 @test sv isa OrbitStateVector{Float64, T}
                 @test sv.r ≈ r_ref
                 @test sv.v ≈ v_ref
                 @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
+                # -- Array -----------------------------------------------------------------
+
+                vr_ref, vv_ref = Propagators.propagate!(orbp_ref, [60, 61])
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                vr, vv = Propagators.propagate!(
+                    orbp,
+                    [Dates.Minute(1) + Dates.Second(0), Dates.Minute(1) + Dates.Second(1)],
+                    Tuple
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test vr isa Vector{SVector{3, T}}
+                @test vv isa Vector{SVector{3, T}}
+                @test vr ≈ vr_ref
+                @test vv ≈ vv_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                vsv = Propagators.propagate!(
+                    orbp,
+                    [Dates.Minute(1) + Dates.Second(0), Dates.Minute(1) + Dates.Second(1)],
+                    OrbitStateVector
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test vsv isa Vector{OrbitStateVector{Float64, T}}
+                @test map(x -> x.r, vsv) ≈ vr_ref
+                @test map(x -> x.v, vsv) ≈ vv_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
                 # == propagate_to_epoch ========================================================
+
+                r_ref, v_ref = Propagators.propagate_to_epoch!(
+                    orbp_ref,
+                    date_to_jd(2024, 1, 1)
+                )
+
+                r, v, orbp = Propagators.propagate_to_epoch(
+                    Tuple,
+                    Val(:J2),
+                    DateTime("2024-01-01"),
+                    orb;
+                    j2c = j2c
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test r isa SVector{3, T}
+                @test v isa SVector{3, T}
+                @test r ≈ r_ref
+                @test v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
                 sv, orbp = Propagators.propagate_to_epoch(
                     OrbitStateVector,
@@ -487,15 +809,69 @@ end
                     j2c = j2c
                 )
 
-                r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
-
                 @test orbp isa typeof(orbp_ref)
                 @test sv isa OrbitStateVector{Float64, T}
                 @test sv.r ≈ r_ref
                 @test sv.v ≈ v_ref
                 @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
+                # -- Array -----------------------------------------------------------------
+
+                vr_ref, vv_ref = Propagators.propagate_to_epoch!(
+                    orbp_ref,
+                    [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)]
+                )
+
+                vr, vv, orbp = Propagators.propagate_to_epoch(
+                    Tuple,
+                    Val(:J2),
+                    [DateTime("2024-01-01"), DateTime("2024-01-02")],
+                    orb;
+                    j2c = j2c
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test vr isa Vector{SVector{3, T}}
+                @test vv isa Vector{SVector{3, T}}
+                @test vr ≈ vr_ref
+                @test vv ≈ vv_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                vsv, orbp = Propagators.propagate_to_epoch(
+                    OrbitStateVector,
+                    Val(:J2),
+                    [DateTime("2024-01-01"), DateTime("2024-01-02")],
+                    orb;
+                    j2c = j2c
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test vsv isa Vector{OrbitStateVector{Float64, T}}
+                @test map(x -> x.r, vsv) ≈ vr_ref
+                @test map(x -> x.v, vsv) ≈ vv_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
                 # == propagate_to_epoch! =======================================================
+
+                r_ref, v_ref = Propagators.propagate_to_epoch!(
+                    orbp_ref,
+                    date_to_jd(2024, 1, 1)
+                )
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                r, v = Propagators.propagate_to_epoch!(
+                    orbp,
+                    DateTime("2024-01-01"),
+                    Tuple
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test r isa SVector{3, T}
+                @test v isa SVector{3, T}
+                @test r ≈ r_ref
+                @test v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
@@ -505,24 +881,69 @@ end
                     OrbitStateVector
                 )
 
-                r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
-
                 @test orbp isa typeof(orbp_ref)
                 @test sv isa OrbitStateVector{Float64, T}
                 @test sv.r ≈ r_ref
                 @test sv.v ≈ v_ref
                 @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
-                # == step! =====================================================================
+                # -- Array -----------------------------------------------------------------
+
+                r_ref, v_ref = Propagators.propagate_to_epoch!(
+                    orbp_ref,
+                    [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)]
+                )
 
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
-                sv = Propagators.step!(orbp, Dates.Day(365), OrbitStateVector)
+                vr, vv = Propagators.propagate_to_epoch!(
+                    orbp,
+                    [DateTime("2024-01-01"), DateTime("2024-01-02")],
+                    Tuple
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test vr isa Vector{SVector{3, T}}
+                @test vv isa Vector{SVector{3, T}}
+                @test vr ≈ vr_ref
+                @test vv ≈ vv_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                vsv = Propagators.propagate_to_epoch!(
+                    orbp,
+                    [DateTime("2024-01-01"), DateTime("2024-01-02")],
+                    OrbitStateVector
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test vsv isa Vector{OrbitStateVector{Float64, T}}
+                @test map(x -> x.r, vsv) ≈ vr_ref
+                @test map(x -> x.v, vsv) ≈ vv_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                # == step! =================================================================
 
                 r_ref, v_ref = Propagators.propagate_to_epoch!(
                     orbp_ref,
                     date_to_jd(2024, 1, 1)
                 )
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                r, v = Propagators.step!(orbp, Dates.Day(365), Tuple)
+
+                @test orbp isa typeof(orbp_ref)
+                @test r isa SVector{3, T}
+                @test v isa SVector{3, T}
+                @test r ≈ r_ref
+                @test v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                sv = Propagators.step!(orbp, Dates.Day(365), OrbitStateVector)
 
                 @test orbp isa typeof(orbp_ref)
                 @test sv isa OrbitStateVector{Float64, T}
