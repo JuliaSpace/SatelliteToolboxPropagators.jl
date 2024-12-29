@@ -321,6 +321,219 @@ end
     end
 end
 
+@testset "OrbitStateVector Support"  verbose = true begin
+    @testset "Julian Day" verbose = true begin
+        jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+
+        for (T, j2c) in ((Float64, j2c_egm2008), (Float32, j2c_egm2008_f32))
+            @testset "$T" begin
+                orb = KeplerianElements(
+                    jd₀,
+                    T(8000e3),
+                    T(0.015),
+                    T(28.5) |> deg2rad,
+                    T(100)  |> deg2rad,
+                    T(200)  |> deg2rad,
+                    T(45)   |> deg2rad
+                )
+
+                orbp_ref = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                # == propagate =============================================================
+
+                sv, orbp = Propagators.propagate(
+                    OrbitStateVector,
+                    Val(:J2),
+                    61,
+                    orb;
+                    j2c = j2c
+                )
+
+                r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
+
+                @test orbp isa typeof(orbp_ref)
+                @test sv isa OrbitStateVector{Float64, T}
+                @test sv.r ≈ r_ref
+                @test sv.v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                # == propagate! ============================================================
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                sv = Propagators.propagate!(orbp, 61, OrbitStateVector)
+
+                r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
+
+                @test orbp isa typeof(orbp_ref)
+                @test sv isa OrbitStateVector{Float64, T}
+                @test sv.r ≈ r_ref
+                @test sv.v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                # == propagate_to_epoch ====================================================
+
+                sv, orbp = Propagators.propagate_to_epoch(
+                    OrbitStateVector,
+                    Val(:J2),
+                    date_to_jd(2024, 1, 1),
+                    orb;
+                    j2c = j2c
+                )
+
+                r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
+
+                @test orbp isa typeof(orbp_ref)
+                @test sv isa OrbitStateVector{Float64, T}
+                @test sv.r ≈ r_ref
+                @test sv.v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                # == propagate_to_epoch! ===================================================
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                sv = Propagators.propagate_to_epoch!(
+                    orbp,
+                    date_to_jd(2024, 1, 1),
+                    OrbitStateVector
+                )
+
+                r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
+
+                @test orbp isa typeof(orbp_ref)
+                @test sv isa OrbitStateVector{Float64, T}
+                @test sv.r ≈ r_ref
+                @test sv.v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                # == step! =====================================================================
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                sv = Propagators.step!(orbp, Dates.Day(365), OrbitStateVector)
+
+                r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
+
+                @test orbp isa typeof(orbp_ref)
+                @test sv isa OrbitStateVector{Float64, T}
+                @test sv.r ≈ r_ref
+                @test sv.v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+            end
+        end
+    end
+
+    @testset "Dates Support" verbose = true begin
+        jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+
+        for (T, j2c) in ((Float64, j2c_egm2008), (Float32, j2c_egm2008_f32))
+            @testset "$T" begin
+                orb = KeplerianElements(
+                    jd₀,
+                    T(8000e3),
+                    T(0.015),
+                    T(28.5) |> deg2rad,
+                    T(100)  |> deg2rad,
+                    T(200)  |> deg2rad,
+                    T(45)   |> deg2rad
+                )
+
+                orbp_ref = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                # == propagate =============================================================
+
+                sv, orbp = Propagators.propagate(
+                    OrbitStateVector,
+                    Val(:J2),
+                    Dates.Minute(1) + Dates.Second(1),
+                    orb;
+                    j2c = j2c
+                )
+
+                r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
+
+                @test orbp isa typeof(orbp_ref)
+                @test sv isa OrbitStateVector{Float64, T}
+                @test sv.r ≈ r_ref
+                @test sv.v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                # == propagate! ================================================================
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                sv = Propagators.propagate!(
+                    orbp,
+                    Dates.Minute(1) + Dates.Second(1),
+                    OrbitStateVector
+                )
+
+                r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
+
+                @test orbp isa typeof(orbp_ref)
+                @test sv isa OrbitStateVector{Float64, T}
+                @test sv.r ≈ r_ref
+                @test sv.v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                # == propagate_to_epoch ========================================================
+
+                sv, orbp = Propagators.propagate_to_epoch(
+                    OrbitStateVector,
+                    Val(:J2),
+                    DateTime("2024-01-01"),
+                    orb;
+                    j2c = j2c
+                )
+
+                r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
+
+                @test orbp isa typeof(orbp_ref)
+                @test sv isa OrbitStateVector{Float64, T}
+                @test sv.r ≈ r_ref
+                @test sv.v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                # == propagate_to_epoch! =======================================================
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                sv = Propagators.propagate_to_epoch!(
+                    orbp,
+                    DateTime("2024-01-01"),
+                    OrbitStateVector
+                )
+
+                r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
+
+                @test orbp isa typeof(orbp_ref)
+                @test sv isa OrbitStateVector{Float64, T}
+                @test sv.r ≈ r_ref
+                @test sv.v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+
+                # == step! =====================================================================
+
+                orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
+
+                sv = Propagators.step!(orbp, Dates.Day(365), OrbitStateVector)
+
+                r_ref, v_ref = Propagators.propagate_to_epoch!(
+                    orbp_ref,
+                    date_to_jd(2024, 1, 1)
+                )
+
+                @test orbp isa typeof(orbp_ref)
+                @test sv isa OrbitStateVector{Float64, T}
+                @test sv.r ≈ r_ref
+                @test sv.v ≈ v_ref
+                @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
+            end
+        end
+    end
+end
+
 @testset "Show" verbose = true begin
     T = Float64
 
