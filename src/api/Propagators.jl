@@ -234,7 +234,7 @@ function propagate(
     vp::AbstractVector{T},
     args...;
     kwargs...
-) where T<:Dates.CompoundPeriod
+) where T<:Union{Dates.Period, Dates.CompoundPeriod}
     vt = _toms.(vp) ./ 1000
     return propagate(prop, vt, args...; kwargs...)
 end
@@ -261,7 +261,7 @@ function propagate(
     vp::AbstractVector{T},
     args...;
     kwargs...
-) where T<:Dates.CompoundPeriod
+) where T<:Union{Dates.Period, Dates.CompoundPeriod}
     vt = _toms.(vp) ./ 1000
     return propagate(OrbitStateVector, prop, vt, args...; kwargs...)
 end
