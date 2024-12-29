@@ -670,7 +670,7 @@ function propagate_to_epoch!(orbp::OrbitPropagator, dt::DateTime, ::Type{Tuple})
 end
 
 function propagate_to_epoch!(orbp::OrbitPropagator, jd::Number, ::Type{Tuple})
-    return propagate!(orbp, jd)
+    return propagate_to_epoch!(orbp, jd)
 end
 
 function propagate_to_epoch!(orbp::OrbitPropagator, dt::DateTime, ::Type{OrbitStateVector})
