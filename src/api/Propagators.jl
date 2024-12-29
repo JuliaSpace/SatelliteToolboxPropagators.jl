@@ -142,7 +142,12 @@ If `sink` is `OrbitStateVector`:
     propagation instant.
 - [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized propagator.
 """
-function propagate(prop::Val, p::Union{Dates.Period, Dates.CompoundPeriod}, args...; kwargs...)
+function propagate(
+    prop::Val,
+    p::Union{Dates.Period, Dates.CompoundPeriod},
+    args...;
+    kwargs...
+)
     Δt = _toms(p) / 1000
     return propagate(prop, Δt, args...; kwargs...)
 end
