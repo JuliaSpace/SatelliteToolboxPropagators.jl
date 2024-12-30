@@ -955,6 +955,74 @@ end
     end
 end
 
+@testset "Fitting Mean Elements Using OrbitStateVector" verbose = true begin
+    for (T, j2c) in ((Float64, j2c_egm2008), (Float32, j2c_egm2008_f32))
+        @testset "$T" begin
+            jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+
+            orb_input = KeplerianElements(
+                jd₀,
+                T(8000e3),
+                T(0.015),
+                T(28.5) |> deg2rad,
+                T(100)  |> deg2rad,
+                T(200)  |> deg2rad,
+                T(45)   |> deg2rad
+            )
+
+            orbp_input = Propagators.init(Val(:J2osc), orb_input; j2c = j2c)
+
+            # Create the osculating state vectors that we will use to fit the mean elements
+            # and compare with the reference Keplerian elements.
+            vsv = Propagators.propagate!(orbp_input, 0:10:12_000, OrbitStateVector)
+
+            # == Fit the Orbit =============================================================
+
+            # Create a new, uninitialized propagator.
+            j2d = J2Propagator{Float64, T}()
+            j2d.j2c = j2c
+            j2oscd = J2OsculatingPropagator{Float64, T}()
+            j2oscd.j2d = j2d
+            orbp = OrbitPropagatorJ2Osculating(j2oscd)
+
+            orb, _ = redirect_stdout(devnull) do
+                Propagators.fit_mean_elements!(
+                    orbp,
+                    vsv;
+                    max_iterations = 10,
+                    mean_elements_epoch = jd₀
+                )
+            end
+
+            @test orb.t ≈ orb_input.t
+            @test orb.a ≈ orb_input.a
+            @test orb.e ≈ orb_input.e
+            @test orb.i ≈ orb_input.i
+            @test orb.Ω ≈ orb_input.Ω
+            @test orb.ω ≈ orb_input.ω
+            @test orb.f ≈ orb_input.f atol = 1e-5
+
+            # Fit the mean elements without explicitly initializing the propagator.
+            orb, _ = redirect_stdout(devnull) do
+                Propagators.fit_mean_elements(
+                    Val(:J2osc),
+                    vsv;
+                    max_iterations = 10,
+                    mean_elements_epoch = jd₀
+                )
+            end
+
+            @test orb.t ≈ orb_input.t
+            @test orb.a ≈ orb_input.a
+            @test orb.e ≈ orb_input.e
+            @test orb.i ≈ orb_input.i
+            @test orb.Ω ≈ orb_input.Ω
+            @test orb.ω ≈ orb_input.ω
+            @test orb.f ≈ orb_input.f atol = 1e-5
+        end
+    end
+end
+
 @testset "Show" verbose = true begin
     T = Float64
 

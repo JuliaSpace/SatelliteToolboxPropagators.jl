@@ -40,28 +40,56 @@ abstract type OrbitPropagator{Tepoch<:Number, T<:Number} end
 
 """
     fit_mean_elements(::Val{:propagator}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector} -> <Mean elements>
+    fit_mean_elements(::Val{:propagator}, vsv::OrbitStateVector{Tepoch, T}; kwargs...) where {Tepoch<:Number, T<:Number} -> <Mean elements>
 
-Fit a set of mean elements for the `propagator` using the osculating elements represented by
-a set of position vectors `vr_i` [m] and a set of velocity vectors `vv_i` [m / s]
-represented in an inertial reference frame at instants in the array `vjd` [Julian Day]. The
-keywords `kwargs` depends on the propagator type.
+Fit a set of mean elements for the `propagator` using the osculating state vector
+represented in an intertial reference frame. The state vector can be represented using a set
+of position vectors `vr_i` [m] and a set of velocity vectors `vv_i` [m / s] obtained at the
+instants in the array `vjd` [Julian Day], or an array of `OrbitStateVector` `vsv` [SI],
+containing the same information. The keywords `kwargs` depends on the propagator type.
 
 This function returns the set of mean elements used to initialize the `propagator`.
 """
 function fit_mean_elements end
 
+function fit_mean_elements(
+    prop::Val,
+    vsv::Vector{OrbitStateVector{Tepoch, T}};
+    kwargs...
+) where {Tepoch<:Number, T<:Number}
+    vjd  = map(x -> x.t, vsv)
+    vr_i = map(x -> x.r, vsv)
+    vv_i = map(x -> x.v, vsv)
+
+    return fit_mean_elements(prop, vjd, vr_i, vv_i; kwargs...)
+end
+
 """
     fit_mean_elements!(orbp::OrbitPropagator, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector} -> <Mean elements>
+    fit_mean_elements!(orbp::OrbitPropagator, vsv::Vector{OrbitStateVector{Tepoch, T}}; kwargs...) where {Tepoch<:Number, T<:Number} -> <Mean elements>
 
-Fit a set of mean elements for the propagator `orbp` using the osculating elements
-represented by a set of position vectors `vr_i` [m] and a set of velocity vectors `vv_i` [m
-/ s] represented in an inertial reference frame at instants in the array `vjd` [Julian Day].
-The keywords `kwargs` depends on the propagator type.
+Fit a set of mean elements for the propagator `orbp` using the osculating state vector
+represented in an intertial reference frame. The state vector can be represented using a set
+of position vectors `vr_i` [m] and a set of velocity vectors `vv_i` [m / s] obtained at the
+instants in the array `vjd` [Julian Day], or an array of `OrbitStateVector` `vsv` [SI],
+containing the same information. The keywords `kwargs` depends on the propagator type.
 
 This function returns the set of mean elements used to initialize the `propagator` and also
 initializes `orbp` with the fitted mean elements.
 """
 function fit_mean_elements! end
+
+function fit_mean_elements!(
+    orbp::OrbitPropagator,
+    vsv::Vector{OrbitStateVector{Tepoch, T}};
+    kwargs...
+) where {Tepoch<:Number, T<:Number}
+    vjd  = map(x -> x.t, vsv)
+    vr_i = map(x -> x.r, vsv)
+    vv_i = map(x -> x.v, vsv)
+
+    return fit_mean_elements!(orbp, vjd, vr_i, vv_i; kwargs...)
+end
 
 """
     init(::Val{:propagator}, args...; kwargs...) -> OrbitPropagator
