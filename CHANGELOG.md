@@ -1,6 +1,20 @@
 SatelliteToolboxPropagator.jl Changelog
 =======================================
 
+Version 0.3.3
+-------------
+
+- ![Feature][badge-feature] The functions `propagate`, `propagate!`, `propagate_to_epoch`,
+  and `propagate_to_epoch!` of `Propagators` can now receive a sink option to change the
+  type of the returned objects. We currently support `Tuple` (default) to keep the previous
+  behavior or `OrbitStateVector` to return the results packed in an instance of
+  `OrbitStateVector`.
+- ![Feature][badge-feature] The functions to fit mean elements `fit_mean_elements` and
+  `fit_mean_elements!` now supports `OrbitStateVector` as inputs.
+- ![Deprecation][badge-deprecation] This package is no longer tested against Julia 1.6. The
+  functions might work but there is no official support anymore. The next breaking release
+  will remove the compatibility with Julia 1.6.
+
 Version 0.3.2
 -------------
 
