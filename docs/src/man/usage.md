@@ -6,6 +6,7 @@ CurrentModule = SatelliteToolboxPropagators
 
 ```@repl usage
 using SatelliteToolboxPropagators
+using Dates
 ```
 
 All the propagators can be accessed using the available API, which allows to initialize and
@@ -69,50 +70,182 @@ Hence, some algorithms might not support it.
 After the initialization, we can propagate the orbit using some functions as follows.
 
 ```julia
-propagate!(orbp::OrbitPropagator{Tepoch, T}, t::Number) where {Tepoch, T}
+propagate!(orbp::OrbitPropagator, Δt::Number[, sink = Tuple])
+propagate!(orbp::OrbitPropagator, p::Union{Dates.Period, Dates.CompoundPeriod}[, sink = Tuple])
 ```
 
-This function propagates the orbit using `orbp` by `t` [s] from the initial orbit epoch. It
-returns two vectors: the position [m] and velocity [m/s]. Both are represented in the same
-inertial reference frame used to describe the input data during the propagator
-initialization.
+This function propagates the orbit using `orbp` by `t` [s] or by the period defined by `p`
+from the initial orbit epoch .
+
+The return type depends on the parameter `sink`. If `sink` is `Tuple` (default), the
+function returns two vectors: the position [m] and velocity [m / s]. Both are represented in
+the same inertial reference frame used to describe the input data during the propagator
+initialization. On the other hand, if `sink` is `OrbitStateVector`, it returns an object of
+type `OrbitStateVector` [SI] with the same information.
 
 For example, using the initialized propagator, we can propagate the orbit by 6000s as
 follows:
 
 ```@repl usage
 Propagators.propagate!(orbp, 6000)
+
+Propagators.propagate!(orbp, Dates.Hour(1))
+
+Propagators.propagate!(orbp, Dates.Minute(60))
+```
+
+To obtain an `OrbitStateVector` as the output, we can use:
+
+```@repl usage
+Propagators.propagate!(orbp, 6000, OrbitStateVector)
+
+Propagators.propagate!(orbp, Dates.Hour(1), OrbitStateVector)
+
+Propagators.propagate!(orbp, Dates.Minute(60), OrbitStateVector)
+```
+
+The API also supports propagating the orbit for multiple instants if we pass a vector of
+instants as follows:
+
+```julia
+propagate!(orbp::OrbitPropagator, vt::AbstractVector[, sink = Tuple]; kwargs...)
+propagate!(orbp::OrbitPropagator, vp::AbstractVector{Union{Dates.Period, Dates.CompundPeriod}}[, sink = Tuple]; kwargs...)
+```
+
+Those functions propagate the orbit using `orbp` for every instant defined in `vt` [s] or
+for every period defined in `vp` from the initial orbit epoch.
+
+The return type depends on the parameter `sink`. If it is `Tuple` (default), the output is a
+tuple with the arrays containing the position and velocity vectors. If it is
+`OrbitStateVector`, the output is an array of `OrbitStateVector` [SI] objects.
+
+In this case, the user can pass the keyword argument `ntasks` to specify the number of
+parallel tasks to propagate the orbit. If it is set to a number equal or lower than 1, the
+function will propagate the orbit sequentially. If `ntasks` is omitted, it defaults to the
+number of available threads.
+
+For example, using the initialized propagator, we can propagate the orbit every 5 min in an
+hour as follows:
+
+```@repl usage
+Propagators.propagate!(orbp, 0:300:3600)
+
+Propagators.propagate!(orbp, Dates.Minute(0):Dates.Minute(5):Dates.Minute(60))
+```
+
+To obtain an array of `OrbitStateVector` as the output, we can use:
+
+```@repl usage
+Propagators.propagate!(orbp, 0:300:3600, OrbitStateVector)
+
+Propagators.propagate!(
+    orbp,
+    Dates.Minute(0):Dates.Minute(5):Dates.Minute(60),
+    OrbitStateVector
+)
 ```
 
 ---
 
 ```julia
-propagate_to_epoch!(orbp::OrbitPropagator{Tepoch, T}, jd::Number) where {Tepoch, T}
+propagate_to_epoch!(orbp::OrbitPropagator, jd::Number[, sink = Tuple])
+propagate_to_epoch!(orbp::OrbitPropagator, dt::DateTime[, sink = Tuple])
 ```
 
-This function propagates the orbit using `orbp` until the epoch `jd` [Julian Day]. It
-returns two vectors: the position [m] and velocity [m/s]. Both are represented in the same
-inertial reference frame used to describe the input data during the propagator
-initialization.
+This function propagates the orbit using `orbp` until the Julian Day `jd` [UTC] or until the
+epoch defined by the `DateTime` object `dt` [UTC].
+
+The return type depends on the parameter `sink`. If `sink` is `Tuple` (default), the
+function returns two vectors: the position [m] and velocity [m / s]. Both are represented in
+the same inertial reference frame used to describe the input data during the propagator
+initialization. On the other hand, if `sink` is `OrbitStateVector`, it returns an object of
+type `OrbitStateVector` [SI] with the same information.
 
 For example, using the initialized propagator, we can propagate the orbit to
 2023-01-02T00:00:00 as follows:
 
 ```@repl usage
 Propagators.propagate_to_epoch!(orbp, date_to_jd(2023, 1, 2, 0, 0, 0))
+
+Propagators.propagate_to_epoch!(orbp, DateTime("2023-01-02"))
+```
+
+To obtain an `OrbitStateVector` as the output, we can use:
+
+```@repl usage
+Propagators.propagate_to_epoch!(orbp, date_to_jd(2023, 1, 2, 0, 0, 0), OrbitStateVector)
+
+Propagators.propagate_to_epoch!(orbp, DateTime("2023-01-02"), OrbitStateVector)
+```
+
+The API also supports propagating the orbit for multiple instants if we pass a vector of
+epochs as follows:
+
+```julia
+propagate_to_epoch!(orbp::OrbitPropagator, vjd::AbstractVector[, sink = Tuple]; kwargs...)
+propagate_to_epoch!(orbp::OrbitPropagator, vdt::AbstractVector{DateTime}[, sink = Tuple]; kwargs...)
+```
+
+Those functions propagate the orbit using `orbp` for every epoch defined in the vector of
+Julian Days `vjd` [UTC] or in the vector of `DateTime` objects `vdt` [UTC].
+
+The return type depends on the parameter `sink`. If it is `Tuple` (default), the output is
+two arrays containing the position [m] and velocity vectors [m / s]. Both are represented in
+the same inertial reference frame used to describe the input data during the propagator
+initialization. If it is `OrbitStateVector`, the output is an array of `OrbitStateVector`
+[SI] objects.
+
+In this case, the user can pass the keyword argument `ntasks` to specify the number of
+parallel tasks to propagate the orbit. If it is set to a number equal or lower than 1, the
+function will propagate the orbit sequentially. If `ntasks` is omitted, it defaults to the
+number of available threads.
+
+For example, using the initialized propagator, we can propagate the orbit to midnight of
+every day in January 2023 as follows:
+
+```@repl usage
+Propagators.propagate_to_epoch!(
+    orbp,
+    date_to_jd(2023, 1, 1, 0, 0, 0):date_to_jd(2023, 1, 31, 0, 0, 0)
+)
+
+Propagators.propagate_to_epoch!(
+    orbp,
+    DateTime("2023-01-01"):Dates.Day(1):DateTime("2023-01-31")
+)
+```
+
+To obtain an array of `OrbitStateVector` as the output, we can use:
+
+```@repl usage
+Propagators.propagate_to_epoch!(
+    orbp,
+    date_to_jd(2023, 1, 1, 0, 0, 0):date_to_jd(2023, 1, 31, 0, 0, 0),
+    OrbitStateVector
+)
+
+Propagators.propagate_to_epoch!(
+    orbp,
+    DateTime("2023-01-01"):Dates.Day(1):DateTime("2023-01-31"),
+    OrbitStateVector
+)
 ```
 
 ---
 
 ```julia
-step!(orbp::OrbitPropagator{Tepoch, T}, Δt::Number) where {Tepoch, T}
+step!(orbp::OrbitPropagator, Δt::Number[, sink = Tuple])
 ```
 
 Every time we propagate the orbit, the propagation instant is recorded inside the structure.
 Hence, we can use the function `step!` to propagate the orbit by `Δt` [s] from the current
-orbit epoch. It returns two vectors: the position [m] and velocity [m/s]. Both are
-represented in the same inertial reference frame used to describe the input data during the
-propagator initialization.
+orbit epoch.
+
+The return type depends on the parameter `sink`. If `sink` is `Tuple` (default), the
+function returns two vectors: the position [m] and velocity [m / s]. Both are represented in
+the same inertial reference frame used to describe the input data during the propagator
+initialization. On the other hand, if `sink` is `OrbitStateVector`, it returns an object of
+type `OrbitStateVector` [SI] with the same information.
 
 For example, using the initialized propagator, we can advance the propagation by 60 s as
 follows:
@@ -125,33 +258,174 @@ Propagators.step!(orbp, 60)
 orbp
 ```
 
+To obtain an `OrbitStateVector` as the output, we can use:
+
+```@repl usage
+orbp
+
+Propagators.step!(orbp, 60, OrbitStateVector)
+
+orbp
+```
+
 ## Simultaneous Initialization and Propagation
 
 We can use the following functions to simultaneously initialize and propagate the orbit:
 
 ```julia
-propagate(::Val{:propagator}, Δt::Number, args...; kwargs...)
-propagate_to_epoch(::Val{:propagator}, jd::Number, args...; kwargs...)
+propagate([sink = Tuple, ]::Val{:propagator}, Δt::Number, args...; kwargs...)
+propagate([sink = Tuple, ]::Val{:propagator}, p::Union{Dates.Period, Dates.CompundPeriod}, args...; kwargs...)
+propagate_to_epoch([sink = Tuple, ]::Val{:propagator}, jd::Number, args...; kwargs...)
+propagate_to_epoch([sink = Tuple, ]::Val{:propagator}, dt::DateTime, args...; kwargs...)
 ```
 
 The symbol `:propagator`, the arguments `args...`, and the keywords `kwargs...` are the same
 as described in the section related to the propagator initialization.
 
-The first function propagates the orbit by `Δt` [s] from the initial epoch, whereas the
-second propagated the orbit until the instant `jd` [Julian Day].
+The two first functions propagates the orbit by `Δt` [s] or by the period defined by `p`
+from the initial epoch, whereas the two last functions propagated the orbit until the
+Julian Day `jd` [UTC] or until the epoch defined by the `DateTime` object `dt` [UTC]
 
-Both functions returns the position vector [m], the velocity vector [m/s], and the
-initialized propagator structure. Notice that both vectors are represented in the same
-inertial reference frame used to describe the input data for the initialization.
-
-However, notice that those functions are **optional** in the propagator API. Hence, some
-propagators might not support them.
+The return type of both functions depends on the parameter `sink`. If `sink` is `Tuple`
+(default), the function returns two vectors: the position [m] and velocity [m / s]. Both are
+represented in the same inertial reference frame used to describe the input data during the
+propagator initialization. On the other hand, if `sink` is `OrbitStateVector`, it returns an
+object of type `OrbitStateVector` [SI] with the same information. Additionally to those
+informations, the function also return the initialized orbit propagator.
 
 For example, we can propagate by 60 s a set of mean elements using a J2 analytical
 propagator as follows:
 
 ```@repl usage
-Propagators.propagate(Val(:J2), 60, orb)
+r_i, v_i, orbp = Propagators.propagate(Val(:J2), 60, orb)
+
+r_i, v_i, orbp = Propagators.propagate(Val(:J2), Dates.Second(60), orb)
+```
+
+To obtain an `OrbitStateVector` as the output, we can use:
+
+```@repl usage
+sv_i, orbp = Propagators.propagate(OrbitStateVector, Val(:J2), 60, orb)
+
+sv_i, orbp = Propagators.propagate(OrbitStateVector, Val(:J2), Dates.Second(60), orb)
+```
+
+The following algorithm propagates a set of mean elements using a J4 analytical propagator
+until the midnight of June 19, 2023:
+
+```@repl usage
+r_i, v_i, orbp = Propagators.propagate_to_epoch(
+    Val(:J4),
+    date_to_jd(2023, 6, 19, 0, 0, 0),
+    orb
+)
+
+r_i, v_i, orbp = Propagators.propagate_to_epoch(Val(:J4), DateTime("2023-06-19"), orb)
+```
+
+To obtain an `OrbitStateVector` as the output, we can use:
+
+```@repl usage
+sv_i, orbp = Propagators.propagate_to_epoch(
+    OrbitStateVector,
+    Val(:J4),
+    date_to_jd(2023, 6, 19, 0, 0, 0),
+    orb
+)
+
+sv_i, orbp = Propagators.propagate_to_epoch(
+    OrbitStateVector,
+    Val(:J4),
+    DateTime("2023-06-19"),
+    orb
+)
+```
+
+The API also supports propagating the orbit for multiple instants or epochs if we pass a
+time vector as follows:
+
+```julia
+propagate([sink = Tuple, ]::Val{:propagator}, vt::AbstractVector, args...; kwargs...)
+propagate([sink = Tuple, ]::Val{:propagator}, vp::AbstractVector{Union{Dates.Period, Dates.CompundPeriod}}, args...; kwargs...)
+propagate_to_epoch([sink = Tuple, ]::Val{:propagator}, vjd::AbstractVector, args...; kwargs...)
+propagate_to_epoch([sink = Tuple, ]::Val{:propagator}, vdt::DateTime, args...; kwargs...)
+```
+
+The symbol `:propagator`, the arguments `args...`, and the keywords `kwargs...` are the same
+as described in the section related to the propagator initialization.
+
+The two first functions propagate the orbit to each instant in the vector `vt` [s] or period
+in the array `vp` from the initial epoch. The two last functions propagate the orbit to
+each Julian Day in the vector `vjd` [UTC] or epoch defined by a `DateTime` object in the
+array `vdt` [UTC].
+
+The return type of both functions depends on the parameter `sink`. If `sink` is `Tuple`
+(default), the output is two arrays containing the position [m] and velocity vectors [m /
+s]. Both are represented in the same inertial reference frame used to describe the input
+data during the propagator initialization. On the other hand, if `sink` is
+`OrbitStateVector`, it returns an array of `OrbitStateVector` [SI] with the same
+information. Additionally to those informations, the function also return the initialized
+orbit propagator.
+
+For example, we can propagate a set of mean elements every 5 min in an hour using the J2
+analytical propagator as follows:
+
+```@repl usage
+vr_i, vv_i, orbp = Propagators.propagate(Val(:J2), 0:300:3600, orb)
+
+vr_i, vv_i, orbp = Propagators.propagate(
+    Val(:J2),
+    Dates.Minute(0):Dates.Minute(5):Dates.Minute(60),
+    orb
+)
+```
+
+To obtain an array of `OrbitStateVector` as the output, we can use:
+
+```@repl usage
+vsv_i, orbp = Propagators.propagate(OrbitStateVector, Val(:J2), 0:300:3600, orb)
+
+vsv_i, orbp = Propagators.propagate(
+    OrbitStateVector,
+    Val(:J2),
+    Dates.Minute(0):Dates.Minute(5):Dates.Minute(60),
+    orb
+)
+```
+
+The following algorithm propagates a set of mean elements to midnight of every day in
+January 2023 using the J4 analytical propagator:
+
+```@repl usage
+vr_i, vv_i, orbp = Propagators.propagate_to_epoch(
+    Val(:J4),
+    date_to_jd(2023, 1, 1, 0, 0, 0):date_to_jd(2023, 1, 31, 0, 0, 0),
+    orb
+)
+
+vr_i, vv_i, orbp = Propagators.propagate_to_epoch(
+    Val(:J4),
+    DateTime("2023-01-01"):Dates.Day(1):DateTime("2023-01-31"),
+    orb
+)
+```
+
+To obtain an array of `OrbitStateVector` as the output, we can use:
+
+```@repl usage
+vsv_i, orbp = Propagators.propagate_to_epoch(
+    OrbitStateVector,
+    Val(:J4),
+    date_to_jd(2023, 1, 1, 0, 0, 0):date_to_jd(2023, 1, 31, 0, 0, 0),
+    orb
+)
+
+vsv_i, orbp = Propagators.propagate_to_epoch(
+    OrbitStateVector,
+    Val(:J4),
+    DateTime("2023-01-01"):Dates.Day(1):DateTime("2023-01-31"),
+    orb
+)
 ```
 
 ## Helpers
