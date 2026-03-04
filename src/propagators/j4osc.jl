@@ -66,6 +66,26 @@ elements `orb₀`.
 """
 function j4osc_init(
     orb₀::KeplerianElements{Tepoch, Tkepler};
+    j4c::J4PropagatorConstants{T} = j4c_egm2008
+) where {Tepoch<:Number, Tkepler<:AbstractFloat, T<:Number}
+    # Allocate the J4 propagator structure that will propagate the mean elements.
+    j4d = J4Propagator{Tepoch, T}()
+
+    # Assign the constants, which are used in the initialization.
+    j4d.j4c = j4c
+
+    # Allocate the J4 osculating propagator structure.
+    j4oscd = J4OsculatingPropagator{Tepoch, T}()
+    j4oscd.j4d = j4d
+
+    # Initialize the propagator and return.
+    j4osc_init!(j4oscd, orb₀)
+
+    return j4oscd
+end
+
+function j4osc_init(
+    orb₀::KeplerianElements{Tepoch, Tkepler};
     j4c::J4PropagatorConstants{Tj4c} = j4c_egm2008
 ) where {Tepoch<:Number, Tkepler<:Number, Tj4c<:Number}
     T = promote_type(Tj4c, Tkepler)

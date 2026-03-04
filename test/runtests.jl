@@ -38,6 +38,9 @@ if isempty(VERSION.prerelease)
     Pkg.add("JET")
     Pkg.add("AllocCheck")
     Pkg.add("Aqua")
+    Pkg.add("Lux")
+    Pkg.add("Optimisers")
+    Pkg.add("Zygote")
 
     using JET
     using AllocCheck
@@ -46,6 +49,10 @@ if isempty(VERSION.prerelease)
     @testset "Performance Tests" verbose = true begin
         include("./performance.jl")
     end
+
+    @testset "Lux Extension (ML-∂SGP4)" verbose = true begin
+        include("./extension.jl")
+    end
 else
-    @warn "Performance checks not guaranteed to work on julia-nightly, skipping tests"
+    @warn "Performance checks and extensions not guaranteed to work on julia-nightly, skipping tests"
 end

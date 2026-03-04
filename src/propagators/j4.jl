@@ -147,6 +147,22 @@ Create and initialize the J4 orbit propagator structure using the mean Keplerian
 """
 function j4_init(
     orb₀::KeplerianElements{Tepoch, Tkepler};
+    j4c::J4PropagatorConstants{T} = j4c_egm2008
+) where {Tepoch<:Number, Tkepler<:AbstractFloat, T<:Number}
+    # Allocate the propagator structure.
+    j4d = J4Propagator{Tepoch, T}()
+
+    # Assign the constants, which are used in the initialization.
+    j4d.j4c = j4c
+
+    # Initialize the propagator and return.
+    j4_init!(j4d, orb₀)
+
+    return j4d
+end
+
+function j4_init(
+    orb₀::KeplerianElements{Tepoch, Tkepler};
     j4c::J4PropagatorConstants{Tj4c} = j4c_egm2008
 ) where {Tepoch<:Number, Tkepler<:Number, Tj4c<:Number}
     T = promote_type(Tj4c, Tkepler)

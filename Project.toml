@@ -17,19 +17,34 @@ SatelliteToolboxSgp4 = "ba14ac17-bfc9-4710-a76f-b32930ef2339"
 SatelliteToolboxTle = "7ff27aeb-5fff-4337-a9ee-a9fe6b7ed35e"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
+[weakdeps]
+Lux = "b2108857-7c20-44ae-9111-449ecde12c47"
+Optimisers = "3bd65402-5787-11e9-1adc-39752487f4e2"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
+
+[extensions]
+SatelliteToolboxPropagatorsMLdSGP4Ext = ["Lux", "Optimisers", "Random", "Serialization", "Zygote"]
+
 [compat]
 Crayons = "4"
 Dates = "1"
 LinearAlgebra = "1"
+Lux = "1"
+Optimisers = "0.4"
 Pkg = "1"
 PrecompileTools = "1"
 Printf = "1.10"
+Random = "1"
 Reexport = "1"
 SatelliteToolboxBase = "1"
 SatelliteToolboxSgp4 = "2.3"
 SatelliteToolboxTle = "1"
+Serialization = "1"
 StaticArrays = "1"
 Test = "1"
+Zygote = "0.7"
 julia = "1.10, 1.11, 1.12"
 
 [extras]

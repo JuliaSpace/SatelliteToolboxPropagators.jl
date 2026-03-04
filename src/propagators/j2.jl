@@ -147,6 +147,22 @@ Create and initialize the J2 orbit propagator structure using the mean Keplerian
 """
 function j2_init(
     orb₀::KeplerianElements{Tepoch, Tkepler};
+    j2c::J2PropagatorConstants{T} = j2c_egm2008
+) where {Tepoch<:Number, Tkepler<:AbstractFloat, T<:Number}
+    # Allocate the propagator structure.
+    j2d = J2Propagator{Tepoch, T}()
+
+    # Assign the constants, which are used in the initialization.
+    j2d.j2c = j2c
+
+    # Initialize the propagator and return.
+    j2_init!(j2d, orb₀)
+
+    return j2d
+end
+
+function j2_init(
+    orb₀::KeplerianElements{Tepoch, Tkepler};
     j2c::J2PropagatorConstants{Tj2c} = j2c_egm2008
 ) where {Tepoch<:Number, Tkepler<:Number, Tj2c<:Number}
     T = promote_type(Tj2c, Tkepler)
