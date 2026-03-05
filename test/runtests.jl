@@ -38,9 +38,6 @@ if isempty(VERSION.prerelease)
     Pkg.add("JET")
     Pkg.add("AllocCheck")
     Pkg.add("Aqua")
-    Pkg.add("Lux")
-    Pkg.add("Optimisers")
-    Pkg.add("Zygote")
 
     using JET
     using AllocCheck
@@ -50,7 +47,10 @@ if isempty(VERSION.prerelease)
         include("./performance.jl")
     end
 
-    @testset "Lux Extension (ML-∂SGP4)" verbose = true begin
+    Pkg.develop(path=joinpath(@__DIR__, "..", "..", "MLdSGP4"))
+    using MLdSGP4
+
+    @testset "MLdSGP4 Extension" verbose = true begin
         include("./extension.jl")
     end
 else

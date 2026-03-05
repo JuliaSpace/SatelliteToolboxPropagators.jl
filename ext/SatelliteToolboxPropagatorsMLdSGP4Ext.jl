@@ -1,9 +1,7 @@
 module SatelliteToolboxPropagatorsMLdSGP4Ext
 
 using SatelliteToolboxPropagators
-using Lux
-using Optimisers
-using Zygote
+using MLdSGP4
 
 import SatelliteToolboxPropagators: Propagators, OrbitPropagatorMLdSGP4
 

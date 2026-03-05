@@ -271,9 +271,9 @@ end
 
 ML-corrected SGP4 orbit propagator.
 
-The inner propagator data `D` is the `MLdSGP4` type defined in the
-`SatelliteToolboxSgp4LuxExt` extension.  It is kept generic here so that
-`SatelliteToolboxPropagators` does not depend on Lux.jl.
+The inner propagator data `D` is the `MLdSGP4Propagator` type from the `MLdSGP4.jl`
+package.  It is kept generic here so that `SatelliteToolboxPropagators` does not depend
+on MLdSGP4.jl directly.
 
 # Fields
 

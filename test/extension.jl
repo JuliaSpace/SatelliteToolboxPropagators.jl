@@ -17,7 +17,6 @@
 #
 ############################################################################################
 
-using Lux, Optimisers, Zygote
 using LinearAlgebra
 
 @testset "ML-∂SGP4 orbit propagator" verbose = true begin
