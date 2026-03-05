@@ -20,8 +20,9 @@ The current supported propagators are:
 2. J2 osculating analytical orbit propagator;
 3. J4 analytical orbit propagator;
 4. J4 osculating analytical orbit propagator;
-5. SGP4/SDP4 orbit propagator; and
-6. Two body analytical orbit propagator.
+5. SGP4/SDP4 orbit propagator;
+6. Two body analytical orbit propagator; and
+7. ML-∂SGP4 neural-network-corrected SGP4 (requires [MLdSGP4.jl](https://github.com/HAMMERHEAD-Space/MLdSGP4.jl)).
 
 ## Installation
 
