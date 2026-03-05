@@ -47,7 +47,7 @@ if isempty(VERSION.prerelease)
         include("./performance.jl")
     end
 
-    Pkg.develop(path=joinpath(@__DIR__, "..", "..", "MLdSGP4"))
+    Pkg.add("MLdSGP4")
     using MLdSGP4
 
     @testset "MLdSGP4 Extension" verbose = true begin
