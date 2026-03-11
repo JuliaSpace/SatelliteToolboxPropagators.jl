@@ -11,7 +11,6 @@ export OrbitPropagatorJ2
 export OrbitPropagatorJ2Osculating
 export OrbitPropagatorJ4
 export OrbitPropagatorJ4Osculating
-export OrbitPropagatorMLdSGP4
 export OrbitPropagatorSgp4
 export OrbitPropagatorTwoBody
 
@@ -262,25 +261,6 @@ SGP4 orbit propagator.
 """
 struct OrbitPropagatorSgp4{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T}
     sgp4d::Sgp4Propagator{Tepoch, T}
-end
-
-# == ML-∂SGP4 Orbit Propagator =============================================================
-
-"""
-    OrbitPropagatorMLdSGP4{Tepoch, T, D} <: OrbitPropagator{Tepoch, T}
-
-ML-corrected SGP4 orbit propagator.
-
-The inner propagator data `D` is the `MLdSGP4Propagator` type from the `MLdSGP4.jl`
-package.  It is kept generic here so that `SatelliteToolboxPropagators` does not depend
-on MLdSGP4.jl directly.
-
-# Fields
-
-- `mlsgp4d::D`: Structure that stores the ML-∂SGP4 orbit propagator data.
-"""
-struct OrbitPropagatorMLdSGP4{Tepoch<:Number, T<:Number, D} <: OrbitPropagator{Tepoch, T}
-    mlsgp4d::D
 end
 
 # == Two Orbit Propagator ==================================================================

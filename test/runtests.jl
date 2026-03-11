@@ -46,13 +46,6 @@ if isempty(VERSION.prerelease)
     @testset "Performance Tests" verbose = true begin
         include("./performance.jl")
     end
-
-    Pkg.add("MLdSGP4")
-    using MLdSGP4
-
-    @testset "MLdSGP4 Extension" verbose = true begin
-        include("./extension.jl")
-    end
 else
     @warn "Performance checks and extensions not guaranteed to work on julia-nightly, skipping tests"
 end
