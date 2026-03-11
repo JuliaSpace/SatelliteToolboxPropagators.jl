@@ -43,6 +43,8 @@ if isempty(VERSION.prerelease)
     using AllocCheck
     using Aqua
 
+    using ForwardDiff
+
     @testset "Performance Tests" verbose = true begin
         include("./performance.jl")
     end

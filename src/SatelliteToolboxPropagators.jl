@@ -2,6 +2,7 @@ module SatelliteToolboxPropagators
 
 using Crayons
 using Dates
+using ForwardDiff
 using Printf
 using LinearAlgebra
 using Reexport
@@ -46,7 +47,6 @@ include("./api/j2.jl")
 include("./api/j2osc.jl")
 include("./api/j4.jl")
 include("./api/j4osc.jl")
-include("./api/ml_dsgp4.jl")
 include("./api/sgp4.jl")
 include("./api/twobody.jl")
 

@@ -210,7 +210,7 @@ function twobody!(
     f_k = mean_to_true_anomaly(e₀, M_k)
 
     # Assemble the current mean elements.
-    orbk = KeplerianElements(epoch + Tepoch(Δt) / 86400, a₀, e₀, i₀, Ω₀, ω₀, f_k)
+    orbk = KeplerianElements(epoch + Tepoch(t) / 86400, a₀, e₀, i₀, Ω₀, ω₀, f_k)
 
     # Compute the position and velocity vectors given the orbital elements.
     r_i_k, v_i_k = kepler_to_rv(orbk)

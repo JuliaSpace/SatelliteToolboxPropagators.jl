@@ -283,7 +283,7 @@ function j4osc!(j4oscd::J4OsculatingPropagator{Tepoch, T}, t::Number) where {Tep
 
     # Assemble the current osculating elements.
     orbk = KeplerianElements(
-        j4d.orb₀.t + Tepoch(Δt) / 86400,
+        j4d.orb₀.t + Tepoch(t) / 86400,
         a_osc_k,
         e_osc_k,
         i_osc_k,
@@ -329,13 +329,17 @@ the array `vjd` [Julian Day].
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
     the osculating elements in `vr_i` and `vv_i`.
     (**Default** = nothing)
+- `jacobian_method::Union{FiniteDiffJacobian, ForwardDiffJacobian}`: Method used to compute
+    the Jacobian matrix. Use `FiniteDiffJacobian()` for finite differences or
+    `ForwardDiffJacobian()` for `ForwardDiff.jl` automatic differentiation.
+    (**Default** = `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix.
+    finite-difference when calculating the Jacobian matrix. Only used with `FiniteDiffJacobian()`.
     (**Default** = 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until it absolute value is higher than
-    `jacobian_perturbation_tol`.
+    `jacobian_perturbation_tol`. Only used with `FiniteDiffJacobian()`.
     (**Default** = 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
     (**Default** = 50)
@@ -435,13 +439,17 @@ the array `vjd` [Julian Day].
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
     the osculating elements in `vr_i` and `vv_i`.
     (**Default** = nothing)
+- `jacobian_method::Union{FiniteDiffJacobian, ForwardDiffJacobian}`: Method used to compute
+    the Jacobian matrix. Use `FiniteDiffJacobian()` for finite differences or
+    `ForwardDiffJacobian()` for `ForwardDiff.jl` automatic differentiation.
+    (**Default** = `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix.
+    finite-difference when calculating the Jacobian matrix. Only used with `FiniteDiffJacobian()`.
     (**Default** = 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until it absolute value is higher than
-    `jacobian_perturbation_tol`.
+    `jacobian_perturbation_tol`. Only used with `FiniteDiffJacobian()`.
     (**Default** = 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
     (**Default** = 50)
@@ -507,6 +515,7 @@ function fit_j4osc_mean_elements!(
     atol::Number                                     = 2e-4,
     rtol::Number                                     = 2e-4,
     initial_guess::Union{Nothing, KeplerianElements} = nothing,
+    jacobian_method::_JACOBIAN_METHOD                = FiniteDiffJacobian(),
     jacobian_perturbation::Number                    = 1e-3,
     jacobian_perturbation_tol::Number                = 1e-7,
     max_iterations::Int                              = 50,
@@ -604,6 +613,8 @@ function fit_j4osc_mean_elements!(
     # after the iterations.
     local ΣJ′WJ
 
+    j4oscd_ad = jacobian_method isa ForwardDiffJacobian ? _create_j4osc_ad_propagator(j4oscd) : nothing
+
     # Loop until the maximum allowed iteration.
     @inbounds @views for it in 1:max_iterations
         x₁ = x₂
@@ -637,12 +648,14 @@ function fit_j4osc_mean_elements!(
 
             # Compute the Jacobian in-place.
             J = _j4osc_jacobian(
+                jacobian_method,
                 j4oscd,
                 Δt,
                 x₁,
                 ŷ;
                 perturbation     = jacobian_perturbation,
-                perturbation_tol = jacobian_perturbation_tol
+                perturbation_tol = jacobian_perturbation_tol,
+                j4oscd_ad        = j4oscd_ad
             )
 
             # Accumulation.
@@ -864,47 +877,33 @@ end
 #                                    Private Functions                                     #
 ############################################################################################
 
-"""
-    _j4osc_jacobian(j4oscd::J4OsculatingPropagator{Tepoch, T}, Δt::Number, x₁::SVector{6, T}, y₁::SVector{6, T}; kwargs...)) where {T<:Number, Tepoch<:Number} -> SMatrix{6, 6, T}
+function _create_j4osc_ad_propagator(j4oscd::J4OsculatingPropagator{Tepoch, T}) where {Tepoch, T}
+    tag  = ForwardDiff.Tag{Nothing, T}
+    D    = ForwardDiff.Dual{tag, T, 6}
+    j4c  = j4oscd.j4d.j4c
 
-Compute the J4 osculating orbit propagator Jacobian by finite-differences using the
-propagator `j4oscd` at instant `Δt` considering the input mean elements `x₁` that must
-provide the output vector `y₁`. Hence:
+    ad = J4OsculatingPropagator{Tepoch, D}()
+    ad.j4d = J4Propagator{Tepoch, D}()
+    ad.j4d.j4c = J4PropagatorConstants{D}(D(j4c.R0), D(j4c.μm), D(j4c.J2), D(j4c.J4))
+    return ad
+end
 
-        ∂j4osc(x, Δt) │
-    J = ───────────── │
-              ∂x      │ x = x₁
-
-# Keywords
-
-- `perturbation::T`: Initial state perturbation to compute the finite-difference:
-    `Δx = x * perturbation`.
-    (**Default** = 1e-3)
-- `perturbation_tol::T`: Tolerance to accept the perturbation. If the computed perturbation
-    is lower than `perturbation_tol`, we increase it until it absolute value is higher than
-    `perturbation_tol`.
-    (**Default** = 1e-7)
-"""
 function _j4osc_jacobian(
+    ::FiniteDiffJacobian,
     j4oscd::J4OsculatingPropagator{Tepoch, T},
     Δt::Number,
     x₁::SVector{6, T},
     y₁::SVector{6, T};
     perturbation::Number = T(1e-3),
-    perturbation_tol::Number = T(1e-7)
+    perturbation_tol::Number = T(1e-7),
+    j4oscd_ad::Union{Nothing, J4OsculatingPropagator} = nothing
 ) where {T<:Number, Tepoch<:Number}
 
-    # Allocate the `MMatrix` that will have the Jacobian.
     J = MMatrix{6, 6, T}(undef)
-
-    # Auxiliary variables.
     x₂ = x₁
 
     @inbounds @views for j in 1:6
-        # State that will be perturbed.
         α = x₂[j]
-
-        # Obtain the perturbation, taking care to avoid small values.
         ϵ = α * T(perturbation)
 
         for _ in 1:5
@@ -912,38 +911,52 @@ function _j4osc_jacobian(
             ϵ *= T(1.4)
         end
 
-        # Avoid division by zero in cases that α is very small. In this situation, we force
-        # `|ϵ| = perturbation_tol`.
         if abs(ϵ) < perturbation_tol
             ϵ = signbit(α) ? -perturbation_tol : perturbation_tol
         end
 
         α += ϵ
-
-        # Modify the perturbed state.
         x₂ = setindex(x₂, α, j)
 
-        # Obtain the Jacobian by finite differentiation.
         orb = rv_to_kepler(x₂[1:3], x₂[4:6], j4oscd.j4d.orb₀.t)
         j4osc_init!(j4oscd, orb)
         r_i, v_i = j4osc!(j4oscd, Δt)
-        y₂ = @SVector [
-            r_i[1],
-            r_i[2],
-            r_i[3],
-            v_i[1],
-            v_i[2],
-            v_i[3],
-        ]
+        y₂ = @SVector [r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3]]
 
         J[:, j] .= (y₂ .- y₁) ./ ϵ
-
-        # Restore the value of the perturbed state for the next iteration.
         x₂ = setindex(x₂, x₁[j], j)
     end
 
-    # Convert the Jacobian to a static matrix to avoid allocations.
-    Js = SMatrix{6, 6, T}(J)
+    return SMatrix{6, 6, T}(J)
+end
 
-    return Js
+function _j4osc_jacobian(
+    ::ForwardDiffJacobian,
+    j4oscd::J4OsculatingPropagator{Tepoch, T},
+    Δt::Number,
+    x₁::SVector{6, T},
+    y₁::SVector{6, T};
+    perturbation::Number = T(1e-3),
+    perturbation_tol::Number = T(1e-7),
+    j4oscd_ad::Union{Nothing, J4OsculatingPropagator} = nothing
+) where {T<:Number, Tepoch<:Number}
+    if isnothing(j4oscd_ad)
+        j4oscd_ad = _create_j4osc_ad_propagator(j4oscd)
+    end
+    epoch = j4oscd.j4d.orb₀.t
+    N     = 6
+    tag   = ForwardDiff.Tag{Nothing, T}
+    D     = ForwardDiff.Dual{tag, T, N}
+
+    seeds  = ntuple(i -> ForwardDiff.Partials(ntuple(j -> T(i == j), Val(N))), Val(N))
+    x_dual = SVector{N, D}(ntuple(i -> D(x₁[i], seeds[i]), Val(N)))
+
+    orb = rv_to_kepler(x_dual[SOneTo(3)], x_dual[StaticArrays.SUnitRange(4, 6)], epoch)
+    j4osc_init!(j4oscd_ad, orb)
+    r, v   = j4osc!(j4oscd_ad, Δt)
+    y_dual = vcat(r, v)
+
+    return SMatrix{6, N, T}(
+        ntuple(k -> ForwardDiff.partials(y_dual[mod1(k, 6)], cld(k, 6)), Val(6 * N))
+    )
 end

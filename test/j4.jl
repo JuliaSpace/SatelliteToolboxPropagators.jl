@@ -485,6 +485,69 @@ end
     end
 end
 
+@testset "Fitting Mean Elements for the J4 Propagator (ForwardDiffJacobian)" verbose = true begin
+    orb_input = KeplerianElements(
+        DateTime("2023-01-01") |> datetime2julian,
+        7130.982e3,
+        0.001111,
+        98.405 |> deg2rad,
+        90     |> deg2rad,
+        200    |> deg2rad,
+        45     |> deg2rad
+    )
+
+    orbp = Propagators.init(Val(:J4), orb_input)
+    ret  = Propagators.propagate!.(orbp, 0:10:12_000)
+    vr_i = first.(ret)
+    vv_i = last.(ret)
+    vjd  = Propagators.epoch(orbp) .+ (0:10:12_000) ./ 86400
+
+    @testset "Without Initial Guess" begin
+        orb, P = redirect_stdout(devnull) do
+            Propagators.fit_mean_elements(
+                Val(:J4),
+                vjd,
+                vr_i,
+                vv_i;
+                mean_elements_epoch = vjd[begin],
+                jacobian_method = ForwardDiffJacobian(),
+            )
+        end
+
+        @test orb.t ≈ orb_input.t
+        @test orb.a ≈ orb_input.a
+        @test orb.e ≈ orb_input.e
+        @test orb.i ≈ orb_input.i
+        @test orb.Ω ≈ orb_input.Ω
+        @test orb.ω ≈ orb_input.ω
+        @test orb.f ≈ orb_input.f atol = 1e-6
+        @test P isa SMatrix{6, 6, Float64}
+    end
+
+    @testset "With Initial Guess" begin
+        orb, P = redirect_stdout(devnull) do
+            Propagators.fit_mean_elements(
+                Val(:J4),
+                vjd,
+                vr_i,
+                vv_i;
+                max_iterations = 3,
+                mean_elements_epoch = vjd[begin],
+                initial_guess = orb_input,
+                jacobian_method = ForwardDiffJacobian(),
+            )
+        end
+
+        @test orb.t ≈ orb_input.t
+        @test orb.a ≈ orb_input.a
+        @test orb.e ≈ orb_input.e
+        @test orb.i ≈ orb_input.i
+        @test orb.Ω ≈ orb_input.Ω
+        @test orb.ω ≈ orb_input.ω
+        @test orb.f ≈ orb_input.f atol = 1e-6
+    end
+end
+
 @testset "Update J4 Mean Elements Epoch" begin
     orb_input = KeplerianElements(
         DateTime("2023-01-01") |> datetime2julian,
