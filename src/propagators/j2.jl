@@ -148,12 +148,30 @@ Create and initialize the J2 orbit propagator structure using the mean Keplerian
 function j2_init(
     orb₀::KeplerianElements{Tepoch, Tkepler};
     j2c::J2PropagatorConstants{T} = j2c_egm2008
-) where {Tepoch<:Number, Tkepler<:Number, T<:Number}
+) where {Tepoch<:Number, Tkepler<:AbstractFloat, T<:Number}
     # Allocate the propagator structure.
     j2d = J2Propagator{Tepoch, T}()
 
     # Assign the constants, which are used in the initialization.
     j2d.j2c = j2c
+
+    # Initialize the propagator and return.
+    j2_init!(j2d, orb₀)
+
+    return j2d
+end
+
+function j2_init(
+    orb₀::KeplerianElements{Tepoch, Tkepler};
+    j2c::J2PropagatorConstants{Tj2c} = j2c_egm2008
+) where {Tepoch<:Number, Tkepler<:Number, Tj2c<:Number}
+    T = promote_type(Tj2c, Tkepler)
+
+    # Allocate the propagator structure.
+    j2d = J2Propagator{Tepoch, T}()
+
+    # Assign the constants, which are used in the initialization.
+    j2d.j2c = J2PropagatorConstants{T}(j2c.R0, j2c.μm, j2c.J2)
 
     # Initialize the propagator and return.
     j2_init!(j2d, orb₀)
@@ -312,7 +330,7 @@ function j2!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:
     f_k = mean_to_true_anomaly(e₀, M_k)
 
     # Assemble the current mean elements.
-    orbk = KeplerianElements(epoch + Tepoch(Δt) / 86400, a₀, e₀, i₀, Ω_k, ω_k, f_k)
+    orbk = KeplerianElements(epoch + Tepoch(t) / 86400, a₀, e₀, i₀, Ω_k, ω_k, f_k)
 
     # Compute the position and velocity vectors given the orbital elements.
     r_i_k, v_i_k = kepler_to_rv(orbk)
@@ -352,13 +370,18 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
     the osculating elements in `vr_i` and `vv_i`.
     (**Default** = nothing)
+- `jacobian_method::Union{FiniteDiffJacobian, ForwardDiffJacobian}`: Method used to compute
+    the Jacobian matrix. Use `FiniteDiffJacobian()` for finite differences or
+    `ForwardDiffJacobian()` for `ForwardDiff.jl` automatic differentiation.
+    (**Default** = `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix.
+    finite-difference when calculating the Jacobian matrix. Only used with
+    `FiniteDiffJacobian()`.
     (**Default** = 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until it absolute value is higher than
-    `jacobian_perturbation_tol`.
+    `jacobian_perturbation_tol`. Only used with `FiniteDiffJacobian()`.
     (**Default** = 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
     (**Default** = 50)
@@ -466,13 +489,18 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
     the osculating elements in `vr_i` and `vv_i`.
     (**Default** = nothing)
+- `jacobian_method::Union{FiniteDiffJacobian, ForwardDiffJacobian}`: Method used to compute
+    the Jacobian matrix. Use `FiniteDiffJacobian()` for finite differences or
+    `ForwardDiffJacobian()` for `ForwardDiff.jl` automatic differentiation.
+    (**Default** = `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix.
+    finite-difference when calculating the Jacobian matrix. Only used with
+    `FiniteDiffJacobian()`.
     (**Default** = 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until it absolute value is higher than
-    `jacobian_perturbation_tol`.
+    `jacobian_perturbation_tol`. Only used with `FiniteDiffJacobian()`.
     (**Default** = 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
     (**Default** = 50)
@@ -550,6 +578,7 @@ function fit_j2_mean_elements!(
     atol::Number                                     = 2e-4,
     rtol::Number                                     = 2e-4,
     initial_guess::Union{Nothing, KeplerianElements} = nothing,
+    jacobian_method::_JACOBIAN_METHOD                = FiniteDiffJacobian(),
     jacobian_perturbation::Number                    = 1e-3,
     jacobian_perturbation_tol::Number                = 1e-7,
     max_iterations::Int                              = 50,
@@ -647,6 +676,8 @@ function fit_j2_mean_elements!(
     # after the iterations.
     local ΣJ′WJ
 
+    j2d_ad = jacobian_method isa ForwardDiffJacobian ? _create_j2_ad_propagator(j2d) : nothing
+
     # Loop until the maximum allowed iteration.
     @inbounds @views for it in 1:max_iterations
         x₁ = x₂
@@ -680,12 +711,14 @@ function fit_j2_mean_elements!(
 
             # Compute the Jacobian in-place.
             J = _j2_jacobian(
+                jacobian_method,
                 j2d,
                 Δt,
                 x₁,
                 ŷ;
                 perturbation     = jacobian_perturbation,
-                perturbation_tol = jacobian_perturbation_tol
+                perturbation_tol = jacobian_perturbation_tol,
+                j2d_ad           = j2d_ad
             )
 
             # Accumulation.
@@ -903,47 +936,32 @@ end
 #                                    Private Functions                                     #
 ############################################################################################
 
-"""
-    _j2_jacobian(j2d::J2OsculatingPropagator{Tepoch, T}, Δt::Number, x₁::SVector{6, T}, y₁::SVector{6, T}; kwargs...)) where {T<:Number, Tepoch<:Number} -> SMatrix{6, 6, T}
+function _create_j2_ad_propagator(j2d::J2Propagator{Tepoch, T}) where {Tepoch, T}
+    tag  = ForwardDiff.Tag{Nothing, T}
+    D    = ForwardDiff.Dual{tag, T, 6}
+    j2c  = j2d.j2c
 
-Compute the J2 orbit propagator Jacobian by finite-differences using the propagator `j2d`
-at instant `Δt` considering the input mean elements `x₁` that must provide the output vector
-`y₁`. Hence:
+    ad = J2Propagator{Tepoch, D}()
+    ad.j2c = J2PropagatorConstants{D}(D(j2c.R0), D(j2c.μm), D(j2c.J2))
+    return ad
+end
 
-        ∂j2(x, Δt) │
-    J = ────────── │
-            ∂x     │ x = x₁
-
-# Keywords
-
-- `perturbation::T`: Initial state perturbation to compute the finite-difference:
-    `Δx = x * perturbation`.
-    (**Default** = 1e-3)
-- `perturbation_tol::T`: Tolerance to accept the perturbation. If the computed perturbation
-    is lower than `perturbation_tol`, we increase it until it absolute value is higher than
-    `perturbation_tol`.
-    (**Default** = 1e-7)
-"""
 function _j2_jacobian(
+    ::FiniteDiffJacobian,
     j2d::J2Propagator{Tepoch, T},
     Δt::Number,
     x₁::SVector{6, T},
     y₁::SVector{6, T};
     perturbation::Number = T(1e-3),
-    perturbation_tol::Number = T(1e-7)
+    perturbation_tol::Number = T(1e-7),
+    j2d_ad::Union{Nothing, J2Propagator} = nothing
 ) where {T<:Number, Tepoch<:Number}
 
-    # Allocate the `MMatrix` that will have the Jacobian.
     J = MMatrix{6, 6, T}(undef)
-
-    # Auxiliary variables.
     x₂ = x₁
 
     @inbounds @views for j in 1:6
-        # State that will be perturbed.
         α = x₂[j]
-
-        # Obtain the perturbation, taking care to avoid small values.
         ϵ = α * T(perturbation)
 
         for _ in 1:5
@@ -951,38 +969,53 @@ function _j2_jacobian(
             ϵ *= T(1.4)
         end
 
-        # Avoid division by zero in cases that α is very small. In this situation, we force
-        # `|ϵ| = perturbation_tol`.
         if abs(ϵ) < perturbation_tol
             ϵ = signbit(α) ? -perturbation_tol : perturbation_tol
         end
 
         α += ϵ
-
-        # Modify the perturbed state.
         x₂ = setindex(x₂, α, j)
 
-        # Obtain the Jacobian by finite differentiation.
         orb = rv_to_kepler(x₂[1:3], x₂[4:6], j2d.orb₀.t)
         j2_init!(j2d, orb)
         r_i, v_i = j2!(j2d, Δt)
-        y₂ = @SVector [
-            r_i[1],
-            r_i[2],
-            r_i[3],
-            v_i[1],
-            v_i[2],
-            v_i[3],
-        ]
+        y₂ = @SVector [r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3]]
 
         J[:, j] .= (y₂ .- y₁) ./ ϵ
-
-        # Restore the value of the perturbed state for the next iteration.
         x₂ = setindex(x₂, x₁[j], j)
     end
 
-    # Convert the Jacobian to a static matrix to avoid allocations.
-    Js = SMatrix{6, 6, T}(J)
+    return SMatrix{6, 6, T}(J)
+end
 
-    return Js
+function _j2_jacobian(
+    ::ForwardDiffJacobian,
+    j2d::J2Propagator{Tepoch, T},
+    Δt::Number,
+    x₁::SVector{6, T},
+    y₁::SVector{6, T};
+    perturbation::Number = T(1e-3),
+    perturbation_tol::Number = T(1e-7),
+    j2d_ad::Union{Nothing, J2Propagator} = nothing
+) where {T<:Number, Tepoch<:Number}
+    epoch = j2d.orb₀.t
+    N     = 6
+    tag   = ForwardDiff.Tag{Nothing, T}
+    D     = ForwardDiff.Dual{tag, T, N}
+
+    if isnothing(j2d_ad)
+        j2d_ad = _create_j2_ad_propagator(j2d)
+    end
+
+    seeds  = ntuple(i -> ForwardDiff.Partials(ntuple(j -> T(i == j), Val(N))), Val(N))
+    x_dual = SVector{N, D}(ntuple(i -> D(x₁[i], seeds[i]), Val(N)))
+
+    orb = rv_to_kepler(x_dual[SOneTo(3)], x_dual[StaticArrays.SUnitRange(4, 6)], epoch)
+    j2_init!(j2d_ad, orb)
+    r, v   = j2!(j2d_ad, Δt)
+    y_dual = vcat(r, v)
+
+    return SMatrix{6, N, T}(
+        ntuple(k -> ForwardDiff.partials(y_dual[mod1(k, 6)], cld(k, 6)), Val(6 * N))
+    )
 end

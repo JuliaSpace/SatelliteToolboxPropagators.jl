@@ -23,6 +23,10 @@ makedocs(
             "SGP4/SDP4" => "man/propagators/sgp4.md",
             "Two-Body" => "man/propagators/twobody.md"
         ],
+        "Guides" => [
+            "Jacobian Methods" => "man/jacobian_methods.md",
+            "Covariance Propagation" => "man/covariance_propagation.md",
+        ],
         "Library" => "lib/library.md",
     ],
 )

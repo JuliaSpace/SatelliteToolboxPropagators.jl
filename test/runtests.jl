@@ -31,3 +31,23 @@ end
 @testset "Orbit Propagator API" verbose = true begin
     include("./api.jl")
 end
+
+if isempty(VERSION.prerelease)
+    using Pkg
+
+    Pkg.add("JET")
+    Pkg.add("AllocCheck")
+    Pkg.add("Aqua")
+
+    using JET
+    using AllocCheck
+    using Aqua
+
+    using ForwardDiff
+
+    @testset "Performance Tests" verbose = true begin
+        include("./performance.jl")
+    end
+else
+    @warn "Performance checks and extensions not guaranteed to work on julia-nightly, skipping tests"
+end

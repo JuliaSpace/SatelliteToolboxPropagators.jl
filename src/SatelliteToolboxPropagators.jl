@@ -2,6 +2,7 @@ module SatelliteToolboxPropagators
 
 using Crayons
 using Dates
+using ForwardDiff
 using Printf
 using LinearAlgebra
 using Reexport
