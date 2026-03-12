@@ -4,8 +4,6 @@
 #
 ############################################################################################
 
-const _JACOBIAN_METHOD = Union{SatelliteToolboxSgp4.FiniteDiffJacobian, SatelliteToolboxSgp4.ForwardDiffJacobian}
-
 export J2PropagatorConstants, J2Propagator, J2OsculatingPropagator
 export J4PropagatorConstants, J4Propagator, J4OsculatingPropagator
 export TwoBodyPropagator

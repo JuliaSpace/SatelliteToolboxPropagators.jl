@@ -612,7 +612,7 @@ function fit_j4_mean_elements!(
     atol::Number                                     = 2e-4,
     rtol::Number                                     = 2e-4,
     initial_guess::Union{Nothing, KeplerianElements} = nothing,
-    jacobian_method::_JACOBIAN_METHOD                = FiniteDiffJacobian(),
+    jacobian_method::AbstractJacobianMethod          = FiniteDiffJacobian(),
     jacobian_perturbation::Number                    = 1e-3,
     jacobian_perturbation_tol::Number                = 1e-7,
     max_iterations::Int                              = 50,
