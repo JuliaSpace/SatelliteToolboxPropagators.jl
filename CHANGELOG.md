@@ -1,6 +1,12 @@
 SatelliteToolboxPropagator.jl Changelog
 =======================================
 
+Version 1.1.0
+-------------
+
+- ![Feature][badge-feature] The package now supports differentiability in all propagators.
+  (PR [#5][gh-pr-5])
+
 Version 1.0.0
 -------------
 
@@ -95,3 +101,5 @@ Version 0.1.0
 [badge-enhancement]: https://img.shields.io/badge/Enhancement-blue.svg
 [badge-bugfix]: https://img.shields.io/badge/Bugfix-purple.svg
 [badge-info]: https://img.shields.io/badge/Info-gray.svg
+
+[gh-pr-5]: https://github.com/JuliaSpace/SatelliteToolboxPropagators.jl/pull/5
