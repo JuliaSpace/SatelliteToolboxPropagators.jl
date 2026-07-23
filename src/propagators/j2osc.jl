@@ -211,7 +211,7 @@ function j2osc!(
     Ω_k  = mean_orbk.Ω
     ω_k  = mean_orbk.ω
     f_k  = mean_orbk.f
-    M_k  = true_to_mean_anomaly(e_k, f_k)
+    M_k  = j2d.M_k
     p_k  = a_k * (1 - e_k²)
     p_k² = p_k * p_k
     u_k  = ω_k + f_k
@@ -538,17 +538,16 @@ function fit_j2osc_mean_elements!(
     cb = has_color ? _B : ""
     cy = has_color ? _Y : ""
 
-    # Assemble the weight matrix.
-    W = Diagonal(
-        @SVector T[
-            weight_vector[1],
-            weight_vector[2],
-            weight_vector[3],
-            weight_vector[4],
-            weight_vector[5],
-            weight_vector[6]
-        ]
-    )
+    # Assemble the weight vector. Since the weight matrix is diagonal, we store only the
+    # diagonal to improve performance by avoiding the Diagonal wrapper.
+    W = @SVector T[
+        weight_vector[1],
+        weight_vector[2],
+        weight_vector[3],
+        weight_vector[4],
+        weight_vector[5],
+        weight_vector[6],
+    ]
 
     # Initial guess of the mean elements.
     #
@@ -592,7 +591,7 @@ function fit_j2osc_mean_elements!(
     P = SMatrix{num_states, num_states, T}(I)
 
     # Variable to store the last residue.
-    local σ_i_₁
+    σ_i_₁ = T(0)
 
     # Variable to store how many iterations the residue increased. This is used to account
     # for divergence.
@@ -678,9 +677,9 @@ function fit_j2osc_mean_elements!(
             )
 
             # Accumulation.
-            ΣJ′WJ += J' * W * J
-            ΣJ′Wb += J' * W * b
-            σ_i   += b' * W * b
+            ΣJ′WJ += J' * (W .* J)
+            ΣJ′Wb += J' * (W .* b)
+            σ_i   += dot(b, W .* b)
             σp_i  += dot(b[1:3], b[1:3])
             σv_i  += dot(b[4:6], b[4:6])
         end

@@ -265,6 +265,7 @@ function j4_init!(
     j4d.∂Ω   = ∂Ω
     j4d.∂ω   = ∂ω
     j4d.n̄    = n̄
+    j4d.M_k  = M₀
 
     return nothing
 end
@@ -331,17 +332,17 @@ frame with true equator.
 """
 function j4!(j4d::J4Propagator{Tepoch, T}, t::Number) where {Tepoch <: Number, T <: Number}
     # Unpack the variables.
-    orb₀   = j4d.orb₀
-    M₀     = j4d.M₀
-    ∂Ω     = j4d.∂Ω
-    ∂ω     = j4d.∂ω
-    n̄      = j4d.n̄
-    epoch  = orb₀.t
-    a₀     = orb₀.a
-    e₀     = orb₀.e
-    i₀     = orb₀.i
-    Ω₀     = orb₀.Ω
-    ω₀     = orb₀.ω
+    orb₀  = j4d.orb₀
+    M₀    = j4d.M₀
+    ∂Ω    = j4d.∂Ω
+    ∂ω    = j4d.∂ω
+    n̄     = j4d.n̄
+    epoch = orb₀.t
+    a₀    = orb₀.a
+    e₀    = orb₀.e
+    i₀    = orb₀.i
+    Ω₀    = orb₀.Ω
+    ω₀    = orb₀.ω
 
     # Time elapsed since epoch.
     Δt = T(t)
@@ -362,6 +363,7 @@ function j4!(j4d::J4Propagator{Tepoch, T}, t::Number) where {Tepoch <: Number, T
 
     # Update the J2 orbit propagator structure.
     j4d.Δt   = Δt
+    j4d.M_k  = M_k
     j4d.orbk = orbk
 
     # Return the position and velocity vector represented in the inertial reference frame.
@@ -628,17 +630,16 @@ function fit_j4_mean_elements!(
     cb = has_color ? _B : ""
     cy = has_color ? _Y : ""
 
-    # Assemble the weight matrix.
-    W = Diagonal(
-        @SVector T[
-            weight_vector[1],
-            weight_vector[2],
-            weight_vector[3],
-            weight_vector[4],
-            weight_vector[5],
-            weight_vector[6]
-        ]
-    )
+    # Assemble the weight vector. Since the weight matrix is diagonal, we store only the
+    # diagonal to improve performance by avoiding the Diagonal wrapper.
+    W = @SVector T[
+        weight_vector[1],
+        weight_vector[2],
+        weight_vector[3],
+        weight_vector[4],
+        weight_vector[5],
+        weight_vector[6],
+    ]
 
     # Initial guess of the mean elements.
     #
@@ -765,9 +766,9 @@ function fit_j4_mean_elements!(
             )
 
             # Accumulation.
-            ΣJ′WJ += J' * W * J
-            ΣJ′Wb += J' * W * b
-            σ_i   += b' * W * b
+            ΣJ′WJ += J' * (W .* J)
+            ΣJ′Wb += J' * (W .* b)
+            σ_i   += dot(b, W .* b)
             σp_i  += dot(b[1:3], b[1:3])
             σv_i  += dot(b[4:6], b[4:6])
         end

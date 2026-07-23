@@ -210,7 +210,7 @@ function j4osc!(
     Ω_k  = mean_orbk.Ω
     ω_k  = mean_orbk.ω
     f_k  = mean_orbk.f
-    M_k  = true_to_mean_anomaly(e_k, f_k)
+    M_k  = j4d.M_k
     p_k  = a_k * (1 - e_k²)
     p_k² = p_k * p_k
     u_k  = ω_k + f_k
@@ -537,17 +537,16 @@ function fit_j4osc_mean_elements!(
     cb = has_color ? _B : ""
     cy = has_color ? _Y : ""
 
-    # Assemble the weight matrix.
-    W = Diagonal(
-        @SVector T[
-            weight_vector[1],
-            weight_vector[2],
-            weight_vector[3],
-            weight_vector[4],
-            weight_vector[5],
-            weight_vector[6]
-        ]
-    )
+    # Assemble the weight vector. Since the weight matrix is diagonal, we store only the
+    # diagonal to improve performance by avoiding the Diagonal wrapper.
+    W = @SVector T[
+        weight_vector[1],
+        weight_vector[2],
+        weight_vector[3],
+        weight_vector[4],
+        weight_vector[5],
+        weight_vector[6],
+    ]
 
     # Initial guess of the mean elements.
     #
@@ -627,7 +626,7 @@ function fit_j4osc_mean_elements!(
 
     # We need a reference to the covariance inverse because we will invert it and return
     # after the iterations.
-    local ΣJ′WJ
+    ΣJ′WJ = @SMatrix zeros(T, num_states, num_states)
 
     j4oscd_ad =
         jacobian_method isa ForwardDiffJacobian ? _create_j4osc_ad_propagator(j4oscd) :
@@ -677,9 +676,9 @@ function fit_j4osc_mean_elements!(
             )
 
             # Accumulation.
-            ΣJ′WJ += J' * W * J
-            ΣJ′Wb += J' * W * b
-            σ_i   += b' * W * b
+            ΣJ′WJ += J' * (W .* J)
+            ΣJ′Wb += J' * (W .* b)
+            σ_i   += dot(b, W .* b)
             σp_i  += dot(b[1:3], b[1:3])
             σv_i  += dot(b[4:6], b[4:6])
         end
@@ -704,8 +703,16 @@ function fit_j4osc_mean_elements!(
 
         # We cannot compute the RMSE variation in the first iteration.
         if it == 1
-            verbose &&
-                @printf("\x1b[A\x1b[2K\r%sPROGRESS:%s %10d %20g %20g %20g %20s\n", cb, cd, it, σp_i / 1000, σv_i / 1000, σ_i, "---")
+            verbose && @printf(
+                "\x1b[A\x1b[2K\r%sPROGRESS:%s %10d %20g %20g %20g %20s\n",
+                cb,
+                cd,
+                it,
+                σp_i / 1000,
+                σv_i / 1000,
+                σ_i,
+                "---"
+            )
 
         else
             # Compute the RMSE variation.
