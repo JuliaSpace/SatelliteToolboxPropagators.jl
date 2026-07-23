@@ -12,9 +12,9 @@ PrecompileTools.@setup_workload begin
         Float64(8000e3),
         Float64(0.015),
         Float64(28.5) |> deg2rad,
-        Float64(100)  |> deg2rad,
-        Float64(200)  |> deg2rad,
-        Float64(45)   |> deg2rad
+        Float64(100) |> deg2rad,
+        Float64(200) |> deg2rad,
+        Float64(45) |> deg2rad,
     )
 
     tle = tle"""
@@ -25,28 +25,25 @@ PrecompileTools.@setup_workload begin
 
     vr_i = [
         @SVector([-6792.402703741442, 2192.6458461287293, 0.18851758695295118]) .* 1000,
-        @SVector([-6357.88873265975, 2391.9476768911686, 2181.838771262736]) .* 1000
+        @SVector([-6357.88873265975, 2391.9476768911686, 2181.838771262736]) .* 1000,
     ]
 
     vv_i = [
         @SVector([0.3445760107690598, 1.0395135806993514, 7.393686131436984]) .* 1000,
-        @SVector([2.5285015912807003, 0.27812476784300005, 7.030323100703928]) .* 1000
+        @SVector([2.5285015912807003, 0.27812476784300005, 7.030323100703928]) .* 1000,
     ]
 
-    vjd = [
-        2.46002818657856e6,
-        2.460028190050782e6
-    ]
+    vjd = [2.46002818657856e6, 2.460028190050782e6]
 
     redirect_stdout(devnull) do
         PrecompileTools.@compile_workload begin
             for (prop, f32_kwargs) in (
-                (:J2,      (; j2c = j2c_egm2008_f32)),
-                (:J2osc,   (; j2c = j2c_egm2008_f32)),
-                (:J4,      (; j4c = j4c_egm2008_f32)),
-                (:J4osc,   (; j4c = j4c_egm2008_f32)),
-                (:SGP4,    (; sgp4c = sgp4c_wgs84_f32)),
-                (:TwoBody, (; m0 = tbc_m0_f32))
+                (:J2, (; j2c = j2c_egm2008_f32)),
+                (:J2osc, (; j2c = j2c_egm2008_f32)),
+                (:J4, (; j4c = j4c_egm2008_f32)),
+                (:J4osc, (; j4c = j4c_egm2008_f32)),
+                (:SGP4, (; sgp4c = sgp4c_wgs84_f32)),
+                (:TwoBody, (; m0 = tbc_m0_f32)),
             )
                 mean_elements = prop != :SGP4 ? orb : tle
 
@@ -69,17 +66,27 @@ PrecompileTools.@setup_workload begin
                 Propagators.propagate!(orbp, Dates.Second(1))
                 Propagators.propagate!(orbp, Dates.Second(1) + Dates.Minute(1))
                 Propagators.propagate!(orbp, [Dates.Second(1) for _ in 1:2])
-                Propagators.propagate!(orbp, [Dates.Second(i) + Dates.Minute(1) for i in 1:2])
+                Propagators.propagate!(
+                    orbp, [Dates.Second(i) + Dates.Minute(1) for i in 1:2]
+                )
 
                 Propagators.propagate!(orbp, Dates.Second(1), Tuple)
                 Propagators.propagate!(orbp, Dates.Second(1) + Dates.Minute(1), Tuple)
                 Propagators.propagate!(orbp, [Dates.Second(1) for _ in 1:2], Tuple)
-                Propagators.propagate!(orbp, [Dates.Second(i) + Dates.Minute(1) for i in 1:2], Tuple)
+                Propagators.propagate!(
+                    orbp, [Dates.Second(i) + Dates.Minute(1) for i in 1:2], Tuple
+                )
 
                 Propagators.propagate!(orbp, Dates.Second(1), OrbitStateVector)
-                Propagators.propagate!(orbp, Dates.Second(1) + Dates.Minute(1), OrbitStateVector)
-                Propagators.propagate!(orbp, [Dates.Second(1) for _ in 1:2], OrbitStateVector)
-                Propagators.propagate!(orbp, [Dates.Second(i) + Dates.Minute(1) for i in 1:2], OrbitStateVector)
+                Propagators.propagate!(
+                    orbp, Dates.Second(1) + Dates.Minute(1), OrbitStateVector
+                )
+                Propagators.propagate!(
+                    orbp, [Dates.Second(1) for _ in 1:2], OrbitStateVector
+                )
+                Propagators.propagate!(
+                    orbp, [Dates.Second(i) + Dates.Minute(1) for i in 1:2], OrbitStateVector
+                )
 
                 Propagators.propagate_to_epoch!(orbp, JD_J2000)
                 Propagators.propagate_to_epoch!(orbp, [JD_J2000, JD_J2000])
@@ -88,16 +95,24 @@ PrecompileTools.@setup_workload begin
                 Propagators.propagate_to_epoch!(orbp, [JD_J2000, JD_J2000], Tuple)
 
                 Propagators.propagate_to_epoch!(orbp, JD_J2000, OrbitStateVector)
-                Propagators.propagate_to_epoch!(orbp, [JD_J2000, JD_J2000], OrbitStateVector)
+                Propagators.propagate_to_epoch!(
+                    orbp, [JD_J2000, JD_J2000], OrbitStateVector
+                )
 
                 Propagators.propagate_to_epoch!(orbp, DateTime(2024, 1, 1))
                 Propagators.propagate_to_epoch!(orbp, [DateTime(2024, 1, i) for i in 1:2])
 
                 Propagators.propagate_to_epoch!(orbp, DateTime(2024, 1, 1), Tuple)
-                Propagators.propagate_to_epoch!(orbp, [DateTime(2024, 1, i) for i in 1:2], Tuple)
+                Propagators.propagate_to_epoch!(
+                    orbp, [DateTime(2024, 1, i) for i in 1:2], Tuple
+                )
 
-                Propagators.propagate_to_epoch!(orbp, DateTime(2024, 1, 1), OrbitStateVector)
-                Propagators.propagate_to_epoch!(orbp, [DateTime(2024, 1, i) for i in 1:2], OrbitStateVector)
+                Propagators.propagate_to_epoch!(
+                    orbp, DateTime(2024, 1, 1), OrbitStateVector
+                )
+                Propagators.propagate_to_epoch!(
+                    orbp, [DateTime(2024, 1, i) for i in 1:2], OrbitStateVector
+                )
 
                 Propagators.step!(orbp, 1.0)
 
@@ -138,17 +153,27 @@ PrecompileTools.@setup_workload begin
                 Propagators.propagate!(orbp, Dates.Second(1))
                 Propagators.propagate!(orbp, Dates.Second(1) + Dates.Minute(1))
                 Propagators.propagate!(orbp, [Dates.Second(1) for _ in 1:2])
-                Propagators.propagate!(orbp, [Dates.Second(1) + Dates.Minute(1) for _ in 1:2])
+                Propagators.propagate!(
+                    orbp, [Dates.Second(1) + Dates.Minute(1) for _ in 1:2]
+                )
 
                 Propagators.propagate!(orbp, Dates.Second(1), Tuple)
                 Propagators.propagate!(orbp, Dates.Second(1) + Dates.Minute(1), Tuple)
                 Propagators.propagate!(orbp, [Dates.Second(1) for _ in 1:2], Tuple)
-                Propagators.propagate!(orbp, [Dates.Second(1) + Dates.Minute(1) for _ in 1:2], Tuple)
+                Propagators.propagate!(
+                    orbp, [Dates.Second(1) + Dates.Minute(1) for _ in 1:2], Tuple
+                )
 
                 Propagators.propagate!(orbp, Dates.Second(1), OrbitStateVector)
-                Propagators.propagate!(orbp, Dates.Second(1) + Dates.Minute(1), OrbitStateVector)
-                Propagators.propagate!(orbp, [Dates.Second(1) for _ in 1:2], OrbitStateVector)
-                Propagators.propagate!(orbp, [Dates.Second(1) + Dates.Minute(1) for _ in 1:2], OrbitStateVector)
+                Propagators.propagate!(
+                    orbp, Dates.Second(1) + Dates.Minute(1), OrbitStateVector
+                )
+                Propagators.propagate!(
+                    orbp, [Dates.Second(1) for _ in 1:2], OrbitStateVector
+                )
+                Propagators.propagate!(
+                    orbp, [Dates.Second(1) + Dates.Minute(1) for _ in 1:2], OrbitStateVector
+                )
 
                 Propagators.propagate_to_epoch!(orbp, JD_J2000)
                 Propagators.propagate_to_epoch!(orbp, [JD_J2000, JD_J2000])
@@ -157,16 +182,24 @@ PrecompileTools.@setup_workload begin
                 Propagators.propagate_to_epoch!(orbp, [JD_J2000, JD_J2000], Tuple)
 
                 Propagators.propagate_to_epoch!(orbp, JD_J2000, OrbitStateVector)
-                Propagators.propagate_to_epoch!(orbp, [JD_J2000, JD_J2000], OrbitStateVector)
+                Propagators.propagate_to_epoch!(
+                    orbp, [JD_J2000, JD_J2000], OrbitStateVector
+                )
 
                 Propagators.propagate_to_epoch!(orbp, DateTime(2024, 1, 1))
                 Propagators.propagate_to_epoch!(orbp, [DateTime(2024, 1, i) for i in 1:2])
 
                 Propagators.propagate_to_epoch!(orbp, DateTime(2024, 1, 1), Tuple)
-                Propagators.propagate_to_epoch!(orbp, [DateTime(2024, 1, i) for i in 1:2], Tuple)
+                Propagators.propagate_to_epoch!(
+                    orbp, [DateTime(2024, 1, i) for i in 1:2], Tuple
+                )
 
-                Propagators.propagate_to_epoch!(orbp, DateTime(2024, 1, 1), OrbitStateVector)
-                Propagators.propagate_to_epoch!(orbp, [DateTime(2024, 1, i) for i in 1:2], OrbitStateVector)
+                Propagators.propagate_to_epoch!(
+                    orbp, DateTime(2024, 1, 1), OrbitStateVector
+                )
+                Propagators.propagate_to_epoch!(
+                    orbp, [DateTime(2024, 1, i) for i in 1:2], OrbitStateVector
+                )
 
                 Propagators.step!(orbp, 1.0f0)
 

@@ -1,9 +1,9 @@
 using Documenter
 using SatelliteToolboxPropagators
 
-makedocs(
+makedocs(;
     modules = [SatelliteToolboxPropagators],
-    format = Documenter.HTML(
+    format = Documenter.HTML(;
         prettyurls = !("local" in ARGS),
         canonical = "https://juliaspace.github.io/SatelliteToolboxPropagators.jl/stable/",
         size_threshold = 500 * 1024,
@@ -21,7 +21,7 @@ makedocs(
             "J4" => "man/propagators/j4.md",
             "J4 Osculating" => "man/propagators/j4osc.md",
             "SGP4/SDP4" => "man/propagators/sgp4.md",
-            "Two-Body" => "man/propagators/twobody.md"
+            "Two-Body" => "man/propagators/twobody.md",
         ],
         "Guides" => [
             "Jacobian Methods" => "man/jacobian_methods.md",
@@ -31,7 +31,6 @@ makedocs(
     ],
 )
 
-deploydocs(
-    repo = "github.com/JuliaSpace/SatelliteToolboxPropagators.jl.git",
-    target = "build",
+deploydocs(;
+    repo = "github.com/JuliaSpace/SatelliteToolboxPropagators.jl.git", target = "build"
 )

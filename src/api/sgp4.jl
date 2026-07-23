@@ -4,9 +4,9 @@
 #
 ############################################################################################
 
-Propagators.epoch(orbp::OrbitPropagatorSgp4)         = orbp.sgp4d.epoch
-Propagators.last_instant(orbp::OrbitPropagatorSgp4)  = orbp.sgp4d.Δt * 60
-Propagators.name(orbp::OrbitPropagatorSgp4)          = "SGP4 Orbit Propagator"
+Propagators.epoch(orbp::OrbitPropagatorSgp4)        = orbp.sgp4d.epoch
+Propagators.last_instant(orbp::OrbitPropagatorSgp4) = orbp.sgp4d.Δt * 60
+Propagators.name(orbp::OrbitPropagatorSgp4)         = "SGP4 Orbit Propagator"
 
 function Propagators.mean_elements(orbp::OrbitPropagatorSgp4)
     # We need to copy the propagator to avoid modifying it.
@@ -21,7 +21,7 @@ function Propagators.mean_elements(orbp::OrbitPropagatorSgp4)
     epoch_year = dt_year < 1980 ? dt_year - 1900 : dt_year - 2000
     epoch_day  = (dt - dt₀).value / 1000 / 86400 + 1
 
-    tle = TLE(
+    tle = TLE(;
         epoch_year          = epoch_year,
         epoch_day           = epoch_day,
         bstar               = sgp4d.bstar,
@@ -48,7 +48,7 @@ function Propagators.mean_elements(orbp::OrbitPropagatorSgp4)
         sgp4d.i₀,
         sgp4d.Ω₀,
         sgp4d.ω₀,
-        mean_to_true_anomaly(sgp4d.e₀, sgp4d.M₀)
+        mean_to_true_anomaly(sgp4d.e₀, sgp4d.M₀),
     )
 end
 
@@ -163,8 +163,8 @@ function Propagators.fit_mean_elements(
     vjd::AbstractVector{Tjd},
     vr_teme::AbstractVector{Tv},
     vv_teme::AbstractVector{Tv};
-    kwargs...
-) where {Tjd<:Number, Tv<:AbstractVector}
+    kwargs...,
+) where {Tjd <: Number, Tv <: AbstractVector}
     return fit_sgp4_tle(vjd, vr_teme ./ 1000, vv_teme ./ 1000; kwargs...)
 end
 
@@ -278,8 +278,8 @@ function Propagators.fit_mean_elements!(
     vjd::AbstractVector{Tjd},
     vr_teme::AbstractVector{Tv},
     vv_teme::AbstractVector{Tv};
-    kwargs...
-) where {Tjd<:Number, Tv<:AbstractVector}
+    kwargs...,
+) where {Tjd <: Number, Tv <: AbstractVector}
     return fit_sgp4_tle!(orbp.sgp4d, vjd, vr_teme ./ 1000, vv_teme ./ 1000; kwargs...)
 end
 
@@ -327,7 +327,7 @@ function Propagators.init(
     ω₀::Number,
     M₀::Number,
     bstar::Number;
-    sgp4c::Sgp4Constants = sgp4c_wgs84
+    sgp4c::Sgp4Constants = sgp4c_wgs84,
 )
     sgp4d = sgp4_init(epoch, 60n₀, e₀, i₀, Ω₀, ω₀, M₀, bstar; sgp4c = sgp4c)
     return OrbitPropagatorSgp4(sgp4d)
@@ -371,7 +371,7 @@ function Propagators.init!(
     Ω₀::Number,
     ω₀::Number,
     M₀::Number,
-    bstar::Number
+    bstar::Number,
 )
     sgp4_init!(orbp.sgp4d, epoch, 60n₀, e₀, i₀, Ω₀, ω₀, M₀, bstar)
     return nothing

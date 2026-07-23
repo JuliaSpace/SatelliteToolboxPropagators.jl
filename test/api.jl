@@ -20,9 +20,9 @@ struct DummyPropagator{Tepoch, T} <: OrbitPropagator{Tepoch, T} end
             T(8000e3),
             T(0.015),
             T(28.5) |> deg2rad,
-            T(100)  |> deg2rad,
-            T(200)  |> deg2rad,
-            T(45)   |> deg2rad
+            T(100) |> deg2rad,
+            T(200) |> deg2rad,
+            T(45) |> deg2rad,
         )
 
         orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm2008)
@@ -48,9 +48,9 @@ struct DummyPropagator{Tepoch, T} <: OrbitPropagator{Tepoch, T} end
             T(8000e3),
             T(0.015),
             T(28.5) |> deg2rad,
-            T(100)  |> deg2rad,
-            T(200)  |> deg2rad,
-            T(45)   |> deg2rad
+            T(100) |> deg2rad,
+            T(200) |> deg2rad,
+            T(45) |> deg2rad,
         )
 
         orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm2008_f32)
@@ -77,9 +77,9 @@ end
                 T(8000e3),
                 T(0.015),
                 T(28.5) |> deg2rad,
-                T(100)  |> deg2rad,
-                T(200)  |> deg2rad,
-                T(45)   |> deg2rad
+                T(100) |> deg2rad,
+                T(200) |> deg2rad,
+                T(45) |> deg2rad,
             )
 
             orbp_ref = Propagators.init(Val(:J2), orb; j2c = j2c)
@@ -87,10 +87,7 @@ end
             # == propagate =================================================================
 
             r, v, orbp = Propagators.propagate(
-                Val(:J2),
-                Dates.Minute(1) + Dates.Second(1),
-                orb;
-                j2c = j2c
+                Val(:J2), Dates.Minute(1) + Dates.Second(1), orb; j2c = j2c
             )
 
             r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
@@ -120,10 +117,7 @@ end
             # == propagate_to_epoch ========================================================
 
             r, v, orbp = Propagators.propagate_to_epoch(
-                Val(:J2),
-                DateTime("2024-01-01"),
-                orb;
-                j2c = j2c
+                Val(:J2), DateTime("2024-01-01"), orb; j2c = j2c
             )
 
             r_ref, v_ref = Propagators.propagate_to_epoch!(orbp_ref, date_to_jd(2024, 1, 1))
@@ -177,9 +171,9 @@ end
                 T(8000e3),
                 T(0.015),
                 T(28.5) |> deg2rad,
-                T(100)  |> deg2rad,
-                T(200)  |> deg2rad,
-                T(45)   |> deg2rad
+                T(100) |> deg2rad,
+                T(200) |> deg2rad,
+                T(45) |> deg2rad,
             )
 
             orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
@@ -268,7 +262,7 @@ end
                 @test ret[k][2] == v[k]
             end
 
-            vjd  = collect(jd₀:0.1:jd₁)
+            vjd = collect(jd₀:0.1:jd₁)
             ret = Propagators.propagate_to_epoch!.(orbp, vjd)
             r, v, orbp = Propagators.propagate_to_epoch(Val(:J2), vjd, orb; j2c = j2c)
 
@@ -321,7 +315,7 @@ end
     end
 end
 
-@testset "Sink Options"  verbose = true begin
+@testset "Sink Options" verbose = true begin
     @testset "Julian Day" verbose = true begin
         jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
 
@@ -332,9 +326,9 @@ end
                     T(8000e3),
                     T(0.015),
                     T(28.5) |> deg2rad,
-                    T(100)  |> deg2rad,
-                    T(200)  |> deg2rad,
-                    T(45)   |> deg2rad
+                    T(100) |> deg2rad,
+                    T(200) |> deg2rad,
+                    T(45) |> deg2rad,
                 )
 
                 orbp_ref = Propagators.init(Val(:J2), orb; j2c = j2c)
@@ -343,13 +337,7 @@ end
 
                 r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
 
-                r, v, orbp = Propagators.propagate(
-                    Tuple,
-                    Val(:J2),
-                    61,
-                    orb;
-                    j2c = j2c
-                )
+                r, v, orbp = Propagators.propagate(Tuple, Val(:J2), 61, orb; j2c = j2c)
 
                 @test orbp isa typeof(orbp_ref)
                 @test r isa SVector{3, T}
@@ -359,11 +347,7 @@ end
                 @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
                 sv, orbp = Propagators.propagate(
-                    OrbitStateVector,
-                    Val(:J2),
-                    61,
-                    orb;
-                    j2c = j2c
+                    OrbitStateVector, Val(:J2), 61, orb; j2c = j2c
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -377,11 +361,7 @@ end
                 vr_ref, vv_ref = Propagators.propagate!(orbp_ref, [60, 61])
 
                 vr, vv, orbp = Propagators.propagate(
-                    Tuple,
-                    Val(:J2),
-                    [60, 61],
-                    orb;
-                    j2c = j2c
+                    Tuple, Val(:J2), [60, 61], orb; j2c = j2c
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -392,11 +372,7 @@ end
                 @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
                 vsv, orbp = Propagators.propagate(
-                    OrbitStateVector,
-                    Val(:J2),
-                    [60, 61],
-                    orb;
-                    j2c = j2c
+                    OrbitStateVector, Val(:J2), [60, 61], orb; j2c = j2c
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -458,16 +434,11 @@ end
                 # == propagate_to_epoch ====================================================
 
                 r_ref, v_ref = Propagators.propagate_to_epoch!(
-                    orbp_ref,
-                    date_to_jd(2024, 1, 1)
+                    orbp_ref, date_to_jd(2024, 1, 1)
                 )
 
                 r, v, orbp = Propagators.propagate_to_epoch(
-                    Tuple,
-                    Val(:J2),
-                    date_to_jd(2024, 1, 1),
-                    orb;
-                    j2c = j2c
+                    Tuple, Val(:J2), date_to_jd(2024, 1, 1), orb; j2c = j2c
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -478,11 +449,7 @@ end
                 @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
                 sv, orbp = Propagators.propagate_to_epoch(
-                    OrbitStateVector,
-                    Val(:J2),
-                    date_to_jd(2024, 1, 1),
-                    orb;
-                    j2c = j2c
+                    OrbitStateVector, Val(:J2), date_to_jd(2024, 1, 1), orb; j2c = j2c
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -494,8 +461,7 @@ end
                 # -- Array -----------------------------------------------------------------
 
                 vr_ref, vv_ref = Propagators.propagate_to_epoch!(
-                    orbp_ref,
-                    [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)]
+                    orbp_ref, [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)]
                 )
 
                 vr, vv, orbp = Propagators.propagate_to_epoch(
@@ -503,7 +469,7 @@ end
                     Val(:J2),
                     [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)],
                     orb;
-                    j2c = j2c
+                    j2c = j2c,
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -518,7 +484,7 @@ end
                     Val(:J2),
                     [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)],
                     orb;
-                    j2c = j2c
+                    j2c = j2c,
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -530,17 +496,12 @@ end
                 # == propagate_to_epoch! ===================================================
 
                 r_ref, v_ref = Propagators.propagate_to_epoch!(
-                    orbp_ref,
-                    date_to_jd(2024, 1, 1)
+                    orbp_ref, date_to_jd(2024, 1, 1)
                 )
 
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
-                r, v = Propagators.propagate_to_epoch!(
-                    orbp,
-                    date_to_jd(2024, 1, 1),
-                    Tuple
-                )
+                r, v = Propagators.propagate_to_epoch!(orbp, date_to_jd(2024, 1, 1), Tuple)
 
                 @test orbp isa typeof(orbp_ref)
                 @test r isa SVector{3, T}
@@ -552,9 +513,7 @@ end
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
                 sv = Propagators.propagate_to_epoch!(
-                    orbp,
-                    date_to_jd(2024, 1, 1),
-                    OrbitStateVector
+                    orbp, date_to_jd(2024, 1, 1), OrbitStateVector
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -566,16 +525,13 @@ end
                 # -- Array -----------------------------------------------------------------
 
                 r_ref, v_ref = Propagators.propagate_to_epoch!(
-                    orbp_ref,
-                    [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)]
+                    orbp_ref, [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)]
                 )
 
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
                 vr, vv = Propagators.propagate_to_epoch!(
-                    orbp,
-                    [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)],
-                    Tuple
+                    orbp, [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)], Tuple
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -588,9 +544,7 @@ end
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
                 vsv = Propagators.propagate_to_epoch!(
-                    orbp,
-                    [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)],
-                    OrbitStateVector
+                    orbp, [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)], OrbitStateVector
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -602,8 +556,7 @@ end
                 # == step! =================================================================
 
                 r_ref, v_ref = Propagators.propagate_to_epoch!(
-                    orbp_ref,
-                    date_to_jd(2024, 1, 1)
+                    orbp_ref, date_to_jd(2024, 1, 1)
                 )
 
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
@@ -640,9 +593,9 @@ end
                     T(8000e3),
                     T(0.015),
                     T(28.5) |> deg2rad,
-                    T(100)  |> deg2rad,
-                    T(200)  |> deg2rad,
-                    T(45)   |> deg2rad
+                    T(100) |> deg2rad,
+                    T(200) |> deg2rad,
+                    T(45) |> deg2rad,
                 )
 
                 orbp_ref = Propagators.init(Val(:J2), orb; j2c = j2c)
@@ -652,11 +605,7 @@ end
                 r_ref, v_ref = Propagators.propagate!(orbp_ref, 61)
 
                 r, v, orbp = Propagators.propagate(
-                    Tuple,
-                    Val(:J2),
-                    Dates.Minute(1) + Dates.Second(1),
-                    orb;
-                    j2c = j2c
+                    Tuple, Val(:J2), Dates.Minute(1) + Dates.Second(1), orb; j2c = j2c
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -671,7 +620,7 @@ end
                     Val(:J2),
                     Dates.Minute(1) + Dates.Second(1),
                     orb;
-                    j2c = j2c
+                    j2c = j2c,
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -689,7 +638,7 @@ end
                     Val(:J2),
                     [Dates.Minute(1) + Dates.Second(0), Dates.Minute(1) + Dates.Second(1)],
                     orb;
-                    j2c = j2c
+                    j2c = j2c,
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -704,7 +653,7 @@ end
                     Val(:J2),
                     [Dates.Minute(1) + Dates.Second(0), Dates.Minute(1) + Dates.Second(1)],
                     orb;
-                    j2c = j2c
+                    j2c = j2c,
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -720,9 +669,7 @@ end
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
                 r, v = Propagators.propagate!(
-                    orbp,
-                    Dates.Minute(1) + Dates.Second(1),
-                    Tuple
+                    orbp, Dates.Minute(1) + Dates.Second(1), Tuple
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -735,9 +682,7 @@ end
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
                 sv = Propagators.propagate!(
-                    orbp,
-                    Dates.Minute(1) + Dates.Second(1),
-                    OrbitStateVector
+                    orbp, Dates.Minute(1) + Dates.Second(1), OrbitStateVector
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -755,7 +700,7 @@ end
                 vr, vv = Propagators.propagate!(
                     orbp,
                     [Dates.Minute(1) + Dates.Second(0), Dates.Minute(1) + Dates.Second(1)],
-                    Tuple
+                    Tuple,
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -770,7 +715,7 @@ end
                 vsv = Propagators.propagate!(
                     orbp,
                     [Dates.Minute(1) + Dates.Second(0), Dates.Minute(1) + Dates.Second(1)],
-                    OrbitStateVector
+                    OrbitStateVector,
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -782,16 +727,11 @@ end
                 # == propagate_to_epoch ========================================================
 
                 r_ref, v_ref = Propagators.propagate_to_epoch!(
-                    orbp_ref,
-                    date_to_jd(2024, 1, 1)
+                    orbp_ref, date_to_jd(2024, 1, 1)
                 )
 
                 r, v, orbp = Propagators.propagate_to_epoch(
-                    Tuple,
-                    Val(:J2),
-                    DateTime("2024-01-01"),
-                    orb;
-                    j2c = j2c
+                    Tuple, Val(:J2), DateTime("2024-01-01"), orb; j2c = j2c
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -802,11 +742,7 @@ end
                 @test Propagators.last_instant(orbp) == Propagators.last_instant(orbp_ref)
 
                 sv, orbp = Propagators.propagate_to_epoch(
-                    OrbitStateVector,
-                    Val(:J2),
-                    DateTime("2024-01-01"),
-                    orb;
-                    j2c = j2c
+                    OrbitStateVector, Val(:J2), DateTime("2024-01-01"), orb; j2c = j2c
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -818,8 +754,7 @@ end
                 # -- Array -----------------------------------------------------------------
 
                 vr_ref, vv_ref = Propagators.propagate_to_epoch!(
-                    orbp_ref,
-                    [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)]
+                    orbp_ref, [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)]
                 )
 
                 vr, vv, orbp = Propagators.propagate_to_epoch(
@@ -827,7 +762,7 @@ end
                     Val(:J2),
                     [DateTime("2024-01-01"), DateTime("2024-01-02")],
                     orb;
-                    j2c = j2c
+                    j2c = j2c,
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -842,7 +777,7 @@ end
                     Val(:J2),
                     [DateTime("2024-01-01"), DateTime("2024-01-02")],
                     orb;
-                    j2c = j2c
+                    j2c = j2c,
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -854,17 +789,12 @@ end
                 # == propagate_to_epoch! =======================================================
 
                 r_ref, v_ref = Propagators.propagate_to_epoch!(
-                    orbp_ref,
-                    date_to_jd(2024, 1, 1)
+                    orbp_ref, date_to_jd(2024, 1, 1)
                 )
 
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
-                r, v = Propagators.propagate_to_epoch!(
-                    orbp,
-                    DateTime("2024-01-01"),
-                    Tuple
-                )
+                r, v = Propagators.propagate_to_epoch!(orbp, DateTime("2024-01-01"), Tuple)
 
                 @test orbp isa typeof(orbp_ref)
                 @test r isa SVector{3, T}
@@ -876,9 +806,7 @@ end
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
                 sv = Propagators.propagate_to_epoch!(
-                    orbp,
-                    DateTime("2024-01-01"),
-                    OrbitStateVector
+                    orbp, DateTime("2024-01-01"), OrbitStateVector
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -890,16 +818,13 @@ end
                 # -- Array -----------------------------------------------------------------
 
                 r_ref, v_ref = Propagators.propagate_to_epoch!(
-                    orbp_ref,
-                    [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)]
+                    orbp_ref, [date_to_jd(2024, 1, 1), date_to_jd(2024, 1, 2)]
                 )
 
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
                 vr, vv = Propagators.propagate_to_epoch!(
-                    orbp,
-                    [DateTime("2024-01-01"), DateTime("2024-01-02")],
-                    Tuple
+                    orbp, [DateTime("2024-01-01"), DateTime("2024-01-02")], Tuple
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -912,9 +837,7 @@ end
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
 
                 vsv = Propagators.propagate_to_epoch!(
-                    orbp,
-                    [DateTime("2024-01-01"), DateTime("2024-01-02")],
-                    OrbitStateVector
+                    orbp, [DateTime("2024-01-01"), DateTime("2024-01-02")], OrbitStateVector
                 )
 
                 @test orbp isa typeof(orbp_ref)
@@ -926,8 +849,7 @@ end
                 # == step! =================================================================
 
                 r_ref, v_ref = Propagators.propagate_to_epoch!(
-                    orbp_ref,
-                    date_to_jd(2024, 1, 1)
+                    orbp_ref, date_to_jd(2024, 1, 1)
                 )
 
                 orbp = Propagators.init(Val(:J2), orb; j2c = j2c)
@@ -965,9 +887,9 @@ end
                 T(8000e3),
                 T(0.015),
                 T(28.5) |> deg2rad,
-                T(100)  |> deg2rad,
-                T(200)  |> deg2rad,
-                T(45)   |> deg2rad
+                T(100) |> deg2rad,
+                T(200) |> deg2rad,
+                T(45) |> deg2rad,
             )
 
             orbp_input = Propagators.init(Val(:J2osc), orb_input; j2c = j2c)
@@ -987,10 +909,7 @@ end
 
             orb, _ = redirect_stdout(devnull) do
                 Propagators.fit_mean_elements!(
-                    orbp,
-                    vsv;
-                    max_iterations = 10,
-                    mean_elements_epoch = jd₀
+                    orbp, vsv; max_iterations = 10, mean_elements_epoch = jd₀
                 )
             end
 
@@ -1000,15 +919,12 @@ end
             @test orb.i ≈ orb_input.i
             @test orb.Ω ≈ orb_input.Ω
             @test orb.ω ≈ orb_input.ω
-            @test orb.f ≈ orb_input.f atol = 1e-5
+            @test orb.f ≈ orb_input.f atol = (T === Float32 ? 1e-4 : 1e-5)
 
             # Fit the mean elements without explicitly initializing the propagator.
             orb, _ = redirect_stdout(devnull) do
                 Propagators.fit_mean_elements(
-                    Val(:J2osc),
-                    vsv;
-                    max_iterations = 10,
-                    mean_elements_epoch = jd₀
+                    Val(:J2osc), vsv; max_iterations = 10, mean_elements_epoch = jd₀
                 )
             end
 
@@ -1018,7 +934,7 @@ end
             @test orb.i ≈ orb_input.i
             @test orb.Ω ≈ orb_input.Ω
             @test orb.ω ≈ orb_input.ω
-            @test orb.f ≈ orb_input.f atol = 1e-5
+            @test orb.f ≈ orb_input.f atol = (T === Float32 ? 1e-4 : 1e-5)
         end
     end
 end
@@ -1033,9 +949,9 @@ end
         T(8000e3),
         T(0.015),
         T(28.5) |> deg2rad,
-        T(100)  |> deg2rad,
-        T(200)  |> deg2rad,
-        T(45)   |> deg2rad
+        T(100) |> deg2rad,
+        T(200) |> deg2rad,
+        T(45) |> deg2rad,
     )
 
     # == J2 Orbit Propagator ===============================================================

@@ -30,9 +30,12 @@ using Printf
 
 orb_input = KeplerianElements(
     date_to_jd(2023, 1, 1),
-    7130.982e3, 0.001111,
-    98.405 |> deg2rad, 90.0 |> deg2rad,
-    200.0  |> deg2rad, 45.0 |> deg2rad,
+    7130.982e3,
+    0.001111,
+    98.405 |> deg2rad,
+    90.0 |> deg2rad,
+    200.0 |> deg2rad,
+    45.0 |> deg2rad,
 )
 
 epoch = orb_input.t
@@ -73,34 +76,51 @@ x₀ = Vector(vcat(SVector{3}(r₀), SVector{3}(v₀)))
 σ_pos = 50.0    # [m] position 1σ
 σ_vel = 0.05    # [m/s] velocity 1σ
 
-P₀ = Diagonal([
-    σ_pos^2, σ_pos^2, σ_pos^2,
-    σ_vel^2, σ_vel^2, σ_vel^2,
-])
+P₀ = Diagonal([σ_pos^2, σ_pos^2, σ_pos^2, σ_vel^2, σ_vel^2, σ_vel^2])
 
 # ------------------------------------------------------------------------------------------
 # Propagate covariance at several times
 # ------------------------------------------------------------------------------------------
 
-println("=" ^ 86)
+println("="^86)
 println("    Covariance Propagation via J2 Propagator + ForwardDiff Jacobian")
-println("=" ^ 86)
+println("="^86)
 println()
-@printf("  Orbit:  a = %.3f km, e = %.6f, i = %.3f°\n",
-    orb_input.a / 1e3, orb_input.e, rad2deg(orb_input.i))
+@printf(
+    "  Orbit:  a = %.3f km, e = %.6f, i = %.3f°\n",
+    orb_input.a / 1e3,
+    orb_input.e,
+    rad2deg(orb_input.i)
+)
 @printf("  Epoch:  JD %.8f\n", epoch)
 @printf("  State:  x₀ = [r₀; v₀]  (Cartesian, inertial)\n")
 @printf("  P₀:     diag(σ_pos² = %.0f m², σ_vel² = %.4f m²/s²)\n", σ_pos^2, σ_vel^2)
 println()
 
-println("── Propagated 1σ uncertainties ────────────────────────────────────────────────────")
+println(
+    "── Propagated 1σ uncertainties ────────────────────────────────────────────────────"
+)
 println()
-@printf("  %10s  %12s  %12s  %12s  %14s  %14s  %14s\n",
-    "Δt [s]", "σ_x [m]", "σ_y [m]", "σ_z [m]",
-    "σ_vx [m/s]", "σ_vy [m/s]", "σ_vz [m/s]")
-@printf("  %10s  %12s  %12s  %12s  %14s  %14s  %14s\n",
-    "──────────", "────────────", "────────────", "────────────",
-    "──────────────", "──────────────", "──────────────")
+@printf(
+    "  %10s  %12s  %12s  %12s  %14s  %14s  %14s\n",
+    "Δt [s]",
+    "σ_x [m]",
+    "σ_y [m]",
+    "σ_z [m]",
+    "σ_vx [m/s]",
+    "σ_vy [m/s]",
+    "σ_vz [m/s]"
+)
+@printf(
+    "  %10s  %12s  %12s  %12s  %14s  %14s  %14s\n",
+    "──────────",
+    "────────────",
+    "────────────",
+    "────────────",
+    "──────────────",
+    "──────────────",
+    "──────────────"
+)
 
 for Δt in [0.0, 60.0, 300.0, 600.0, 1800.0, 3600.0, 7200.0, 14400.0, 43200.0, 86400.0]
     J = ForwardDiff.jacobian(x -> j2_map(x, Δt, epoch), x₀)
@@ -110,8 +130,16 @@ for Δt in [0.0, 60.0, 300.0, 600.0, 1800.0, 3600.0, 7200.0, 14400.0, 43200.0, 8
     σ_r = sqrt.(diag(P_t)[1:3])
     σ_v = sqrt.(diag(P_t)[4:6])
 
-    @printf("  %10.0f  %12.3f  %12.3f  %12.3f  %14.6e  %14.6e  %14.6e\n",
-        Δt, σ_r[1], σ_r[2], σ_r[3], σ_v[1], σ_v[2], σ_v[3])
+    @printf(
+        "  %10.0f  %12.3f  %12.3f  %12.3f  %14.6e  %14.6e  %14.6e\n",
+        Δt,
+        σ_r[1],
+        σ_r[2],
+        σ_r[3],
+        σ_v[1],
+        σ_v[2],
+        σ_v[3]
+    )
 end
 
 # ------------------------------------------------------------------------------------------
@@ -121,7 +149,9 @@ end
 Δt_detail = 3600.0
 
 println()
-println("── Detailed view at Δt = $(Int(Δt_detail)) s ──────────────────────────────────────")
+println(
+    "── Detailed view at Δt = $(Int(Δt_detail)) s ──────────────────────────────────────"
+)
 println()
 
 y = j2_map(x₀, Δt_detail, epoch)
@@ -161,4 +191,4 @@ println()
 @printf("  RSS velocity uncertainty: %.6e m/s\n", σ_vel_rss)
 
 println()
-println("=" ^ 86)
+println("="^86)

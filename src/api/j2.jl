@@ -65,8 +65,8 @@ function Propagators.fit_mean_elements(
     vjd::AbstractVector{Tjd},
     vr_i::AbstractVector{Tv},
     vv_i::AbstractVector{Tv};
-    kwargs...
-) where {Tjd<:Number, Tv<:AbstractVector}
+    kwargs...,
+) where {Tjd <: Number, Tv <: AbstractVector}
     return fit_j2_mean_elements(vjd, vr_i, vv_i; kwargs...)
 end
 
@@ -125,8 +125,8 @@ function Propagators.fit_mean_elements!(
     vjd::AbstractVector{Tjd},
     vr_i::AbstractVector{Tv},
     vv_i::AbstractVector{Tv};
-    kwargs...
-) where {Tjd<:Number, Tv<:AbstractVector}
+    kwargs...,
+) where {Tjd <: Number, Tv <: AbstractVector}
     return fit_j2_mean_elements!(orbp.j2d, vjd, vr_i, vv_i; kwargs...)
 end
 
@@ -147,9 +147,7 @@ Create and initialize the J2 orbit propagator structure using the mean Keplerian
   [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm2008`)
 """
 function Propagators.init(
-    ::Val{:J2},
-    orb₀::KeplerianElements;
-    j2c::J2PropagatorConstants = j2c_egm2008
+    ::Val{:J2}, orb₀::KeplerianElements; j2c::J2PropagatorConstants = j2c_egm2008
 )
     j2d = j2_init(orb₀; j2c = j2c)
     return OrbitPropagatorJ2(j2d)
@@ -183,6 +181,6 @@ end
 #                                        Julia API                                         #
 ############################################################################################
 
-function Base.copy(orbp::OrbitPropagatorJ2{Tepoch, T}) where {Tepoch<:Number, T<:Number}
+function Base.copy(orbp::OrbitPropagatorJ2{Tepoch, T}) where {Tepoch <: Number, T <: Number}
     return OrbitPropagatorJ2{Tepoch, T}(copy(orbp.j2d))
 end

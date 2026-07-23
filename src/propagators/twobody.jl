@@ -30,15 +30,12 @@ const tbc_m0_f32 = 3.986004415f14
 # Define `copy` for the propagator structure.
 let
     fields = fieldnames(TwoBodyPropagator)
-    expressions = [
-        :(new_tbd.$f = tbd.$f)
-        for f in fields
-    ]
+    expressions = [:(new_tbd.$f = tbd.$f) for f in fields]
 
     @eval begin
         function Base.copy(
             tbd::TwoBodyPropagator{Tepoch, T}
-        ) where {Tepoch<:Number, T<:Number}
+        ) where {Tepoch <: Number, T <: Number}
             new_tbd = TwoBodyPropagator{Tepoch, T}()
             $(expressions...)
             return new_tbd
@@ -67,9 +64,8 @@ Create and initialize the two-body propagator structure using the mean Keplerian
     (**Default** = `tbc_m0`)
 """
 function twobody_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler};
-    m0::T = tbc_m0
-) where {Tepoch<:Number, Tkepler<:AbstractFloat, T<:Number}
+    orb₀::KeplerianElements{Tepoch, Tkepler}; m0::T = tbc_m0
+) where {Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number}
     # Allocate the propagator structure.
     tbd = TwoBodyPropagator{Tepoch, T}()
 
@@ -83,9 +79,8 @@ function twobody_init(
 end
 
 function twobody_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler};
-    m0::Tm0 = tbc_m0
-) where {Tepoch<:Number, Tkepler<:Number, Tm0<:Number}
+    orb₀::KeplerianElements{Tepoch, Tkepler}; m0::Tm0 = tbc_m0
+) where {Tepoch <: Number, Tkepler <: Number, Tm0 <: Number}
     T = promote_type(Tm0, Tkepler)
 
     # Allocate the propagator structure.
@@ -111,9 +106,8 @@ Initialize the two-body propagator structure `tbd` using the mean Keplerian elem
     initialized.
 """
 function twobody_init!(
-    tbd::TwoBodyPropagator{Tepoch, T},
-    orb₀::KeplerianElements
-) where {Tepoch<:Number, T<:Number}
+    tbd::TwoBodyPropagator{Tepoch, T}, orb₀::KeplerianElements
+) where {Tepoch <: Number, T <: Number}
     # Compute the mean motion using the semi-major axis.
     n₀ = √(tbd.μ / T(orb₀.a)^3)
 
@@ -159,7 +153,7 @@ the orbit until the time Δt [s].
 The inertial frame in which the output is represented depends on which frame it was used to
 generate the orbit parameters.
 """
-function twobody(Δt::Number, orb₀::KeplerianElements; m0::T = tbc_m0) where T<:Number
+function twobody(Δt::Number, orb₀::KeplerianElements; m0::T = tbc_m0) where {T <: Number}
     tbd = twobody_init(orb₀; m0 = m0)
     r_i, v_i = twobody!(tbd, Δt)
     return r_i, v_i, tbd
@@ -188,20 +182,19 @@ The inertial frame in which the output is represented depends on which frame it 
 generate the orbit parameters.
 """
 function twobody!(
-    tbd::TwoBodyPropagator{Tepoch, T},
-    t::Number
-) where {Tepoch<:Number, T<:Number}
+    tbd::TwoBodyPropagator{Tepoch, T}, t::Number
+) where {Tepoch <: Number, T <: Number}
     # Unpack.
     orb₀ = tbd.orb₀
-    a₀     = orb₀.a
-    e₀     = orb₀.e
-    i₀     = orb₀.i
-    Ω₀     = orb₀.Ω
-    ω₀     = orb₀.ω
+    a₀ = orb₀.a
+    e₀ = orb₀.e
+    i₀ = orb₀.i
+    Ω₀ = orb₀.Ω
+    ω₀ = orb₀.ω
 
     # Time elapsed since epoch.
-    epoch  = orb₀.t
-    Δt     = T(t)
+    epoch = orb₀.t
+    Δt    = T(t)
 
     # Propagate the orbital elements.
     M_k = tbd.M₀ + tbd.n₀ * Δt

@@ -18,10 +18,10 @@ using Dates
 const REPORT_PATH = joinpath(@__DIR__, "finite_diff_vs_autodiff_report.md")
 
 const PROPAGATORS = [
-    (name = "J2",     sym = Val(:J2)),
-    (name = "J2osc",  sym = Val(:J2osc)),
-    (name = "J4",     sym = Val(:J4)),
-    (name = "J4osc",  sym = Val(:J4osc)),
+    (name = "J2", sym = Val(:J2)),
+    (name = "J2osc", sym = Val(:J2osc)),
+    (name = "J4", sym = Val(:J4)),
+    (name = "J4osc", sym = Val(:J4osc)),
 ]
 
 # ------------------------------------------------------------------------------------------
@@ -33,9 +33,9 @@ const ORB_INPUT = KeplerianElements(
     7130.982e3,
     0.001111,
     98.405 |> deg2rad,
-    90.0   |> deg2rad,
-    200.0  |> deg2rad,
-    45.0   |> deg2rad,
+    90.0 |> deg2rad,
+    200.0 |> deg2rad,
+    45.0 |> deg2rad,
 )
 
 function generate_osc_data(sym, orb_input, Δt_range)
@@ -53,15 +53,13 @@ function run_propagator(prop, Δt_range)
 
     println("\n  Benchmarking FiniteDiffJacobian...")
     b_fd = @benchmark Propagators.fit_mean_elements(
-        $(prop.sym), $vjd, $vr_i, $vv_i;
-        jacobian_method = FiniteDiffJacobian(), $kw...
+        $(prop.sym), $vjd, $vr_i, $vv_i; jacobian_method = FiniteDiffJacobian(), $kw...
     )
     display(b_fd)
 
     println("\n  Benchmarking ForwardDiffJacobian...")
     b_ad = @benchmark Propagators.fit_mean_elements(
-        $(prop.sym), $vjd, $vr_i, $vv_i;
-        jacobian_method = ForwardDiffJacobian(), $kw...
+        $(prop.sym), $vjd, $vr_i, $vv_i; jacobian_method = ForwardDiffJacobian(), $kw...
     )
     display(b_ad)
 
@@ -74,12 +72,7 @@ function run_propagator(prop, Δt_range)
 
     @printf("\n  Median: FD = %.1f ms, AD = %.1f ms\n\n", t_fd, t_ad)
 
-    return (;
-        name = prop.name,
-        t_fd, t_ad,
-        alloc_fd, alloc_ad,
-        mem_fd, mem_ad,
-    )
+    return (; name = prop.name, t_fd, t_ad, alloc_fd, alloc_ad, mem_fd, mem_ad)
 end
 
 # ------------------------------------------------------------------------------------------
@@ -92,8 +85,12 @@ println("Warmup pass: compiling all code paths...")
 for prop in PROPAGATORS
     vjd, vr_i, vv_i = generate_osc_data(prop.sym, ORB_INPUT, Δt_range)
     kw = (; mean_elements_epoch = vjd[begin], verbose = false)
-    Propagators.fit_mean_elements(prop.sym, vjd, vr_i, vv_i; jacobian_method = FiniteDiffJacobian(),  kw...)
-    Propagators.fit_mean_elements(prop.sym, vjd, vr_i, vv_i; jacobian_method = ForwardDiffJacobian(), kw...)
+    Propagators.fit_mean_elements(
+        prop.sym, vjd, vr_i, vv_i; jacobian_method = FiniteDiffJacobian(), kw...
+    )
+    Propagators.fit_mean_elements(
+        prop.sym, vjd, vr_i, vv_i; jacobian_method = ForwardDiffJacobian(), kw...
+    )
 end
 
 println("Warmup complete.\n")
@@ -105,9 +102,9 @@ println("Warmup complete.\n")
 results = []
 
 for prop in PROPAGATORS
-    println("=" ^ 80)
+    println("="^80)
     println("Propagator: $(prop.name)")
-    println("=" ^ 80)
+    println("="^80)
     push!(results, run_propagator(prop, Δt_range))
 end
 
@@ -138,19 +135,35 @@ open(REPORT_PATH, "w") do io
 
     println(io, "## Performance")
     println(io)
-    println(io, "| Propagator | FD Median (ms) | AD Median (ms) | Speedup | FD Allocs | AD Allocs | FD Mem (KiB) | AD Mem (KiB) |")
-    println(io, "|:-----------|---------------:|---------------:|--------:|----------:|----------:|-------------:|-------------:|")
+    println(
+        io,
+        "| Propagator | FD Median (ms) | AD Median (ms) | Speedup | FD Allocs | AD Allocs | FD Mem (KiB) | AD Mem (KiB) |",
+    )
+    println(
+        io,
+        "|:-----------|---------------:|---------------:|--------:|----------:|----------:|-------------:|-------------:|",
+    )
 
     for r in results
         ratio = r.t_fd / r.t_ad
         arrow = ratio > 1 ? "AD" : "FD"
-        @printf(io, "| %s | %.1f | %.1f | %.2f× %s | %d | %d | %.0f | %.0f |\n",
-            r.name, r.t_fd, r.t_ad, max(ratio, 1/ratio), arrow,
-            r.alloc_fd, r.alloc_ad, r.mem_fd, r.mem_ad)
+        @printf(
+            io,
+            "| %s | %.1f | %.1f | %.2f× %s | %d | %d | %.0f | %.0f |\n",
+            r.name,
+            r.t_fd,
+            r.t_ad,
+            max(ratio, 1 / ratio),
+            arrow,
+            r.alloc_fd,
+            r.alloc_ad,
+            r.mem_fd,
+            r.mem_ad
+        )
     end
-    println(io)
+    return println(io)
 end
 
-println("=" ^ 80)
+println("="^80)
 println("Report written to: $REPORT_PATH")
-println("=" ^ 80)
+println("="^80)

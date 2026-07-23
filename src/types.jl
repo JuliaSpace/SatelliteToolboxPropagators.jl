@@ -29,7 +29,7 @@ Constants for the J2 orbit propagator.
 - `μm::T`: √(GM / R0^3) [er/s]^(3/2).
 - `J2::T`: The second gravitational zonal harmonic of the Earth.
 """
-struct J2PropagatorConstants{T<:Number}
+struct J2PropagatorConstants{T <: Number}
     R0::T
     μm::T
     J2::T
@@ -40,7 +40,7 @@ end
 
 J2 orbit propagator structure.
 """
-mutable struct J2Propagator{Tepoch<:Number, T<:Number}
+mutable struct J2Propagator{Tepoch <: Number, T <: Number}
     orb₀::KeplerianElements{Tepoch, T} # ............ Initial mean orbit elements [SI units]
     orbk::KeplerianElements{Tepoch, T} # ............ Current mean orbit elements [SI units]
     j2c::J2PropagatorConstants{T}      # .............................. Propagator constants
@@ -48,15 +48,16 @@ mutable struct J2Propagator{Tepoch<:Number, T<:Number}
 
     # == Auxiliary Variables ===============================================================
 
-    M₀::T # ................................................ Initial mean mean anomaly [rad]
+    M₀::T # ..................................... Initial mean anomaly (mean elements) [rad]
     ∂Ω::T # ................................................. RAAN time derivative [rad / s]
     ∂ω::T # .................................. Argument of perigee time derivative [rad / s]
     n̄::T  # ................................................ Perturbed mean motion [rad / s]
+    M_k::T # .................................... Current mean anomaly (mean elements) [rad]
 
     # == Constructors ======================================================================
 
-    J2Propagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
-    J2Propagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
+    J2Propagator{Tepoch, T}(args...) where {Tepoch <: Number, T <: Number} = new(args...)
+    J2Propagator{Tepoch, T}() where {Tepoch <: Number, T <: Number} = new()
 end
 
 ############################################################################################
@@ -68,7 +69,7 @@ end
 
 J2 osculating orbit propagator structure.
 """
-mutable struct J2OsculatingPropagator{Tepoch<:Number, T<:Number}
+mutable struct J2OsculatingPropagator{Tepoch <: Number, T <: Number}
     # J2 orbit propagator to propagate the mean elements.
     j2d::J2Propagator{Tepoch, T}
 
@@ -80,8 +81,9 @@ mutable struct J2OsculatingPropagator{Tepoch<:Number, T<:Number}
 
     # == Constructors ======================================================================
 
-    J2OsculatingPropagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
-    J2OsculatingPropagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
+    J2OsculatingPropagator{Tepoch, T}(args...) where {Tepoch <: Number, T <: Number} =
+        new(args...)
+    J2OsculatingPropagator{Tepoch, T}() where {Tepoch <: Number, T <: Number} = new()
 end
 
 ############################################################################################
@@ -100,7 +102,7 @@ Constants for the J4 orbit propagator.
 - `J2::T`: The second gravitational zonal harmonic of the Earth.
 - `J4::T`: The fourth gravitational zonal harmonic of the Earth.
 """
-struct J4PropagatorConstants{T<:Number}
+struct J4PropagatorConstants{T <: Number}
     R0::T
     μm::T
     J2::T
@@ -120,15 +122,16 @@ mutable struct J4Propagator{Tepoch, T}
 
     # == Auxiliary Variables ===============================================================
 
-    M₀::T # .,,,,........................................... Initial mean mean anomaly [rad]
-    ∂Ω::T # .,,,,............................................ RAAN time derivative [rad / s]
-    ∂ω::T # .,,,,............................. Argument of perigee time derivative [rad / s]
+    M₀::T # ..................................... Initial mean anomaly (mean elements) [rad]
+    ∂Ω::T # ................................................. RAAN time derivative [rad / s]
+    ∂ω::T # .................................. Argument of perigee time derivative [rad / s]
     n̄::T  # ................................................ Perturbed mean motion [rad / s]
+    M_k::T # .................................... Current mean anomaly (mean elements) [rad]
 
     # == Constructors ======================================================================
 
-    J4Propagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
-    J4Propagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
+    J4Propagator{Tepoch, T}(args...) where {Tepoch <: Number, T <: Number} = new(args...)
+    J4Propagator{Tepoch, T}() where {Tepoch <: Number, T <: Number} = new()
 end
 
 ############################################################################################
@@ -140,7 +143,7 @@ end
 
 J4 osculating orbit propagator structure.
 """
-mutable struct J4OsculatingPropagator{Tepoch<:Number, T<:Number}
+mutable struct J4OsculatingPropagator{Tepoch <: Number, T <: Number}
     # J4 orbit propagator to propagate the mean elements.
     j4d::J4Propagator{Tepoch, T}
 
@@ -152,8 +155,9 @@ mutable struct J4OsculatingPropagator{Tepoch<:Number, T<:Number}
 
     # == Constructors ======================================================================
 
-    J4OsculatingPropagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
-    J4OsculatingPropagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
+    J4OsculatingPropagator{Tepoch, T}(args...) where {Tepoch <: Number, T <: Number} =
+        new(args...)
+    J4OsculatingPropagator{Tepoch, T}() where {Tepoch <: Number, T <: Number} = new()
 end
 
 ############################################################################################
@@ -165,7 +169,7 @@ end
 
 Two body orbit propagator structure.
 """
-mutable struct TwoBodyPropagator{Tepoch<:Number, T<:Number}
+mutable struct TwoBodyPropagator{Tepoch <: Number, T <: Number}
     orb₀::KeplerianElements{Tepoch, T} # ............ Initial mean orbit elements [SI units]
     orbk::KeplerianElements{Tepoch, T} # ............ Current mean orbit elements [SI units]
     μ::T                               # . Central body std. gravitational parameter [m³/s²]
@@ -173,13 +177,14 @@ mutable struct TwoBodyPropagator{Tepoch<:Number, T<:Number}
 
     # == Auxiliary Variables ===============================================================
 
-    M₀::T  # ............................................... Initial mean mean anomaly [rad]
+    M₀::T  # .................................... Initial mean anomaly (mean elements) [rad]
     n₀::T  # ........................................................  Mean motion [rad / s]
 
     # == Constructors ======================================================================
 
-    TwoBodyPropagator{Tepoch, T}(args...) where {Tepoch<:Number, T<:Number} = new(args...)
-    TwoBodyPropagator{Tepoch, T}() where {Tepoch<:Number, T<:Number} = new()
+    TwoBodyPropagator{Tepoch, T}(args...) where {Tepoch <: Number, T <: Number} =
+        new(args...)
+    TwoBodyPropagator{Tepoch, T}() where {Tepoch <: Number, T <: Number} = new()
 end
 
 ############################################################################################
@@ -197,7 +202,7 @@ J2 orbit propagator.
 
 - `j2d`: Structure that stores the J2 orbit propagator data (see [`J2Propagator`](@ref)).
 """
-struct OrbitPropagatorJ2{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T}
+struct OrbitPropagatorJ2{Tepoch <: Number, T <: Number} <: OrbitPropagator{Tepoch, T}
     j2d::J2Propagator{Tepoch, T}
 end
 
@@ -213,7 +218,8 @@ J2 osculating orbit propagator.
 - `j2oscd`: Structure that stores the J2 osculating orbit propagator data (see
     [`J2OsculatingPropagator`](@ref)).
 """
-struct OrbitPropagatorJ2Osculating{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T}
+struct OrbitPropagatorJ2Osculating{Tepoch <: Number, T <: Number} <:
+       OrbitPropagator{Tepoch, T}
     j2oscd::J2OsculatingPropagator{Tepoch, T}
 end
 
@@ -228,7 +234,7 @@ J4 orbit propagator.
 
 - `j4d`: Structure that stores the J4 orbit propagator data (see [`J4Propagator`](@ref)).
 """
-struct OrbitPropagatorJ4{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T}
+struct OrbitPropagatorJ4{Tepoch <: Number, T <: Number} <: OrbitPropagator{Tepoch, T}
     j4d::J4Propagator{Tepoch, T}
 end
 
@@ -244,7 +250,8 @@ J4 osculating orbit propagator.
 - `j4oscd`: Structure that stores the J4 osculating orbit propagator data (see
     [`J4OsculatingPropagator`](@ref)).
 """
-struct OrbitPropagatorJ4Osculating{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T}
+struct OrbitPropagatorJ4Osculating{Tepoch <: Number, T <: Number} <:
+       OrbitPropagator{Tepoch, T}
     j4oscd::J4OsculatingPropagator{Tepoch, T}
 end
 
@@ -259,11 +266,11 @@ SGP4 orbit propagator.
 
 - `sgp4d`: Structure that stores the SGP4 orbit propagator data.
 """
-struct OrbitPropagatorSgp4{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T}
+struct OrbitPropagatorSgp4{Tepoch <: Number, T <: Number} <: OrbitPropagator{Tepoch, T}
     sgp4d::Sgp4Propagator{Tepoch, T}
 end
 
-# == Two Orbit Propagator ==================================================================
+# == Two Body Orbit Propagator =================================================
 
 """
     OrbitPropagatorTwoBody{Tepoch, T} <: OrbitPropagator{Tepoch, T}
@@ -275,6 +282,6 @@ Two body orbit propagator.
 - `tbd`: Structure that stores the two body orbit propagator data (see
     [`TwoBodyPropagator`](@ref)).
 """
-struct OrbitPropagatorTwoBody{Tepoch<:Number, T<:Number} <: OrbitPropagator{Tepoch, T}
+struct OrbitPropagatorTwoBody{Tepoch <: Number, T <: Number} <: OrbitPropagator{Tepoch, T}
     tbd::TwoBodyPropagator{Tepoch, T}
 end

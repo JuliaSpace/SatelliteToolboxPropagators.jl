@@ -62,6 +62,8 @@ end
 #                                        Julia API                                         #
 ############################################################################################
 
-function Base.copy(orbp::OrbitPropagatorTwoBody{Tepoch, T}) where {Tepoch<:Number, T<:Number}
+function Base.copy(
+    orbp::OrbitPropagatorTwoBody{Tepoch, T}
+) where {Tepoch <: Number, T <: Number}
     return OrbitPropagatorTwoBody{Tepoch, T}(copy(orbp.tbd))
 end

@@ -67,13 +67,13 @@
 
     @testset "Constructor" begin
         orb    = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
-        j4d    = J4Propagator{Float64, Float64}(orb, orb, j4c_egm2008, 0, 0, 0, 0, 0)
+        j4d    = J4Propagator{Float64, Float64}(orb, orb, j4c_egm2008, 0, 0, 0, 0, 0, 0)
         j4oscd = J4OsculatingPropagator{Float64, Float64}(j4d, 0, orb)
 
         # Test some random fields.
         @test j4oscd.j4d == j4d
-        @test j4oscd.Δt  == 0
-        @test j4d.orbk   == orb
+        @test j4oscd.Δt == 0
+        @test j4d.orbk == orb
     end
 
     # == General API Functions =============================================================
@@ -96,9 +96,9 @@
             T(7190.982e3),
             T(0.001111),
             T(98.405) |> deg2rad,
-            T(90)     |> deg2rad,
-            T(200)    |> deg2rad,
-            T(45)     |> deg2rad
+            T(90) |> deg2rad,
+            T(200) |> deg2rad,
+            T(45) |> deg2rad,
         )
 
         # Test all the results.
@@ -186,9 +186,7 @@
         @test eltype(v) == T
 
         r, v, orbp = Propagators.propagate_to_epoch(
-            Val(:J4osc),
-            jd₀ + results[end, 1] / 86400,
-            orb
+            Val(:J4osc), jd₀ + results[end, 1] / 86400, orb
         )
 
         orbk = Propagators.mean_elements(orbp)
@@ -229,9 +227,9 @@
             T(7190.982e3),
             T(0.001111),
             T(98.405) |> deg2rad,
-            T(90)     |> deg2rad,
-            T(200)    |> deg2rad,
-            T(45)     |> deg2rad
+            T(90) |> deg2rad,
+            T(200) |> deg2rad,
+            T(45) |> deg2rad,
         )
 
         # Test all the results.
@@ -305,10 +303,7 @@
 
         # Test simultaneous initialization and propagation.
         r, v, orbp = Propagators.propagate(
-            Val(:J4osc),
-            results[end, 1],
-            orb;
-            j4c = j4c_egm2008_f32
+            Val(:J4osc), results[end, 1], orb; j4c = j4c_egm2008_f32
         )
 
         orbk = Propagators.mean_elements(orbp)
@@ -324,10 +319,7 @@
         @test eltype(v) == T
 
         r, v, orbp = Propagators.propagate_to_epoch(
-            Val(:J4osc),
-            jd₀ + results[end, 1] / 86400,
-            orb;
-            j4c = j4c_egm2008_f32
+            Val(:J4osc), jd₀ + results[end, 1] / 86400, orb; j4c = j4c_egm2008_f32
         )
 
         orbk = Propagators.mean_elements(orbp)
@@ -366,9 +358,9 @@ end
         7130.982e3,
         0.001111,
         98.405 |> deg2rad,
-        90     |> deg2rad,
-        200    |> deg2rad,
-        45     |> deg2rad
+        90 |> deg2rad,
+        200 |> deg2rad,
+        45 |> deg2rad,
     )
 
     # Generate the osculating elements.
@@ -382,11 +374,7 @@ end
         # Obtain the mean elements.
         orb, ~ = redirect_stdout(devnull) do
             Propagators.fit_mean_elements(
-                Val(:J4osc),
-                vjd,
-                vr_i,
-                vv_i;
-                mean_elements_epoch = vjd[begin],
+                Val(:J4osc), vjd, vr_i, vv_i; mean_elements_epoch = vjd[begin]
             )
         end
 
@@ -401,11 +389,7 @@ end
         # Obtain the mean elements.
         orb, ~ = redirect_stdout(devnull) do
             Propagators.fit_mean_elements!(
-                orbp,
-                vjd,
-                vr_i,
-                vv_i;
-                mean_elements_epoch = vjd[begin],
+                orbp, vjd, vr_i, vv_i; mean_elements_epoch = vjd[begin]
             )
         end
 
@@ -425,7 +409,7 @@ end
                 vr_i,
                 vv_i;
                 mean_elements_epoch = vjd[begin],
-                jacobian_perturbation = 1e-13
+                jacobian_perturbation = 1e-13,
             )
         end
 
@@ -444,7 +428,7 @@ end
                 vr_i,
                 vv_i;
                 mean_elements_epoch = vjd[begin],
-                jacobian_perturbation = 1e-13
+                jacobian_perturbation = 1e-13,
             )
         end
 
@@ -505,11 +489,7 @@ end
         # Obtain the mean elements.
         orb, ~ = redirect_stdout(devnull) do
             Propagators.fit_mean_elements(
-                Val(:J4osc),
-                vjd,
-                vr_i,
-                vv_i;
-                mean_elements_epoch = vjd[begin] + 1,
+                Val(:J4osc), vjd, vr_i, vv_i; mean_elements_epoch = vjd[begin] + 1
             )
         end
 
@@ -525,11 +505,7 @@ end
         # Obtain the mean elements.
         orb, ~ = redirect_stdout(devnull) do
             Propagators.fit_mean_elements!(
-                orbp,
-                vjd,
-                vr_i,
-                vv_i;
-                mean_elements_epoch = vjd[begin] + 1,
+                orbp, vjd, vr_i, vv_i; mean_elements_epoch = vjd[begin] + 1
             )
         end
 
@@ -546,31 +522,34 @@ end
     @testset "Errors" begin
         # == Wrong dimensions in the input vectors =========================================
 
-        @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J4osc), vjd[1:end-1], vr_i, vv_i)
-        @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J4osc), vjd, vr_i[1:end-1], vv_i)
-        @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J4osc), vjd, vr_i, vv_i[1:end-1])
+        @test_throws ArgumentError Propagators.fit_mean_elements(
+            Val(:J4osc), vjd[1:(end - 1)], vr_i, vv_i
+        )
+        @test_throws ArgumentError Propagators.fit_mean_elements(
+            Val(:J4osc), vjd, vr_i[1:(end - 1)], vv_i
+        )
+        @test_throws ArgumentError Propagators.fit_mean_elements(
+            Val(:J4osc), vjd, vr_i, vv_i[1:(end - 1)]
+        )
 
         # == Wrong dimensions in the weight vector =========================================
 
         @test_throws ArgumentError Propagators.fit_mean_elements(
-            Val(:J4osc),
-            vjd,
-            vr_i,
-            vv_i;
-            weight_vector = [1, 2, 3, 4, 5]
+            Val(:J4osc), vjd, vr_i, vv_i; weight_vector = [1, 2, 3, 4, 5]
         )
     end
 end
 
-@testset "Fitting Mean Elements for the J4 Osculating Propagator (ForwardDiffJacobian)" verbose = true begin
+@testset "Fitting Mean Elements for the J4 Osculating Propagator (ForwardDiffJacobian)" verbose =
+    true begin
     orb_input = KeplerianElements(
         DateTime("2023-01-01") |> datetime2julian,
         7130.982e3,
         0.001111,
         98.405 |> deg2rad,
-        90     |> deg2rad,
-        200    |> deg2rad,
-        45     |> deg2rad
+        90 |> deg2rad,
+        200 |> deg2rad,
+        45 |> deg2rad,
     )
 
     orbp = Propagators.init(Val(:J4osc), orb_input)
@@ -625,9 +604,9 @@ end
         7130.982e3,
         0.001111,
         98.405 |> deg2rad,
-        90     |> deg2rad,
-        200    |> deg2rad,
-        45     |> deg2rad
+        90 |> deg2rad,
+        200 |> deg2rad,
+        45 |> deg2rad,
     )
 
     orb = update_j4osc_mean_elements_epoch(orb_input, DateTime("2023-01-02"))
@@ -652,9 +631,9 @@ end
                 T(8000e3),
                 T(0.015),
                 T(28.5) |> deg2rad,
-                T(100)  |> deg2rad,
-                T(200)  |> deg2rad,
-                T(25)   |> deg2rad
+                T(100) |> deg2rad,
+                T(200) |> deg2rad,
+                T(25) |> deg2rad,
             )
 
             orbp = Propagators.init(Val(:J4osc), orb; j4c = j4c)

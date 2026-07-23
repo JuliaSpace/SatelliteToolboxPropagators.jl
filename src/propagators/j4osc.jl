@@ -2,8 +2,8 @@
 #
 #   J4 osculating orbit propagator algorithm.
 #
-#   This algorithm propagates the orbit considering the secular perturbations considering
-#   the terms J2, J2², and J4 and the short-period perturbations considering the J2
+#   This algorithm propagates the orbit considering the secular perturbations from
+#   the terms J2, J2², and J4 and the short-period perturbations from the J2
 #   gravitation term only. The algorithm is based on Kwok version as indicated in
 #   [1, p. 708-710].
 #
@@ -27,16 +27,13 @@ let
     fields = fieldnames(J4OsculatingPropagator)
     expressions = vcat(
         :(new_j4oscd.j4d = copy(j4oscd.j4d)),
-        [
-            :(new_j4oscd.$f = j4oscd.$f)
-            for f in fields if f != :j4d
-        ]
+        [:(new_j4oscd.$f = j4oscd.$f) for f in fields if f != :j4d],
     )
 
     @eval begin
         function Base.copy(
             j4oscd::J4OsculatingPropagator{Tepoch, T}
-        ) where {Tepoch<:Number, T<:Number}
+        ) where {Tepoch <: Number, T <: Number}
             new_j4oscd = J4OsculatingPropagator{Tepoch, T}()
             $(expressions...)
             return new_j4oscd
@@ -65,9 +62,8 @@ elements `orb₀`.
     [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm2008`)
 """
 function j4osc_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler};
-    j4c::J4PropagatorConstants{T} = j4c_egm2008
-) where {Tepoch<:Number, Tkepler<:AbstractFloat, T<:Number}
+    orb₀::KeplerianElements{Tepoch, Tkepler}; j4c::J4PropagatorConstants{T} = j4c_egm2008
+) where {Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number}
     # Allocate the J4 propagator structure that will propagate the mean elements.
     j4d = J4Propagator{Tepoch, T}()
 
@@ -85,9 +81,8 @@ function j4osc_init(
 end
 
 function j4osc_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler};
-    j4c::J4PropagatorConstants{Tj4c} = j4c_egm2008
-) where {Tepoch<:Number, Tkepler<:Number, Tj4c<:Number}
+    orb₀::KeplerianElements{Tepoch, Tkepler}; j4c::J4PropagatorConstants{Tj4c} = j4c_egm2008
+) where {Tepoch <: Number, Tkepler <: Number, Tj4c <: Number}
     T = promote_type(Tj4c, Tkepler)
 
     # Allocate the J4 propagator structure that will propagate the mean elements.
@@ -157,7 +152,9 @@ The inertial frame in which the output is represented depends on which frame it 
 generate the orbit parameters. Notice that the perturbation theory requires an inertial
 frame with true equator.
 """
-function j4osc(Δt::Number, orb₀::KeplerianElements; j4c::J4PropagatorConstants = j4c_egm2008)
+function j4osc(
+    Δt::Number, orb₀::KeplerianElements; j4c::J4PropagatorConstants = j4c_egm2008
+)
     j4oscd = j4osc_init(orb₀; j4c = j4c)
     r_i, v_i = j4osc!(j4oscd, Δt)
     return r_i, v_i, j4oscd
@@ -186,7 +183,9 @@ The inertial frame in which the output is represented depends on which frame it 
 generate the orbit parameters. Notice that the perturbation theory requires an inertial
 frame with true equator.
 """
-function j4osc!(j4oscd::J4OsculatingPropagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:Number}
+function j4osc!(
+    j4oscd::J4OsculatingPropagator{Tepoch, T}, t::Number
+) where {Tepoch <: Number, T <: Number}
     # First, we need to propagate the mean elements since they are necessary to compute the
     # short-periodic perturbations.
     j4d = j4oscd.j4d
@@ -240,27 +239,31 @@ function j4osc!(j4oscd::J4OsculatingPropagator{Tepoch, T}, t::Number) where {Tep
 
     δpsp_k = +KJ₂ * sin_i_k² / (2p_k) * aux1
 
-    δΩsp_k = -KJ₂ * cos_i_k / (4p_k²) * (
-        6 * (f_k - M_k + e_sin_f_k) - 3sin_2u_k - 3e_k * sin_2ω_f_k - e_k * sin_2ω_3f_k
-    )
+    δΩsp_k =
+        -KJ₂ * cos_i_k / (4p_k²) *
+        (6 * (f_k - M_k + e_sin_f_k) - 3sin_2u_k - 3e_k * sin_2ω_f_k - e_k * sin_2ω_3f_k)
 
-    δrsp_k = -KJ₂ / (4p_k) * (
-        aux3 * (2aux2 / (1 + e_cos_f_k) + e_cos_f_k / (1 + aux2) + 1) - sin_i_k² * cos_2u_k
-    )
+    δrsp_k =
+        -KJ₂ / (4p_k) * (
+            aux3 * (2aux2 / (1 + e_cos_f_k) + e_cos_f_k / (1 + aux2) + 1) -
+            sin_i_k² * cos_2u_k
+        )
 
-    δṙsp_k = +KJ₂ * √μm / (4 * √(p_k^5)) * (
-        aux3 * e_sin_f_k * (aux2 + ((1 + e_cos_f_k)^2) / (1 + aux2)) -
-        2sin_i_k² * (1 - e_cos_f_k)^2 * sin_2u_k
-    )
+    δṙsp_k =
+        +KJ₂ * √μm / (4 * √(p_k^5)) * (
+            aux3 * e_sin_f_k * (aux2 + ((1 + e_cos_f_k)^2) / (1 + aux2)) -
+            2sin_i_k² * (1 - e_cos_f_k)^2 * sin_2u_k
+        )
 
-    δusp_k = +KJ₂ / (8p_k²) * (
-        (6 - 30cos_i_k²) * (f_k - M_k) +
-        4e_sin_f_k * (1 - 6cos_i_k² + aux4) +
-        aux4 * e_k² * sin(2f_k) +
-        (5cos_i_k² - 2) * (2e_k) * sin_2ω_f_k +
-        (7cos_i_k² - 1) * sin_2u_k +
-        2cos_i_k² * e_k * sin_2ω_3f_k
-    )
+    δusp_k =
+        +KJ₂ / (8p_k²) * (
+            (6 - 30cos_i_k²) * (f_k - M_k) +
+            4e_sin_f_k * (1 - 6cos_i_k² + aux4) +
+            aux4 * e_k² * 2sin_f_k * cos_f_k +
+            (5cos_i_k² - 2) * (2e_k) * sin_2ω_f_k +
+            (7cos_i_k² - 1) * sin_2u_k +
+            2cos_i_k² * e_k * sin_2ω_3f_k
+        )
 
     r_k = p_k / (1 + e_cos_f_k)
     ṙ_k = √(μm / p_k) * e_sin_f_k
@@ -283,13 +286,7 @@ function j4osc!(j4oscd::J4OsculatingPropagator{Tepoch, T}, t::Number) where {Tep
 
     # Assemble the current osculating elements.
     orbk = KeplerianElements(
-        j4d.orb₀.t + Tepoch(t) / 86400,
-        a_osc_k,
-        e_osc_k,
-        i_osc_k,
-        Ω_osc_k,
-        ω_osc_k,
-        f_osc_k
+        j4d.orb₀.t + Tepoch(t) / 86400, a_osc_k, e_osc_k, i_osc_k, Ω_osc_k, ω_osc_k, f_osc_k
     )
 
     # Compute the position and velocity considering the osculating elements.
@@ -395,11 +392,8 @@ KeplerianElements{Float64, Float64}:
 ```
 """
 function fit_j4osc_mean_elements(
-    vjd::AbstractVector{Tjd},
-    vr_i::AbstractVector{Tv},
-    vv_i::AbstractVector{Tv};
-    kwargs...
-) where {Tjd<:Number, Tv<:AbstractVector}
+    vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...
+) where {Tjd <: Number, Tv <: AbstractVector}
     # Allocate the J4 propagator structure that will propagate the mean elements.
     j4d = J4Propagator{Float64, Float64}()
 
@@ -522,7 +516,7 @@ function fit_j4osc_mean_elements!(
     mean_elements_epoch::Number                      = vjd[end],
     verbose::Bool                                    = true,
     weight_vector::AbstractVector                    = @SVector(ones(Bool, 6)),
-) where {T<:Number, Tepoch<:Number, Tjd<:Number, Tv<:AbstractVector}
+) where {T <: Number, Tepoch <: Number, Tjd <: Number, Tv <: AbstractVector}
     # Number of available measurements.
     num_measurements = length(vjd)
 
@@ -559,14 +553,16 @@ function fit_j4osc_mean_elements!(
     #
     # NOTE: x₁ is the previous estimate and x₂ is the current estimate.
     if !isnothing(initial_guess)
-        epoch = mean_elements_epoch
+        epoch = T(mean_elements_epoch)
 
         # First, we need to update the mean elements to the desired epoch.
-        verbose && println("$(cy)ACTION:$(cd)   Updating the epoch of the initial mean elements guess to match the desired one.")
+        verbose && println(
+            "$(cy)ACTION:$(cd)   Updating the epoch of the initial mean elements guess to match the desired one.",
+        )
         orb = update_j4osc_mean_elements_epoch!(j4oscd, initial_guess, epoch)
 
         r_i, v_i = kepler_to_rv(orb)
-        x₁ = SVector{6, T}(r_i..., v_i...)
+        x₁ = SVector{6, T}(r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3])
     else
         # In this case, we must find the closest osculating vector to the desired epoch.
         id = firstindex(vjd)
@@ -583,7 +579,7 @@ function fit_j4osc_mean_elements!(
         epoch = T(vjd[id])
         r_i   = vr_i[id]
         v_i   = vv_i[id]
-        x₁    = SVector{6, T}(r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3],)
+        x₁    = SVector{6, T}(r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3])
     end
 
     x₂ = x₁
@@ -595,7 +591,7 @@ function fit_j4osc_mean_elements!(
     P = SMatrix{num_states, num_states, T}(I)
 
     # Variable to store the last residue.
-    local σ_i_₁
+    σ_i_₁ = T(0)
 
     # Variable to store how many iterations the residue increased. This is used to account
     # for divergence.
@@ -603,9 +599,29 @@ function fit_j4osc_mean_elements!(
 
     # Header.
     if verbose
-        println("$(cy)ACTION:$(cd)   Fitting the mean elements for the J4 osculating propagator.")
-        @printf("          %s%10s %20s %20s %20s %20s%s\n", cy, "Iteration", "Position RMSE", "Velocity RMSE", "Total RMSE", "RMSE Variation", cd)
-        @printf("          %s%10s %20s %20s %20s %20s%s\n", cb, "", "[km]", "[km / s]", "[ ]", "", cd)
+        println(
+            "$(cy)ACTION:$(cd)   Fitting the mean elements for the J4 osculating propagator.",
+        )
+        @printf(
+            "          %s%10s %20s %20s %20s %20s%s\n",
+            cy,
+            "Iteration",
+            "Position RMSE",
+            "Velocity RMSE",
+            "Total RMSE",
+            "RMSE Variation",
+            cd
+        )
+        @printf(
+            "          %s%10s %20s %20s %20s %20s%s\n",
+            cb,
+            "",
+            "[km]",
+            "[km / s]",
+            "[ ]",
+            "",
+            cd
+        )
         println()
     end
 
@@ -613,7 +629,9 @@ function fit_j4osc_mean_elements!(
     # after the iterations.
     local ΣJ′WJ
 
-    j4oscd_ad = jacobian_method isa ForwardDiffJacobian ? _create_j4osc_ad_propagator(j4oscd) : nothing
+    j4oscd_ad =
+        jacobian_method isa ForwardDiffJacobian ? _create_j4osc_ad_propagator(j4oscd) :
+        nothing
 
     # Loop until the maximum allowed iteration.
     @inbounds @views for it in 1:max_iterations
@@ -632,7 +650,7 @@ function fit_j4osc_mean_elements!(
             # Obtain the measured ephemerides.
             y = vcat(vr_i[k - 1 + begin], vv_i[k - 1 + begin])
 
-            # Initialize the SGP4 with the current estimated mean elements.
+            # Initialize the propagator with the current estimated mean elements.
             orb = rv_to_kepler(x₁[1:3], x₁[4:6], epoch)
             j4osc_init!(j4oscd, orb)
 
@@ -655,7 +673,7 @@ function fit_j4osc_mean_elements!(
                 ŷ;
                 perturbation     = jacobian_perturbation,
                 perturbation_tol = jacobian_perturbation_tol,
-                j4oscd_ad        = j4oscd_ad
+                j4oscd_ad        = j4oscd_ad,
             )
 
             # Accumulation.
@@ -667,7 +685,7 @@ function fit_j4osc_mean_elements!(
         end
 
         # Normalize and compute the RMS errors.
-        σ_i  = √(σ_i  / num_measurements)
+        σ_i  = √(σ_i / num_measurements)
         σp_i = √(σp_i / num_measurements)
         σv_i = √(σv_i / num_measurements)
 
@@ -693,8 +711,16 @@ function fit_j4osc_mean_elements!(
             # Compute the RMSE variation.
             Δσ = (σ_i - σ_i_₁) / σ_i_₁
 
-            verbose &&
-                @printf("\x1b[A\x1b[2K\r%sPROGRESS:%s %10d %20g %20g %20g %20g %%\n", cb, cd, it, σp_i / 1000, σv_i / 1000, σ_i, 100 * Δσ)
+            verbose && @printf(
+                "\x1b[A\x1b[2K\r%sPROGRESS:%s %10d %20g %20g %20g %20g %%\n",
+                cb,
+                cd,
+                it,
+                σp_i / 1000,
+                σv_i / 1000,
+                σ_i,
+                100 * Δσ
+            )
 
             # Check if the RMSE is increasing.
             if σ_i < σ_i_₁
@@ -721,8 +747,9 @@ function fit_j4osc_mean_elements!(
 
     # Update the epoch of the fitted mean elements to match the desired one.
     if abs(epoch - mean_elements_epoch) > 0.001 / 86400
-        verbose &&
-            println("$(cy)ACTION:$(cd)   Updating the epoch of the fitted mean elements to match the desired one.")
+        verbose && println(
+            "$(cy)ACTION:$(cd)   Updating the epoch of the fitted mean elements to match the desired one.",
+        )
         orb = update_j4osc_mean_elements_epoch!(j4oscd, orb, mean_elements_epoch)
     end
 
@@ -737,7 +764,7 @@ function fit_j4osc_mean_elements!(
 end
 
 """
-    update_j4osc_mean_elements_epoch(orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KepleriranElements
+    update_j4osc_mean_elements_epoch(orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KeplerianElements
 
 Update the epoch of the mean elements `orb` using a J4 osculating orbit propagator to
 `new_epoch`, which can be represented by a Julian Day or a `DateTime`.
@@ -781,9 +808,8 @@ KeplerianElements{Float64, Float64}:
 ```
 """
 function update_j4osc_mean_elements_epoch(
-    orb::KeplerianElements{Tepoch, T},
-    new_epoch::Union{Number, DateTime}
-) where {T<:Number, Tepoch<:Number}
+    orb::KeplerianElements{Tepoch, T}, new_epoch::Union{Number, DateTime}
+) where {T <: Number, Tepoch <: Number}
     # Allocate the J4 propagator structure that will propagate the mean elements.
     j4d = J4Propagator{Tepoch, T}()
 
@@ -798,7 +824,7 @@ function update_j4osc_mean_elements_epoch(
 end
 
 """
-    update_j4osc_mean_elements_epoch!(j4oscd::J4OsculatingPropagator, orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KepleriranElements
+    update_j4osc_mean_elements_epoch!(j4oscd::J4OsculatingPropagator, orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KeplerianElements
 
 Update the epoch of the mean elements `orb` using the propagator `j4oscd` to `new_epoch`,
 which can be represented by a Julian Day or a `DateTime`.
@@ -845,18 +871,14 @@ KeplerianElements{Float64, Float64}:
 ```
 """
 function update_j4osc_mean_elements_epoch!(
-    j4oscd::J4OsculatingPropagator,
-    orb::KeplerianElements,
-    new_epoch::DateTime
+    j4oscd::J4OsculatingPropagator, orb::KeplerianElements, new_epoch::DateTime
 )
     dt = datetime2julian(new_epoch)
     return update_j4osc_mean_elements_epoch!(j4oscd, orb, dt)
 end
 
 function update_j4osc_mean_elements_epoch!(
-    j4oscd::J4OsculatingPropagator,
-    orb::KeplerianElements,
-    new_epoch::Number
+    j4oscd::J4OsculatingPropagator, orb::KeplerianElements, new_epoch::Number
 )
     # First, we need to initialize the J4 osculating propagator with the mean elements.
     j4osc_init!(j4oscd, orb)
@@ -877,10 +899,12 @@ end
 #                                    Private Functions                                     #
 ############################################################################################
 
-function _create_j4osc_ad_propagator(j4oscd::J4OsculatingPropagator{Tepoch, T}) where {Tepoch, T}
-    tag  = ForwardDiff.Tag{Nothing, T}
-    D    = ForwardDiff.Dual{tag, T, 6}
-    j4c  = j4oscd.j4d.j4c
+function _create_j4osc_ad_propagator(
+    j4oscd::J4OsculatingPropagator{Tepoch, T}
+) where {Tepoch, T}
+    tag = ForwardDiff.Tag{Nothing, T}
+    D   = ForwardDiff.Dual{tag, T, 6}
+    j4c = j4oscd.j4d.j4c
 
     ad = J4OsculatingPropagator{Tepoch, D}()
     ad.j4d = J4Propagator{Tepoch, D}()
@@ -896,9 +920,8 @@ function _j4osc_jacobian(
     y₁::SVector{6, T};
     perturbation::Number = T(1e-3),
     perturbation_tol::Number = T(1e-7),
-    j4oscd_ad::Union{Nothing, J4OsculatingPropagator} = nothing
-) where {T<:Number, Tepoch<:Number}
-
+    j4oscd_ad::Union{Nothing, J4OsculatingPropagator} = nothing,
+) where {T <: Number, Tepoch <: Number}
     J = MMatrix{6, 6, T}(undef)
     x₂ = x₁
 
@@ -938,8 +961,8 @@ function _j4osc_jacobian(
     y₁::SVector{6, T};
     perturbation::Number = T(1e-3),
     perturbation_tol::Number = T(1e-7),
-    j4oscd_ad::Union{Nothing, J4OsculatingPropagator} = nothing
-) where {T<:Number, Tepoch<:Number}
+    j4oscd_ad::Union{Nothing, J4OsculatingPropagator} = nothing,
+) where {T <: Number, Tepoch <: Number}
     if isnothing(j4oscd_ad)
         j4oscd_ad = _create_j4osc_ad_propagator(j4oscd)
     end

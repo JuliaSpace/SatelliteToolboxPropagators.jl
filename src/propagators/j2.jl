@@ -53,54 +53,38 @@ export update_j2_mean_elements_epoch, update_j2_mean_elements_epoch!
 
 # EGM-08 gravitational constants.
 const j2c_egm2008 = J2PropagatorConstants(
-    6378137.0,
-    √(3.986004415e14 / 6378137.0^3),
-    0.0010826261738522227
+    6378137.0, √(3.986004415e14 / 6378137.0^3), 0.0010826261738522227
 )
 
 const j2c_egm2008_f32 = J2PropagatorConstants{Float32}(
-    6378137.0,
-    √(3.986004415e14 / 6378137.0^3),
-    0.0010826261738522227
+    6378137.0, √(3.986004415e14 / 6378137.0^3), 0.0010826261738522227
 )
 
 # EGM-96 gravitational constants.
 const j2c_egm1996 = J2PropagatorConstants(
-    6378136.3,
-    √(3.986004415e14 / 6378136.3^3),
-    0.0010826266835531513
+    6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826266835531513
 )
 
 const j2c_egm1996_f32 = J2PropagatorConstants{Float32}(
-    6378136.3,
-    √(3.986004415e14 / 6378136.3^3),
-    0.0010826266835531513
+    6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826266835531513
 )
 
 # JGM-02 gravitational constants.
 const j2c_jgm02 = J2PropagatorConstants(
-    6378136.3,
-    √(3.986004415e14 / 6378136.3^3),
-    0.0010826269256388149
+    6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826269256388149
 )
 
 const j2c_jgm02_f32 = J2PropagatorConstants{Float32}(
-    6378136.3,
-    √(3.986004415e14 / 6378136.3^3),
-    0.0010826269256388149
+    6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826269256388149
 )
 
 # JGM-03 gravitational constants.
 const j2c_jgm03 = J2PropagatorConstants(
-    6378136.3,
-    √(3.986004415e14 / 6378136.3^3),
-    0.0010826360229829945
+    6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826360229829945
 )
 
 const j2c_jgm03_f32 = J2PropagatorConstants{Float32}(
-    6378136.3,
-    √(3.986004415e14 / 6378136.3^3),
-    0.0010826360229829945
+    6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826360229829945
 )
 
 ############################################################################################
@@ -110,13 +94,12 @@ const j2c_jgm03_f32 = J2PropagatorConstants{Float32}(
 # Define `copy` for the propagator structure.
 let
     fields = fieldnames(J2Propagator)
-    expressions = [
-        :(new_j2d.$f = j2d.$f)
-        for f in fields
-    ]
+    expressions = [:(new_j2d.$f = j2d.$f) for f in fields]
 
     @eval begin
-        function Base.copy(j2d::J2Propagator{Tepoch, T}) where {Tepoch<:Number, T<:Number}
+        function Base.copy(
+            j2d::J2Propagator{Tepoch, T}
+        ) where {Tepoch <: Number, T <: Number}
             new_j2d = J2Propagator{Tepoch, T}()
             $(expressions...)
             return new_j2d
@@ -146,9 +129,8 @@ Create and initialize the J2 orbit propagator structure using the mean Keplerian
     (**Default** = `j2c_egm2008`)
 """
 function j2_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler};
-    j2c::J2PropagatorConstants{T} = j2c_egm2008
-) where {Tepoch<:Number, Tkepler<:AbstractFloat, T<:Number}
+    orb₀::KeplerianElements{Tepoch, Tkepler}; j2c::J2PropagatorConstants{T} = j2c_egm2008
+) where {Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number}
     # Allocate the propagator structure.
     j2d = J2Propagator{Tepoch, T}()
 
@@ -162,9 +144,8 @@ function j2_init(
 end
 
 function j2_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler};
-    j2c::J2PropagatorConstants{Tj2c} = j2c_egm2008
-) where {Tepoch<:Number, Tkepler<:Number, Tj2c<:Number}
+    orb₀::KeplerianElements{Tepoch, Tkepler}; j2c::J2PropagatorConstants{Tj2c} = j2c_egm2008
+) where {Tepoch <: Number, Tkepler <: Number, Tj2c <: Number}
     T = promote_type(Tj2c, Tkepler)
 
     # Allocate the propagator structure.
@@ -191,9 +172,8 @@ Initialize the J2 orbit propagator structure `j2d` using the mean Keplerian elem
     Hence, they must be initialized.
 """
 function j2_init!(
-    j2d::J2Propagator{Tepoch, T},
-    orb₀::KeplerianElements
-) where {Tepoch<:Number, T<:Number}
+    j2d::J2Propagator{Tepoch, T}, orb₀::KeplerianElements
+) where {Tepoch <: Number, T <: Number}
     # Unpack the gravitational constants to improve code readability.
     j2c = j2d.j2c
     R₀  = j2c.R0
@@ -216,8 +196,8 @@ function j2_init!(
 
     sin_i₀, cos_i₀ = sincos(T(i₀))
     sin_i₀² = sin_i₀^2
-    β²      = 1 - e₀²
-    β       = √β²
+    β² = 1 - e₀²
+    β = √β²
 
     # We use the algorithm provided in [2, p. 372] that consists on updating the Keplerian
     # elements considering only the first order secular terms, i.e., those that depends only
@@ -225,13 +205,13 @@ function j2_init!(
 
     # We need to compute the perturbed mean motion that is used to calculate the first-order
     # time derivative of the orbital elements [2].
-    kn₂ = J₂  / p₀² * β
-    n̄   = n₀ * (1 + (3 // 4) * kn₂ * (2 - 3sin_i₀²))
+    kn₂ = J₂ / p₀² * β
+    n̄ = n₀ * (1 + (3//4) * kn₂ * (2 - 3sin_i₀²))
 
     # First-order time-derivative of the orbital elements.
-    k̄₂ = n̄  * J₂  / p₀²
-    ∂Ω = -(3 // 2) * k̄₂ * cos_i₀
-    ∂ω = +(3 // 4) * k̄₂ * (4 - 5sin_i₀²)
+    k̄₂ = n̄ * J₂ / p₀²
+    ∂Ω = -(3//2) * k̄₂ * cos_i₀
+    ∂ω = +(3//4) * k̄₂ * (4 - 5sin_i₀²)
 
     # Initialize the propagator structure with the data.
     j2d.orb₀ = j2d.orbk = orb₀
@@ -304,7 +284,7 @@ The inertial frame in which the output is represented depends on which frame it 
 generate the orbit parameters. Notice that the perturbation theory requires an inertial
 frame with true equator.
 """
-function j2!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:Number}
+function j2!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch <: Number, T <: Number}
     # Unpack the variables.
     orb₀   = j2d.orb₀
     M₀     = j2d.M₀
@@ -324,7 +304,7 @@ function j2!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:
     # Propagate the orbital elements.
     Ω_k = mod(Ω₀ + ∂Ω * Δt, T(2π))
     ω_k = mod(ω₀ + ∂ω * Δt, T(2π))
-    M_k = mod(M₀ + n̄  * Δt, T(2π))
+    M_k = mod(M₀ + n̄ * Δt, T(2π))
 
     # Convert the mean anomaly to the true anomaly.
     f_k = mean_to_true_anomaly(e₀, M_k)
@@ -449,11 +429,8 @@ KeplerianElements{Float64, Float64}:
 ```
 """
 function fit_j2_mean_elements(
-    vjd::AbstractVector{Tjd},
-    vr_i::AbstractVector{Tv},
-    vv_i::AbstractVector{Tv};
-    kwargs...
-) where {Tjd<:Number, Tv<:AbstractVector}
+    vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...
+) where {Tjd <: Number, Tv <: AbstractVector}
     # Allocate the J2 propagator structure that will propagate the mean elements.
     j2d = J2Propagator{Float64, Float64}()
 
@@ -585,7 +562,7 @@ function fit_j2_mean_elements!(
     mean_elements_epoch::Number                      = vjd[end],
     verbose::Bool                                    = true,
     weight_vector::AbstractVector                    = @SVector(ones(Bool, 6)),
-) where {T<:Number, Tepoch<:Number, Tjd<:Number, Tv<:AbstractVector}
+) where {T <: Number, Tepoch <: Number, Tjd <: Number, Tv <: AbstractVector}
     # Number of available measurements.
     num_measurements = length(vjd)
 
@@ -625,7 +602,9 @@ function fit_j2_mean_elements!(
         epoch = T(mean_elements_epoch)
 
         # First, we need to update the mean elements to the desired epoch.
-        verbose && println("$(cy)ACTION:$(cd)   Updating the epoch of the initial mean elements guess to match the desired one.")
+        verbose && println(
+            "$(cy)ACTION:$(cd)   Updating the epoch of the initial mean elements guess to match the desired one.",
+        )
         orb = update_j2_mean_elements_epoch!(j2d, initial_guess, epoch)
 
         r_i, v_i = kepler_to_rv(orb)
@@ -646,7 +625,7 @@ function fit_j2_mean_elements!(
         epoch = T(vjd[id])
         r_i   = vr_i[id]
         v_i   = vv_i[id]
-        x₁    = SVector{6, T}(r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3],)
+        x₁    = SVector{6, T}(r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3])
     end
 
     x₂ = x₁
@@ -667,16 +646,35 @@ function fit_j2_mean_elements!(
     # Header.
     if verbose
         println("$(cy)ACTION:$(cd)   Fitting the mean elements for the J2 propagator.")
-        @printf("          %s%10s %20s %20s %20s %20s%s\n", cy, "Iteration", "Position RMSE", "Velocity RMSE", "Total RMSE", "RMSE Variation", cd)
-        @printf("          %s%10s %20s %20s %20s %20s%s\n", cb, "", "[km]", "[km / s]", "[ ]", "", cd)
+        @printf(
+            "          %s%10s %20s %20s %20s %20s%s\n",
+            cy,
+            "Iteration",
+            "Position RMSE",
+            "Velocity RMSE",
+            "Total RMSE",
+            "RMSE Variation",
+            cd
+        )
+        @printf(
+            "          %s%10s %20s %20s %20s %20s%s\n",
+            cb,
+            "",
+            "[km]",
+            "[km / s]",
+            "[ ]",
+            "",
+            cd
+        )
         println()
     end
 
     # We need a reference to the covariance inverse because we will invert it and return
     # after the iterations.
-    local ΣJ′WJ
+    ΣJ′WJ = @SMatrix zeros(T, num_states, num_states)
 
-    j2d_ad = jacobian_method isa ForwardDiffJacobian ? _create_j2_ad_propagator(j2d) : nothing
+    j2d_ad =
+        jacobian_method isa ForwardDiffJacobian ? _create_j2_ad_propagator(j2d) : nothing
 
     # Loop until the maximum allowed iteration.
     @inbounds @views for it in 1:max_iterations
@@ -695,7 +693,7 @@ function fit_j2_mean_elements!(
             # Obtain the measured ephemerides.
             y = vcat(vr_i[k - 1 + begin], vv_i[k - 1 + begin])
 
-            # Initialize the SGP4 with the current estimated mean elements.
+            # Initialize the propagator with the current estimated mean elements.
             orb = rv_to_kepler(x₁[1:3], x₁[4:6], epoch)
             j2_init!(j2d, orb)
 
@@ -718,7 +716,7 @@ function fit_j2_mean_elements!(
                 ŷ;
                 perturbation     = jacobian_perturbation,
                 perturbation_tol = jacobian_perturbation_tol,
-                j2d_ad           = j2d_ad
+                j2d_ad           = j2d_ad,
             )
 
             # Accumulation.
@@ -730,7 +728,7 @@ function fit_j2_mean_elements!(
         end
 
         # Normalize and compute the RMS errors.
-        σ_i  = √(σ_i  / num_measurements)
+        σ_i  = √(σ_i / num_measurements)
         σp_i = √(σp_i / num_measurements)
         σv_i = √(σv_i / num_measurements)
 
@@ -749,15 +747,31 @@ function fit_j2_mean_elements!(
 
         # We cannot compute the RMSE variation in the first iteration.
         if it == 1
-            verbose &&
-                @printf("\x1b[A\x1b[2K\r%sPROGRESS:%s %10d %20g %20g %20g %20s\n", cb, cd, it, σp_i / 1000, σv_i / 1000, σ_i, "---")
+            verbose && @printf(
+                "\x1b[A\x1b[2K\r%sPROGRESS:%s %10d %20g %20g %20g %20s\n",
+                cb,
+                cd,
+                it,
+                σp_i / 1000,
+                σv_i / 1000,
+                σ_i,
+                "---"
+            )
 
         else
             # Compute the RMSE variation.
             Δσ = (σ_i - σ_i_₁) / σ_i_₁
 
-            verbose &&
-                @printf("\x1b[A\x1b[2K\r%sPROGRESS:%s %10d %20g %20g %20g %20g %%\n", cb, cd, it, σp_i / 1000, σv_i / 1000, σ_i, 100 * Δσ)
+            verbose && @printf(
+                "\x1b[A\x1b[2K\r%sPROGRESS:%s %10d %20g %20g %20g %20g %%\n",
+                cb,
+                cd,
+                it,
+                σp_i / 1000,
+                σv_i / 1000,
+                σ_i,
+                100 * Δσ
+            )
 
             # Check if the RMSE is increasing.
             if σ_i < σ_i_₁
@@ -784,8 +798,9 @@ function fit_j2_mean_elements!(
 
     # Update the epoch of the fitted mean elements to match the desired one.
     if abs(epoch - mean_elements_epoch) > 0.001 / 86400
-        verbose &&
-            println("$(cy)ACTION:$(cd)   Updating the epoch of the fitted mean elements to match the desired one.")
+        verbose && println(
+            "$(cy)ACTION:$(cd)   Updating the epoch of the fitted mean elements to match the desired one.",
+        )
         orb = update_j2_mean_elements_epoch!(j2d, orb, mean_elements_epoch)
     end
 
@@ -800,7 +815,7 @@ function fit_j2_mean_elements!(
 end
 
 """
-    update_j2_mean_elements_epoch(orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KepleriranElements
+    update_j2_mean_elements_epoch(orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KeplerianElements
 
 Update the epoch of the mean elements `orb` using a J2 orbit propagator to `new_epoch`,
 which can be represented by a Julian Day or a `DateTime`.
@@ -809,7 +824,7 @@ which can be represented by a Julian Day or a `DateTime`.
 
     This algorithm version will allocate a new J2 propagator with the default constants
     `j2c_egm2008`. If another set of constants are required, use the function
-    [`update_j2osc_mean_elements_epoch!`](@ref) instead.
+    [`update_j2_mean_elements_epoch!`](@ref) instead.
 
 # Examples
 
@@ -844,9 +859,8 @@ KeplerianElements{Float64, Float64}:
 ```
 """
 function update_j2_mean_elements_epoch(
-    orb::KeplerianElements{Tepoch, T},
-    new_epoch::Union{Number, DateTime}
-) where {T<:Number, Tepoch<:Number}
+    orb::KeplerianElements{Tepoch, T}, new_epoch::Union{Number, DateTime}
+) where {T <: Number, Tepoch <: Number}
     # Allocate the J2 propagator structure that will propagate the mean elements.
     j2d = J2Propagator{Tepoch, T}()
 
@@ -857,7 +871,7 @@ function update_j2_mean_elements_epoch(
 end
 
 """
-    update_j2_mean_elements_epoch!(j2d::J2Propagator, orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KepleriranElements
+    update_j2_mean_elements_epoch!(j2d::J2Propagator, orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KeplerianElements
 
 Update the epoch of the mean elements `orb` using the propagator `j2d` to `new_epoch`, which
 can be represented by a Julian Day or a `DateTime`.
@@ -904,18 +918,14 @@ KeplerianElements{Float64, Float64}:
 ```
 """
 function update_j2_mean_elements_epoch!(
-    j2d::J2Propagator,
-    orb::KeplerianElements,
-    new_epoch::DateTime
+    j2d::J2Propagator, orb::KeplerianElements, new_epoch::DateTime
 )
     dt = datetime2julian(new_epoch)
     return update_j2_mean_elements_epoch!(j2d, orb, dt)
 end
 
 function update_j2_mean_elements_epoch!(
-    j2d::J2Propagator,
-    orb::KeplerianElements,
-    new_epoch::Number
+    j2d::J2Propagator, orb::KeplerianElements, new_epoch::Number
 )
     # First, we need to initialize the J2 propagator with the mean elements.
     j2_init!(j2d, orb)
@@ -937,9 +947,9 @@ end
 ############################################################################################
 
 function _create_j2_ad_propagator(j2d::J2Propagator{Tepoch, T}) where {Tepoch, T}
-    tag  = ForwardDiff.Tag{Nothing, T}
-    D    = ForwardDiff.Dual{tag, T, 6}
-    j2c  = j2d.j2c
+    tag = ForwardDiff.Tag{Nothing, T}
+    D   = ForwardDiff.Dual{tag, T, 6}
+    j2c = j2d.j2c
 
     ad = J2Propagator{Tepoch, D}()
     ad.j2c = J2PropagatorConstants{D}(D(j2c.R0), D(j2c.μm), D(j2c.J2))
@@ -954,9 +964,8 @@ function _j2_jacobian(
     y₁::SVector{6, T};
     perturbation::Number = T(1e-3),
     perturbation_tol::Number = T(1e-7),
-    j2d_ad::Union{Nothing, J2Propagator} = nothing
-) where {T<:Number, Tepoch<:Number}
-
+    j2d_ad::Union{Nothing, J2Propagator} = nothing,
+) where {T <: Number, Tepoch <: Number}
     J = MMatrix{6, 6, T}(undef)
     x₂ = x₁
 
@@ -996,8 +1005,8 @@ function _j2_jacobian(
     y₁::SVector{6, T};
     perturbation::Number = T(1e-3),
     perturbation_tol::Number = T(1e-7),
-    j2d_ad::Union{Nothing, J2Propagator} = nothing
-) where {T<:Number, Tepoch<:Number}
+    j2d_ad::Union{Nothing, J2Propagator} = nothing,
+) where {T <: Number, Tepoch <: Number}
     epoch = j2d.orb₀.t
     N     = 6
     tag   = ForwardDiff.Tag{Nothing, T}

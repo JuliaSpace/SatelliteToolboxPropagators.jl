@@ -41,13 +41,13 @@
         tbd = TwoBodyPropagator{Float64, Float64}(orb, orb, 0, 0, 0, 0)
 
         # Test some random fields.
-        @test tbd.Δt   == 0
+        @test tbd.Δt == 0
         @test tbd.orb₀ == orb
         @test tbd.orbk == orb
-        @test tbd.μ    == 0
-        @test tbd.Δt   == 0
-        @test tbd.M₀   == 0
-        @test tbd.n₀   == 0
+        @test tbd.μ == 0
+        @test tbd.Δt == 0
+        @test tbd.M₀ == 0
+        @test tbd.n₀ == 0
     end
 
     # == General API Functions =============================================================
@@ -66,7 +66,7 @@
         orb = rv_to_kepler(
             [1131340.0, -2282343.0, 6672423.0],
             [-5643.05, 4303.33, 2428.79],
-            date_to_jd(1986, 6, 19, 18, 35, 0)
+            date_to_jd(1986, 6, 19, 18, 35, 0),
         )
 
         orbp = Propagators.init(Val(:TwoBody), orb)
@@ -180,7 +180,7 @@
         orb = rv_to_kepler(
             [1131340.0, -2282343.0, 6672423.0],
             [-5643.05, 4303.33, 2428.79],
-            date_to_jd(1986, 6, 19, 18, 35, 0)
+            date_to_jd(1986, 6, 19, 18, 35, 0),
         )
 
         orbp = Propagators.init(Val(:TwoBody), orb; m0 = tbc_m0_f32)
@@ -252,7 +252,9 @@
         @test v[3] / 1000 ≈ -6.112511 atol = 5e-3
         @test eltype(v) == T
 
-        r, v, orbp = Propagators.propagate_to_epoch(Val(:TwoBody), jd₁, orb; m0 = tbc_m0_f32)
+        r, v, orbp = Propagators.propagate_to_epoch(
+            Val(:TwoBody), jd₁, orb; m0 = tbc_m0_f32
+        )
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{Float64, Float32}
@@ -293,9 +295,9 @@ end
                 T(8000e3),
                 T(0.015),
                 T(28.5) |> deg2rad,
-                T(100)  |> deg2rad,
-                T(400)  |> deg2rad,
-                T(45)   |> deg2rad
+                T(100) |> deg2rad,
+                T(400) |> deg2rad,
+                T(45) |> deg2rad,
             )
 
             orbp = Propagators.init(Val(:TwoBody), orb; m0 = tbc)

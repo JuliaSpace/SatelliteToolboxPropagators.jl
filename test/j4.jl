@@ -59,11 +59,11 @@
 
     @testset "Constructor" begin
         orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
-        j4d = J4Propagator{Float64, Float64}(orb, orb, j4c_egm2008, 0, 0, 0, 0, 0)
+        j4d = J4Propagator{Float64, Float64}(orb, orb, j4c_egm2008, 0, 0, 0, 0, 0, 0)
 
         # Test some random fields.
-        @test j4d.Δt  == 0
-        @test j4d.n̄   == 0
+        @test j4d.Δt == 0
+        @test j4d.n̄ == 0
         @test j4d.j4c == j4c_egm2008
     end
 
@@ -84,9 +84,9 @@
             T(8000e3),
             T(0.015),
             T(28.5) |> deg2rad,
-            T(100)  |> deg2rad,
-            T(200)  |> deg2rad,
-            T(45)   |> deg2rad
+            T(100) |> deg2rad,
+            T(200) |> deg2rad,
+            T(45) |> deg2rad,
         )
 
         orbp = Propagators.init(Val(:J4), orb; j4c = j4c_egm2008)
@@ -98,11 +98,11 @@
         orbk = Propagators.mean_elements(orbp)
         M_k  = true_to_mean_anomaly(orbk.e, orbk.f)
 
-        @test orbk.a            ≈ 8000.0e3    (atol = 1e-3)
-        @test orbk.e            ≈    0.015    (atol = 1e-6)
-        @test orbk.i |> rad2deg ≈   28.5      (atol = 1e-6)
-        @test orbk.ω |> rad2deg ≈  225.864212 (atol = 4e-3)
-        @test orbk.f |> rad2deg ≈  245.617459 (atol = 4e-3)
+        @test orbk.a ≈ 8000.0e3 (atol = 1e-3)
+        @test orbk.e ≈ 0.015 (atol = 1e-6)
+        @test orbk.i |> rad2deg ≈ 28.5 (atol = 1e-6)
+        @test orbk.ω |> rad2deg ≈ 225.864212 (atol = 4e-3)
+        @test orbk.f |> rad2deg ≈ 245.617459 (atol = 4e-3)
 
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
 
@@ -119,11 +119,11 @@
         orbk = Propagators.mean_elements(orbp)
         M_k  = true_to_mean_anomaly(orbk.e, orbk.f)
 
-        @test orbk.a            ≈ 8000.0e3    (atol = 1e-3)
-        @test orbk.e            ≈    0.015    (atol = 1e-6)
-        @test orbk.i |> rad2deg ≈   28.5      (atol = 1e-6)
-        @test orbk.ω |> rad2deg ≈  225.864212 (atol = 4e-3)
-        @test orbk.f |> rad2deg ≈  245.617459 (atol = 4e-3)
+        @test orbk.a ≈ 8000.0e3 (atol = 1e-3)
+        @test orbk.e ≈ 0.015 (atol = 1e-6)
+        @test orbk.i |> rad2deg ≈ 28.5 (atol = 1e-6)
+        @test orbk.ω |> rad2deg ≈ 225.864212 (atol = 4e-3)
+        @test orbk.f |> rad2deg ≈ 245.617459 (atol = 4e-3)
 
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
 
@@ -136,11 +136,11 @@
         orbk = Propagators.mean_elements(orbp)
         M_k  = true_to_mean_anomaly(orbk.e, orbk.f)
 
-        @test orbk.a            ≈ 8000.0e3    (atol = 1e-3)
-        @test orbk.e            ≈    0.015    (atol = 1e-6)
-        @test orbk.i |> rad2deg ≈   28.5      (atol = 1e-6)
-        @test orbk.ω |> rad2deg ≈  225.864212 (atol = 4e-3)
-        @test orbk.f |> rad2deg ≈  245.617459 (atol = 4e-3)
+        @test orbk.a ≈ 8000.0e3 (atol = 1e-3)
+        @test orbk.e ≈ 0.015 (atol = 1e-6)
+        @test orbk.i |> rad2deg ≈ 28.5 (atol = 1e-6)
+        @test orbk.ω |> rad2deg ≈ 225.864212 (atol = 4e-3)
+        @test orbk.f |> rad2deg ≈ 245.617459 (atol = 4e-3)
 
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
 
@@ -152,11 +152,11 @@
         orbk = Propagators.mean_elements(orbp)
         M_k  = true_to_mean_anomaly(orbk.e, orbk.f)
 
-        @test orbk.a            ≈ 8000.0e3    (atol = 1e-3)
-        @test orbk.e            ≈    0.015    (atol = 1e-6)
-        @test orbk.i |> rad2deg ≈   28.5      (atol = 1e-6)
-        @test orbk.ω |> rad2deg ≈  225.864212 (atol = 4e-3)
-        @test orbk.f |> rad2deg ≈  245.617459 (atol = 4e-3)
+        @test orbk.a ≈ 8000.0e3 (atol = 1e-3)
+        @test orbk.e ≈ 0.015 (atol = 1e-6)
+        @test orbk.i |> rad2deg ≈ 28.5 (atol = 1e-6)
+        @test orbk.ω |> rad2deg ≈ 225.864212 (atol = 4e-3)
+        @test orbk.f |> rad2deg ≈ 245.617459 (atol = 4e-3)
 
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
 
@@ -168,11 +168,11 @@
         orbk = j4d.orbk
         M_k  = true_to_mean_anomaly(orbk.e, orbk.f)
 
-        @test orbk.a            ≈ 8000.0e3    (atol = 1e-3)
-        @test orbk.e            ≈    0.015    (atol = 1e-6)
-        @test orbk.i |> rad2deg ≈   28.5      (atol = 1e-6)
-        @test orbk.ω |> rad2deg ≈  225.864212 (atol = 4e-3)
-        @test orbk.f |> rad2deg ≈  245.617459 (atol = 4e-3)
+        @test orbk.a ≈ 8000.0e3 (atol = 1e-3)
+        @test orbk.e ≈ 0.015 (atol = 1e-6)
+        @test orbk.i |> rad2deg ≈ 28.5 (atol = 1e-6)
+        @test orbk.ω |> rad2deg ≈ 225.864212 (atol = 4e-3)
+        @test orbk.f |> rad2deg ≈ 245.617459 (atol = 4e-3)
 
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
     end
@@ -186,9 +186,9 @@
             T(8000e3),
             T(0.015),
             T(28.5) |> deg2rad,
-            T(100)  |> deg2rad,
-            T(200)  |> deg2rad,
-            T(45)   |> deg2rad
+            T(100) |> deg2rad,
+            T(200) |> deg2rad,
+            T(45) |> deg2rad,
         )
 
         orbp = Propagators.init(Val(:J4), orb; j4c = j4c_egm2008_f32)
@@ -200,11 +200,11 @@
         orbk = Propagators.mean_elements(orbp)
         M_k  = true_to_mean_anomaly(orbk.e, orbk.f)
 
-        @test orbk.a            ≈ 8000.0e3    (atol = 1e-1)
-        @test orbk.e            ≈    0.015    (atol = 1e-6)
-        @test orbk.i |> rad2deg ≈   28.5      (atol = 2e-6)
-        @test orbk.ω |> rad2deg ≈  225.864212 (atol = 4e-3)
-        @test orbk.f |> rad2deg ≈  245.617459 (atol = 4e-3)
+        @test orbk.a ≈ 8000.0e3 (atol = 1e-1)
+        @test orbk.e ≈ 0.015 (atol = 1e-6)
+        @test orbk.i |> rad2deg ≈ 28.5 (atol = 2e-6)
+        @test orbk.ω |> rad2deg ≈ 225.864212 (atol = 4e-3)
+        @test orbk.f |> rad2deg ≈ 245.617459 (atol = 4e-3)
 
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
 
@@ -221,16 +221,18 @@
         orbk = Propagators.mean_elements(orbp)
         M_k  = true_to_mean_anomaly(orbk.e, orbk.f)
 
-        @test orbk.a            ≈ 8000.0e3    (atol = 1e-1)
-        @test orbk.e            ≈    0.015    (atol = 1e-6)
-        @test orbk.i |> rad2deg ≈   28.5      (atol = 2e-6)
-        @test orbk.ω |> rad2deg ≈  225.864212 (atol = 4e-3)
-        @test orbk.f |> rad2deg ≈  245.617459 (atol = 4e-3)
+        @test orbk.a ≈ 8000.0e3 (atol = 1e-1)
+        @test orbk.e ≈ 0.015 (atol = 1e-6)
+        @test orbk.i |> rad2deg ≈ 28.5 (atol = 2e-6)
+        @test orbk.ω |> rad2deg ≈ 225.864212 (atol = 4e-3)
+        @test orbk.f |> rad2deg ≈ 245.617459 (atol = 4e-3)
 
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
 
         # Test simultaneous initialization and propagation.
-        r, v, orbp = Propagators.propagate(Val(:J4), (jd₁ - jd₀) * 86400, orb; j4c = j4c_egm2008_f32)
+        r, v, orbp = Propagators.propagate(
+            Val(:J4), (jd₁ - jd₀) * 86400, orb; j4c = j4c_egm2008_f32
+        )
 
         @test eltype(r) == T
         @test eltype(v) == T
@@ -238,15 +240,17 @@
         orbk = Propagators.mean_elements(orbp)
         M_k  = true_to_mean_anomaly(orbk.e, orbk.f)
 
-        @test orbk.a            ≈ 8000.0e3    (atol = 1e-1)
-        @test orbk.e            ≈    0.015    (atol = 1e-6)
-        @test orbk.i |> rad2deg ≈   28.5      (atol = 2e-6)
-        @test orbk.ω |> rad2deg ≈  225.864212 (atol = 4e-3)
-        @test orbk.f |> rad2deg ≈  245.617459 (atol = 4e-3)
+        @test orbk.a ≈ 8000.0e3 (atol = 1e-1)
+        @test orbk.e ≈ 0.015 (atol = 1e-6)
+        @test orbk.i |> rad2deg ≈ 28.5 (atol = 2e-6)
+        @test orbk.ω |> rad2deg ≈ 225.864212 (atol = 4e-3)
+        @test orbk.f |> rad2deg ≈ 245.617459 (atol = 4e-3)
 
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
 
-        r, v, orbp = Propagators.propagate_to_epoch(Val(:J4), jd₁, orb; j4c = j4c_egm2008_f32)
+        r, v, orbp = Propagators.propagate_to_epoch(
+            Val(:J4), jd₁, orb; j4c = j4c_egm2008_f32
+        )
 
         @test eltype(r) == T
         @test eltype(v) == T
@@ -254,11 +258,11 @@
         orbk = Propagators.mean_elements(orbp)
         M_k  = true_to_mean_anomaly(orbk.e, orbk.f)
 
-        @test orbk.a            ≈ 8000.0e3    (atol = 1e-1)
-        @test orbk.e            ≈    0.015    (atol = 1e-6)
-        @test orbk.i |> rad2deg ≈   28.5      (atol = 2e-6)
-        @test orbk.ω |> rad2deg ≈  225.864212 (atol = 4e-3)
-        @test orbk.f |> rad2deg ≈  245.617459 (atol = 4e-3)
+        @test orbk.a ≈ 8000.0e3 (atol = 1e-1)
+        @test orbk.e ≈ 0.015 (atol = 1e-6)
+        @test orbk.i |> rad2deg ≈ 28.5 (atol = 2e-6)
+        @test orbk.ω |> rad2deg ≈ 225.864212 (atol = 4e-3)
+        @test orbk.f |> rad2deg ≈ 245.617459 (atol = 4e-3)
 
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
 
@@ -270,11 +274,11 @@
         orbk = j4d.orbk
         M_k  = true_to_mean_anomaly(orbk.e, orbk.f)
 
-        @test orbk.a            ≈ 8000.0e3    (atol = 1e-1)
-        @test orbk.e            ≈    0.015    (atol = 1e-6)
-        @test orbk.i |> rad2deg ≈   28.5      (atol = 2e-6)
-        @test orbk.ω |> rad2deg ≈  225.864212 (atol = 4e-3)
-        @test orbk.f |> rad2deg ≈  245.617459 (atol = 4e-3)
+        @test orbk.a ≈ 8000.0e3 (atol = 1e-1)
+        @test orbk.e ≈ 0.015 (atol = 1e-6)
+        @test orbk.i |> rad2deg ≈ 28.5 (atol = 2e-6)
+        @test orbk.ω |> rad2deg ≈ 225.864212 (atol = 4e-3)
+        @test orbk.f |> rad2deg ≈ 245.617459 (atol = 4e-3)
 
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
     end
@@ -289,9 +293,9 @@ end
         7130.982e3,
         0.001111,
         98.405 |> deg2rad,
-        90     |> deg2rad,
-        200    |> deg2rad,
-        45     |> deg2rad
+        90 |> deg2rad,
+        200 |> deg2rad,
+        45 |> deg2rad,
     )
 
     # Generate the osculating elements.
@@ -305,11 +309,7 @@ end
         # Obtain the mean elements.
         orb, ~ = redirect_stdout(devnull) do
             Propagators.fit_mean_elements(
-                Val(:J4),
-                vjd,
-                vr_i,
-                vv_i;
-                mean_elements_epoch = vjd[begin],
+                Val(:J4), vjd, vr_i, vv_i; mean_elements_epoch = vjd[begin]
             )
         end
 
@@ -324,11 +324,7 @@ end
         # Obtain the mean elements.
         orb, ~ = redirect_stdout(devnull) do
             Propagators.fit_mean_elements!(
-                orbp,
-                vjd,
-                vr_i,
-                vv_i;
-                mean_elements_epoch = vjd[begin],
+                orbp, vjd, vr_i, vv_i; mean_elements_epoch = vjd[begin]
             )
         end
 
@@ -348,7 +344,7 @@ end
                 vr_i,
                 vv_i;
                 mean_elements_epoch = vjd[begin],
-                jacobian_perturbation = 1e-13
+                jacobian_perturbation = 1e-13,
             )
         end
 
@@ -367,7 +363,7 @@ end
                 vr_i,
                 vv_i;
                 mean_elements_epoch = vjd[begin],
-                jacobian_perturbation = 1e-13
+                jacobian_perturbation = 1e-13,
             )
         end
 
@@ -428,11 +424,7 @@ end
         # Obtain the mean elements.
         orb, ~ = redirect_stdout(devnull) do
             Propagators.fit_mean_elements(
-                Val(:J4),
-                vjd,
-                vr_i,
-                vv_i;
-                mean_elements_epoch = vjd[begin] + 1,
+                Val(:J4), vjd, vr_i, vv_i; mean_elements_epoch = vjd[begin] + 1
             )
         end
 
@@ -448,11 +440,7 @@ end
         # Obtain the mean elements.
         orb, ~ = redirect_stdout(devnull) do
             Propagators.fit_mean_elements!(
-                orbp,
-                vjd,
-                vr_i,
-                vv_i;
-                mean_elements_epoch = vjd[begin] + 1,
+                orbp, vjd, vr_i, vv_i; mean_elements_epoch = vjd[begin] + 1
             )
         end
 
@@ -469,18 +457,20 @@ end
     @testset "Errors" begin
         # == Wrong dimensions in the input vectors =========================================
 
-        @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J4), vjd[1:end-1], vr_i, vv_i)
-        @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J4), vjd, vr_i[1:end-1], vv_i)
-        @test_throws ArgumentError Propagators.fit_mean_elements(Val(:J4), vjd, vr_i, vv_i[1:end-1])
+        @test_throws ArgumentError Propagators.fit_mean_elements(
+            Val(:J4), vjd[1:(end - 1)], vr_i, vv_i
+        )
+        @test_throws ArgumentError Propagators.fit_mean_elements(
+            Val(:J4), vjd, vr_i[1:(end - 1)], vv_i
+        )
+        @test_throws ArgumentError Propagators.fit_mean_elements(
+            Val(:J4), vjd, vr_i, vv_i[1:(end - 1)]
+        )
 
         # == Wrong dimensions in the weight vector =========================================
 
         @test_throws ArgumentError Propagators.fit_mean_elements(
-            Val(:J4),
-            vjd,
-            vr_i,
-            vv_i;
-            weight_vector = [1, 2, 3, 4, 5]
+            Val(:J4), vjd, vr_i, vv_i; weight_vector = [1, 2, 3, 4, 5]
         )
     end
 end
@@ -491,9 +481,9 @@ end
         7130.982e3,
         0.001111,
         98.405 |> deg2rad,
-        90     |> deg2rad,
-        200    |> deg2rad,
-        45     |> deg2rad
+        90 |> deg2rad,
+        200 |> deg2rad,
+        45 |> deg2rad,
     )
 
     orbp = Propagators.init(Val(:J4), orb_input)
@@ -554,9 +544,9 @@ end
         7130.982e3,
         0.001111,
         98.405 |> deg2rad,
-        90     |> deg2rad,
-        200    |> deg2rad,
-        45     |> deg2rad
+        90 |> deg2rad,
+        200 |> deg2rad,
+        45 |> deg2rad,
     )
 
     orb = update_j4_mean_elements_epoch(orb_input, DateTime("2023-01-02"))
@@ -581,9 +571,9 @@ end
                 T(8000e3),
                 T(0.015),
                 T(28.5) |> deg2rad,
-                T(100)  |> deg2rad,
-                T(400)  |> deg2rad,
-                T(45)   |> deg2rad
+                T(100) |> deg2rad,
+                T(400) |> deg2rad,
+                T(45) |> deg2rad,
             )
 
             orbp = Propagators.init(Val(:J4), orb; j4c = j4c)

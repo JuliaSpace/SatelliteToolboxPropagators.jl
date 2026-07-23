@@ -95,7 +95,8 @@
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk.t == Propagators.epoch(orbp)
-        @test orbk.a == (orbp.sgp4d.sgp4c.XKE / orbp.sgp4d.n₀) ^ (2 / 3) * (1000 * orbp.sgp4d.sgp4c.R0)
+        @test orbk.a ==
+            (orbp.sgp4d.sgp4c.XKE / orbp.sgp4d.n₀)^(2 / 3) * (1000 * orbp.sgp4d.sgp4c.R0)
         @test orbk.e == orbp.sgp4d.e₀
         @test orbk.i == orbp.sgp4d.i₀
         @test orbk.Ω == orbp.sgp4d.Ω₀
@@ -128,8 +129,7 @@
             @test v_teme[3] ≈ 1000 * expected_results[k, 7] atol = 1e-6
 
             r_teme, v_teme = Propagators.propagate_to_epoch!(
-                orbp,
-                jd₀ + expected_results[k, 1] / 1440
+                orbp, jd₀ + expected_results[k, 1] / 1440
             )
 
             @test Propagators.last_instant(orbp) == 60 * expected_results[k, 1]
@@ -166,10 +166,7 @@
 
         # Test simultaneous initialization and propagation.
         r_teme, v_teme, orbp = Propagators.propagate(
-            Val(:SGP4),
-            60 * expected_results[end, 1],
-            tle;
-            sgp4c = sgp4c_wgs72
+            Val(:SGP4), 60 * expected_results[end, 1], tle; sgp4c = sgp4c_wgs72
         )
 
         @test Propagators.last_instant(orbp) == 60 * expected_results[end, 1]
@@ -182,10 +179,7 @@
         @test v_teme[3] ≈ 1000 * expected_results[end, 7] atol = 1e-6
 
         r_teme, v_teme, orbp = Propagators.propagate_to_epoch(
-            Val(:SGP4),
-            jd₀ + expected_results[end, 1] / 1440,
-            tle;
-            sgp4c = sgp4c_wgs72
+            Val(:SGP4), jd₀ + expected_results[end, 1] / 1440, tle; sgp4c = sgp4c_wgs72
         )
 
         @test Propagators.last_instant(orbp) == 60 * expected_results[end, 1]
@@ -204,12 +198,12 @@
             tle_epoch(tle),
             tle.mean_motion * 2π / 86400,
             tle.eccentricity,
-            tle.inclination         |> deg2rad,
-            tle.raan                |> deg2rad,
+            tle.inclination |> deg2rad,
+            tle.raan |> deg2rad,
             tle.argument_of_perigee |> deg2rad,
-            tle.mean_anomaly        |> deg2rad,
+            tle.mean_anomaly |> deg2rad,
             tle.bstar;
-            sgp4c = sgp4c_wgs72
+            sgp4c = sgp4c_wgs72,
         )
 
         for k in size(expected_results)[1]
@@ -228,8 +222,7 @@
             @test v_teme[3] ≈ 1000 * expected_results[k, 7] atol = 1e-6
 
             r_teme, v_teme = Propagators.propagate_to_epoch!(
-                orbp,
-                jd₀ + expected_results[k, 1] / 1440
+                orbp, jd₀ + expected_results[k, 1] / 1440
             )
 
             @test Propagators.last_instant(orbp) == 60 * expected_results[k, 1]
@@ -254,11 +247,11 @@
             tle_epoch(tle),
             tle.mean_motion * 2π / 86400,
             tle.eccentricity,
-            tle.inclination         |> deg2rad,
-            tle.raan                |> deg2rad,
+            tle.inclination |> deg2rad,
+            tle.raan |> deg2rad,
             tle.argument_of_perigee |> deg2rad,
-            tle.mean_anomaly        |> deg2rad,
-            tle.bstar
+            tle.mean_anomaly |> deg2rad,
+            tle.bstar,
         )
 
         for k in size(expected_results)[1]
@@ -281,12 +274,12 @@
             tle_epoch(tle),
             tle.mean_motion * 2π / 86400,
             tle.eccentricity,
-            tle.inclination         |> deg2rad,
-            tle.raan                |> deg2rad,
+            tle.inclination |> deg2rad,
+            tle.raan |> deg2rad,
             tle.argument_of_perigee |> deg2rad,
-            tle.mean_anomaly        |> deg2rad,
+            tle.mean_anomaly |> deg2rad,
             tle.bstar;
-            sgp4c = sgp4c_wgs72
+            sgp4c = sgp4c_wgs72,
         )
 
         @test Propagators.last_instant(orbp) == 60 * expected_results[end, 1]
@@ -304,12 +297,12 @@
             tle_epoch(tle),
             tle.mean_motion * 2π / 86400,
             tle.eccentricity,
-            tle.inclination         |> deg2rad,
-            tle.raan                |> deg2rad,
+            tle.inclination |> deg2rad,
+            tle.raan |> deg2rad,
             tle.argument_of_perigee |> deg2rad,
-            tle.mean_anomaly        |> deg2rad,
+            tle.mean_anomaly |> deg2rad,
             tle.bstar;
-            sgp4c = sgp4c_wgs72
+            sgp4c = sgp4c_wgs72,
         )
 
         @test Propagators.last_instant(orbp) == 60 * expected_results[end, 1]
@@ -347,8 +340,7 @@
             @test v_teme[3] ≈ 1000 * expected_results[k, 7] atol = 8e-1
 
             r_teme, v_teme = Propagators.propagate_to_epoch!(
-                orbp,
-                jd₀ + expected_results[k, 1] / 1440
+                orbp, jd₀ + expected_results[k, 1] / 1440
             )
 
             @test Propagators.last_instant(orbp) == 60 * expected_results[k, 1]
@@ -385,10 +377,7 @@
 
         # Test simultaneous initialization and propagation.
         r_teme, v_teme, orbp = Propagators.propagate(
-            Val(:SGP4),
-            60 * expected_results[end, 1],
-            tle;
-            sgp4c = sgp4c_wgs72_f32
+            Val(:SGP4), 60 * expected_results[end, 1], tle; sgp4c = sgp4c_wgs72_f32
         )
 
         @test Propagators.last_instant(orbp) == 60 * expected_results[end, 1]
@@ -401,10 +390,7 @@
         @test v_teme[3] ≈ 1000 * expected_results[end, 7] atol = 8e-1
 
         r_teme, v_teme, orbp = Propagators.propagate_to_epoch(
-            Val(:SGP4),
-            jd₀ + expected_results[end, 1] / 1440,
-            tle;
-            sgp4c = sgp4c_wgs72_f32
+            Val(:SGP4), jd₀ + expected_results[end, 1] / 1440, tle; sgp4c = sgp4c_wgs72_f32
         )
 
         @test Propagators.last_instant(orbp) == 60 * expected_results[end, 1]
@@ -423,12 +409,12 @@
             tle_epoch(tle),
             tle.mean_motion * 2π / 86400,
             tle.eccentricity,
-            tle.inclination         |> deg2rad,
-            tle.raan                |> deg2rad,
+            tle.inclination |> deg2rad,
+            tle.raan |> deg2rad,
             tle.argument_of_perigee |> deg2rad,
-            tle.mean_anomaly        |> deg2rad,
+            tle.mean_anomaly |> deg2rad,
             tle.bstar;
-            sgp4c = sgp4c_wgs72_f32
+            sgp4c = sgp4c_wgs72_f32,
         )
 
         for k in size(expected_results)[1]
@@ -447,8 +433,7 @@
             @test v_teme[3] ≈ 1000 * expected_results[k, 7] atol = 8e-1
 
             r_teme, v_teme = Propagators.propagate_to_epoch!(
-                orbp,
-                jd₀ + expected_results[k, 1] / 1440
+                orbp, jd₀ + expected_results[k, 1] / 1440
             )
 
             @test Propagators.last_instant(orbp) == 60 * expected_results[k, 1]
@@ -473,11 +458,11 @@
             tle_epoch(tle),
             tle.mean_motion * 2π / 86400,
             tle.eccentricity,
-            tle.inclination         |> deg2rad,
-            tle.raan                |> deg2rad,
+            tle.inclination |> deg2rad,
+            tle.raan |> deg2rad,
             tle.argument_of_perigee |> deg2rad,
-            tle.mean_anomaly        |> deg2rad,
-            tle.bstar
+            tle.mean_anomaly |> deg2rad,
+            tle.bstar,
         )
 
         for k in size(expected_results)[1]
@@ -500,12 +485,12 @@
             tle_epoch(tle),
             tle.mean_motion * 2π / 86400,
             tle.eccentricity,
-            tle.inclination         |> deg2rad,
-            tle.raan                |> deg2rad,
+            tle.inclination |> deg2rad,
+            tle.raan |> deg2rad,
             tle.argument_of_perigee |> deg2rad,
-            tle.mean_anomaly        |> deg2rad,
+            tle.mean_anomaly |> deg2rad,
             tle.bstar;
-            sgp4c = sgp4c_wgs72_f32
+            sgp4c = sgp4c_wgs72_f32,
         )
 
         @test Propagators.last_instant(orbp) == 60 * expected_results[end, 1]
@@ -523,12 +508,12 @@
             tle_epoch(tle),
             tle.mean_motion * 2π / 86400,
             tle.eccentricity,
-            tle.inclination         |> deg2rad,
-            tle.raan                |> deg2rad,
+            tle.inclination |> deg2rad,
+            tle.raan |> deg2rad,
             tle.argument_of_perigee |> deg2rad,
-            tle.mean_anomaly        |> deg2rad,
+            tle.mean_anomaly |> deg2rad,
             tle.bstar;
-            sgp4c = sgp4c_wgs72_f32
+            sgp4c = sgp4c_wgs72_f32,
         )
 
         @test Propagators.last_instant(orbp) == 60 * expected_results[end, 1]
@@ -576,22 +561,22 @@ end
         verbose                  = false,
     )
 
-    @test tle.classification           == tle_input.classification
-    @test tle.element_set_number       == tle_input.element_set_number
-    @test tle.epoch_year               == tle_input.epoch_year
+    @test tle.classification == tle_input.classification
+    @test tle.element_set_number == tle_input.element_set_number
+    @test tle.epoch_year == tle_input.epoch_year
     @test tle.international_designator == tle_input.international_designator
-    @test tle.name                     == tle_input.name
-    @test tle.revolution_number        == tle_input.revolution_number
-    @test tle.satellite_number         == tle_input.satellite_number
+    @test tle.name == tle_input.name
+    @test tle.revolution_number == tle_input.revolution_number
+    @test tle.satellite_number == tle_input.satellite_number
 
-    @test tle.bstar               ≈  tle_input.bstar               atol = 1e-6
-    @test tle.eccentricity        ≈  tle_input.eccentricity        atol = 1e-7
-    @test tle.epoch_day           ≈  tle_input.epoch_day           atol = 1e-8
-    @test tle.inclination         ≈  tle_input.inclination         atol = 1e-4
-    @test tle.mean_anomaly        ≈  tle_input.mean_anomaly        atol = 1e-4
-    @test tle.mean_motion         ≈  tle_input.mean_motion         atol = 1e-7
-    @test tle.raan                ≈  tle_input.raan                atol = 1e-4
-    @test tle.argument_of_perigee ≈  tle_input.argument_of_perigee atol = 1e-4
+    @test tle.bstar ≈ tle_input.bstar atol = 1e-6
+    @test tle.eccentricity ≈ tle_input.eccentricity atol = 1e-7
+    @test tle.epoch_day ≈ tle_input.epoch_day atol = 1e-8
+    @test tle.inclination ≈ tle_input.inclination atol = 1e-4
+    @test tle.mean_anomaly ≈ tle_input.mean_anomaly atol = 1e-4
+    @test tle.mean_motion ≈ tle_input.mean_motion atol = 1e-7
+    @test tle.raan ≈ tle_input.raan atol = 1e-4
+    @test tle.argument_of_perigee ≈ tle_input.argument_of_perigee atol = 1e-4
 
     tle, ~ = Propagators.fit_mean_elements!(
         orbp,
@@ -610,22 +595,22 @@ end
         verbose                  = false,
     )
 
-    @test tle.classification           == tle_input.classification
-    @test tle.element_set_number       == tle_input.element_set_number
-    @test tle.epoch_year               == tle_input.epoch_year
+    @test tle.classification == tle_input.classification
+    @test tle.element_set_number == tle_input.element_set_number
+    @test tle.epoch_year == tle_input.epoch_year
     @test tle.international_designator == tle_input.international_designator
-    @test tle.name                     == tle_input.name
-    @test tle.revolution_number        == tle_input.revolution_number
-    @test tle.satellite_number         == tle_input.satellite_number
+    @test tle.name == tle_input.name
+    @test tle.revolution_number == tle_input.revolution_number
+    @test tle.satellite_number == tle_input.satellite_number
 
-    @test tle.bstar               ≈  tle_input.bstar               atol = 1e-6
-    @test tle.eccentricity        ≈  tle_input.eccentricity        atol = 1e-7
-    @test tle.epoch_day           ≈  tle_input.epoch_day           atol = 1e-8
-    @test tle.inclination         ≈  tle_input.inclination         atol = 1e-4
-    @test tle.mean_anomaly        ≈  tle_input.mean_anomaly        atol = 1e-4
-    @test tle.mean_motion         ≈  tle_input.mean_motion         atol = 1e-7
-    @test tle.raan                ≈  tle_input.raan                atol = 1e-4
-    @test tle.argument_of_perigee ≈  tle_input.argument_of_perigee atol = 1e-4
+    @test tle.bstar ≈ tle_input.bstar atol = 1e-6
+    @test tle.eccentricity ≈ tle_input.eccentricity atol = 1e-7
+    @test tle.epoch_day ≈ tle_input.epoch_day atol = 1e-8
+    @test tle.inclination ≈ tle_input.inclination atol = 1e-4
+    @test tle.mean_anomaly ≈ tle_input.mean_anomaly atol = 1e-4
+    @test tle.mean_motion ≈ tle_input.mean_motion atol = 1e-7
+    @test tle.raan ≈ tle_input.raan atol = 1e-4
+    @test tle.argument_of_perigee ≈ tle_input.argument_of_perigee atol = 1e-4
 end
 
 @testset "Copying Structure" verbose = true begin

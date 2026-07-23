@@ -68,8 +68,8 @@ function Propagators.fit_mean_elements(
     vjd::AbstractVector{Tjd},
     vr_i::AbstractVector{Tv},
     vv_i::AbstractVector{Tv};
-    kwargs...
-) where {Tjd<:Number, Tv<:AbstractVector}
+    kwargs...,
+) where {Tjd <: Number, Tv <: AbstractVector}
     return fit_j4osc_mean_elements(vjd, vr_i, vv_i; kwargs...)
 end
 
@@ -128,8 +128,8 @@ function Propagators.fit_mean_elements!(
     vjd::AbstractVector{Tjd},
     vr_i::AbstractVector{Tv},
     vv_i::AbstractVector{Tv};
-    kwargs...
-) where {Tjd<:Number, Tv<:AbstractVector}
+    kwargs...,
+) where {Tjd <: Number, Tv <: AbstractVector}
     return fit_j4osc_mean_elements!(orbp.j4oscd, vjd, vr_i, vv_i; kwargs...)
 end
 
@@ -150,9 +150,7 @@ elements `orb₀`.
   [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm2008`)
 """
 function Propagators.init(
-    ::Val{:J4osc},
-    orb₀::KeplerianElements;
-    j4c::J4PropagatorConstants = j4c_egm2008
+    ::Val{:J4osc}, orb₀::KeplerianElements; j4c::J4PropagatorConstants = j4c_egm2008
 )
     j4oscd = j4osc_init(orb₀; j4c = j4c)
     return OrbitPropagatorJ4Osculating(j4oscd)
@@ -188,6 +186,6 @@ end
 
 function Base.copy(
     orbp::OrbitPropagatorJ4Osculating{Tepoch, T}
-) where {Tepoch<:Number, T<:Number}
+) where {Tepoch <: Number, T <: Number}
     return OrbitPropagatorJ4Osculating{Tepoch, T}(copy(orbp.j4oscd))
 end

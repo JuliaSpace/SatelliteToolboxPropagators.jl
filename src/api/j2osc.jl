@@ -65,8 +65,8 @@ function Propagators.fit_mean_elements(
     vjd::AbstractVector{Tjd},
     vr_i::AbstractVector{Tv},
     vv_i::AbstractVector{Tv};
-    kwargs...
-) where {Tjd<:Number, Tv<:AbstractVector}
+    kwargs...,
+) where {Tjd <: Number, Tv <: AbstractVector}
     return fit_j2osc_mean_elements(vjd, vr_i, vv_i; kwargs...)
 end
 
@@ -125,8 +125,8 @@ function Propagators.fit_mean_elements!(
     vjd::AbstractVector{Tjd},
     vr_i::AbstractVector{Tv},
     vv_i::AbstractVector{Tv};
-    kwargs...
-) where {Tjd<:Number, Tv<:AbstractVector}
+    kwargs...,
+) where {Tjd <: Number, Tv <: AbstractVector}
     return fit_j2osc_mean_elements!(orbp.j2oscd, vjd, vr_i, vv_i; kwargs...)
 end
 
@@ -147,9 +147,7 @@ elements `orb₀` [SI units].
   [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm2008`)
 """
 function Propagators.init(
-    ::Val{:J2osc},
-    orb₀::KeplerianElements;
-    j2c::J2PropagatorConstants = j2c_egm2008
+    ::Val{:J2osc}, orb₀::KeplerianElements; j2c::J2PropagatorConstants = j2c_egm2008
 )
     j2oscd = j2osc_init(orb₀; j2c = j2c)
     return OrbitPropagatorJ2Osculating(j2oscd)
@@ -185,6 +183,6 @@ end
 
 function Base.copy(
     orbp::OrbitPropagatorJ2Osculating{Tepoch, T}
-) where {Tepoch<:Number, T<:Number}
+) where {Tepoch <: Number, T <: Number}
     return OrbitPropagatorJ2Osculating{Tepoch, T}(copy(orbp.j2oscd))
 end

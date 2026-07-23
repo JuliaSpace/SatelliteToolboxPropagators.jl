@@ -3,7 +3,7 @@
 # J4 orbit propagator algorithm.
 #
 # This algorithm propagates the orbit considering the secular perturbations of central
-# body zonal harmonics as presented in [1, p. 647-654, 692-692] and [2], which is Kozai's
+# body zonal harmonics as presented in [1, p. 647-654, 692-693] and [2], which is Kozai's
 # method but neglecting long-periodic and short-periodic perturbations.
 #
 # The terms J2, J2², and J4 are considered, i.e. J6 is assumed to be 0. This can be used
@@ -48,59 +48,41 @@ const j4c_egm2008 = J4PropagatorConstants(
     6378137.0,
     sqrt(3.986004415e14 / 6378137.0^3),
     0.0010826261738522227,
-    -1.6198975999169731e-6
+    -1.6198975999169731e-6,
 )
 
 const j4c_egm2008_f32 = J4PropagatorConstants{Float32}(
     6378137.0,
     sqrt(3.986004415e14 / 6378137.0^3),
     0.0010826261738522227,
-    -1.6198975999169731e-6
+    -1.6198975999169731e-6,
 )
 
 # EGM-96 gravitational constants.
 const j4c_egm1996 = J4PropagatorConstants(
-    6378136.3,
-    sqrt(3.986004415e14 / 6378136.3^3),
-    0.0010826266835531513,
-    -1.619621591367e-6
+    6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826266835531513, -1.619621591367e-6
 )
 
 const j4c_egm1996_f32 = J4PropagatorConstants{Float32}(
-    6378136.3,
-    sqrt(3.986004415e14 / 6378136.3^3),
-    0.0010826266835531513,
-    -1.619621591367e-6
+    6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826266835531513, -1.619621591367e-6
 )
 
 # JGM-02 gravitational constants.
 const j4c_jgm02 = J4PropagatorConstants(
-    6378136.3,
-    sqrt(3.986004415e14 / 6378136.3^3),
-    0.0010826269256388149,
-    -1.62042999e-6
+    6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826269256388149, -1.62042999e-6
 )
 
 const j4c_jgm02_f32 = J4PropagatorConstants{Float32}(
-    6378136.3,
-    sqrt(3.986004415e14 / 6378136.3^3),
-    0.0010826269256388149,
-    -1.62042999e-6
+    6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826269256388149, -1.62042999e-6
 )
 
 # JGM-03 gravitational constants.
 const j4c_jgm03 = J4PropagatorConstants(
-    6378136.3,
-    sqrt(3.986004415e14 / 6378136.3^3),
-    0.0010826360229829945,
-    -1.619331205071e-6
+    6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826360229829945, -1.619331205071e-6
 )
 
 const j4c_jgm03_f32 = J4PropagatorConstants{Float32}(
-    6378136.3,
-    sqrt(3.986004415e14 / 6378136.3^3),
-    0.0010826360229829945,
-    -1.619331205071e-6
+    6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826360229829945, -1.619331205071e-6
 )
 
 ############################################################################################
@@ -110,13 +92,12 @@ const j4c_jgm03_f32 = J4PropagatorConstants{Float32}(
 # Define `copy` for the propagator structure.
 let
     fields = fieldnames(J4Propagator)
-    expressions = [
-        :(new_j4d.$f = j4d.$f)
-        for f in fields
-    ]
+    expressions = [:(new_j4d.$f = j4d.$f) for f in fields]
 
     @eval begin
-        function Base.copy(j4d::J4Propagator{Tepoch, T}) where {Tepoch<:Number, T<:Number}
+        function Base.copy(
+            j4d::J4Propagator{Tepoch, T}
+        ) where {Tepoch <: Number, T <: Number}
             new_j4d = J4Propagator{Tepoch, T}()
             $(expressions...)
             return new_j4d
@@ -146,9 +127,8 @@ Create and initialize the J4 orbit propagator structure using the mean Keplerian
     (**Default** = `j4c_egm2008`)
 """
 function j4_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler};
-    j4c::J4PropagatorConstants{T} = j4c_egm2008
-) where {Tepoch<:Number, Tkepler<:AbstractFloat, T<:Number}
+    orb₀::KeplerianElements{Tepoch, Tkepler}; j4c::J4PropagatorConstants{T} = j4c_egm2008
+) where {Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number}
     # Allocate the propagator structure.
     j4d = J4Propagator{Tepoch, T}()
 
@@ -162,9 +142,8 @@ function j4_init(
 end
 
 function j4_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler};
-    j4c::J4PropagatorConstants{Tj4c} = j4c_egm2008
-) where {Tepoch<:Number, Tkepler<:Number, Tj4c<:Number}
+    orb₀::KeplerianElements{Tepoch, Tkepler}; j4c::J4PropagatorConstants{Tj4c} = j4c_egm2008
+) where {Tepoch <: Number, Tkepler <: Number, Tj4c <: Number}
     T = promote_type(Tj4c, Tkepler)
 
     # Allocate the propagator structure.
@@ -190,9 +169,8 @@ Initialize the J4 orbit propagator structure `j4d` using the mean Keplerian elem
     Hence, they must be initialized.
 """
 function j4_init!(
-    j4d::J4Propagator{Tepoch, T},
-    orb₀::KeplerianElements,
-) where {Tepoch<:Number, T<:Number}
+    j4d::J4Propagator{Tepoch, T}, orb₀::KeplerianElements
+) where {Tepoch <: Number, T <: Number}
     # Unpack the gravitational constants to improve code readability.
     j4c = j4d.j4c
     R₀  = j4c.R0
@@ -227,22 +205,28 @@ function j4_init!(
     # We need to compute the perturbed mean motion that is used to calculate the
     # time-derivative of the orbital elements. This expression was obtained from [5] because
     # [2] does not show it completely.
-    kn₂  = J₂  / p₀² * β
+    kn₂  = J₂ / p₀² * β
     kn₂₂ = J₂² / p₀⁴ * β
-    kn₄  = J₄  / p₀⁴ * β
+    kn₄  = J₄ / p₀⁴ * β
 
-    n̄ = n₀ * (
-        1 +
-        ( 3 // 4  ) * kn₂  * (2 - 3sin_i₀²) +
-        ( 3 // 128) * kn₂₂ * (120 + 64β - 40β² + (-240 - 192β + 40β²) * sin_i₀² + (105 + 144β + 25β²) * sin_i₀⁴) -
-        (45 // 128) * kn₄  * e₀² * (-8 + 40sin_i₀² - 35sin_i₀⁴)
-    )
+    n̄ =
+        n₀ * (
+            1 +
+            (3//4) * kn₂ * (2 - 3sin_i₀²) +
+            (3//128) *
+            kn₂₂ *
+            (
+                120 + 64β - 40β² +
+                (-240 - 192β + 40β²) * sin_i₀² +
+                (105 + 144β + 25β²) * sin_i₀⁴
+            ) - (45//128) * kn₄ * e₀² * (-8 + 40sin_i₀² - 35sin_i₀⁴)
+        )
 
     # Some auxiliary variables to compute the perturbations.
-    k̄₂  = n̄  * J₂  / p₀²
-    k̄₂₂ = n̄  * J₂² / p₀⁴
+    k̄₂  = n̄ * J₂ / p₀²
+    k̄₂₂ = n̄ * J₂² / p₀⁴
     k₂₂ = n₀ * J₂² / p₀⁴
-    k₄  = n₀ * J₄  / p₀⁴
+    k₄  = n₀ * J₄ / p₀⁴
 
     # TODO: Check J₄ perturbation term sign in RAAN time-derivative.
     #
@@ -258,14 +242,21 @@ function j4_init!(
     #   https://github.com/JuliaSpace/SatelliteToolbox.jl/issues/91
     #
 
-    ∂Ω = -( 3 // 2 ) * k̄₂  * cos_i₀ +
-          ( 3 // 32) * k̄₂₂ * cos_i₀ * (-36 -  4e₀² + 48β + (40 - 5e₀² - 72β) * sin_i₀²) +
-          (15 // 32) * k₄  * cos_i₀ * (8 + 12e₀² - (14 + 21e₀²) * sin_i₀²)
+    ∂Ω =
+        -(3//2) * k̄₂ * cos_i₀ +
+        (3//32) * k̄₂₂ * cos_i₀ * (-36 - 4e₀² + 48β + (40 - 5e₀² - 72β) * sin_i₀²) +
+        (15//32) * k₄ * cos_i₀ * (8 + 12e₀² - (14 + 21e₀²) * sin_i₀²)
 
-    ∂ω = ( 3 // 4  ) * k̄₂  * (4 - 5sin_i₀²) +
-         ( 3 // 128) * k̄₂₂ * (384 + 96e₀² - 384β + (-824 - 116e₀² + 1056β) * sin_i₀² + (430 - 5e₀² - 720β) * sin_i₀⁴) -
-         (15 // 16 ) * k₂₂ * e₀² * cos_i₀⁴ -
-         (15 // 128) * k₄  * (64 + 72e₀² - (248 + 252e₀²) * sin_i₀² + (196 + 189e₀²) * sin_i₀⁴)
+    ∂ω =
+        (3//4) * k̄₂ * (4 - 5sin_i₀²) +
+        (3//128) *
+        k̄₂₂ *
+        (
+            384 + 96e₀² - 384β +
+            (-824 - 116e₀² + 1056β) * sin_i₀² +
+            (430 - 5e₀² - 720β) * sin_i₀⁴
+        ) - (15//16) * k₂₂ * e₀² * cos_i₀⁴ -
+        (15//128) * k₄ * (64 + 72e₀² - (248 + 252e₀²) * sin_i₀² + (196 + 189e₀²) * sin_i₀⁴)
 
     # Initialize the propagator structure with the data.
     j4d.orb₀ = j4d.orbk = orb₀
@@ -338,7 +329,7 @@ The inertial frame in which the output is represented depends on which frame it 
 generate the orbit parameters. Notice that the perturbation theory requires an inertial
 frame with true equator.
 """
-function j4!(j4d::J4Propagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:Number}
+function j4!(j4d::J4Propagator{Tepoch, T}, t::Number) where {Tepoch <: Number, T <: Number}
     # Unpack the variables.
     orb₀   = j4d.orb₀
     M₀     = j4d.M₀
@@ -358,7 +349,7 @@ function j4!(j4d::J4Propagator{Tepoch, T}, t::Number) where {Tepoch<:Number, T<:
     # Propagate the orbital elements.
     Ω_k = mod(Ω₀ + ∂Ω * Δt, T(2π))
     ω_k = mod(ω₀ + ∂ω * Δt, T(2π))
-    M_k = mod(M₀ + n̄  * Δt, T(2π))
+    M_k = mod(M₀ + n̄ * Δt, T(2π))
 
     # Convert the mean anomaly to the true anomaly.
     f_k = mean_to_true_anomaly(e₀, M_k)
@@ -483,11 +474,8 @@ KeplerianElements{Float64, Float64}:
 ```
 """
 function fit_j4_mean_elements(
-    vjd::AbstractVector{Tjd},
-    vr_i::AbstractVector{Tv},
-    vv_i::AbstractVector{Tv};
-    kwargs...
-) where {Tjd<:Number, Tv<:AbstractVector}
+    vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...
+) where {Tjd <: Number, Tv <: AbstractVector}
     # Allocate the J4 propagator structure that will propagate the mean elements.
     j4d = J4Propagator{Float64, Float64}()
 
@@ -619,7 +607,7 @@ function fit_j4_mean_elements!(
     mean_elements_epoch::Number                      = vjd[end],
     verbose::Bool                                    = true,
     weight_vector::AbstractVector                    = @SVector(ones(Bool, 6)),
-) where {T<:Number, Tepoch<:Number, Tjd<:Number, Tv<:AbstractVector}
+) where {T <: Number, Tepoch <: Number, Tjd <: Number, Tv <: AbstractVector}
     # Number of available measurements.
     num_measurements = length(vjd)
 
@@ -659,7 +647,9 @@ function fit_j4_mean_elements!(
         epoch = T(mean_elements_epoch)
 
         # First, we need to update the mean elements to the desired epoch.
-        verbose && println("$(cy)ACTION:$(cd)   Updating the epoch of the initial mean elements guess to match the desired one.")
+        verbose && println(
+            "$(cy)ACTION:$(cd)   Updating the epoch of the initial mean elements guess to match the desired one.",
+        )
         orb = update_j4_mean_elements_epoch!(j4d, initial_guess, epoch)
 
         r_i, v_i = kepler_to_rv(orb)
@@ -680,7 +670,7 @@ function fit_j4_mean_elements!(
         epoch = T(vjd[id])
         r_i   = vr_i[id]
         v_i   = vv_i[id]
-        x₁    = SVector{6, T}(r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3],)
+        x₁    = SVector{6, T}(r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3])
     end
 
     x₂ = x₁
@@ -692,7 +682,7 @@ function fit_j4_mean_elements!(
     P = SMatrix{num_states, num_states, T}(I)
 
     # Variable to store the last residue.
-    local σ_i_₁
+    σ_i_₁ = T(0)
 
     # Variable to store how many iterations the residue increased. This is used to account
     # for divergence.
@@ -701,16 +691,35 @@ function fit_j4_mean_elements!(
     # Header.
     if verbose
         println("$(cy)ACTION:$(cd)   Fitting the mean elements for the J4 propagator.")
-        @printf("          %s%10s %20s %20s %20s %20s%s\n", cy, "Iteration", "Position RMSE", "Velocity RMSE", "Total RMSE", "RMSE Variation", cd)
-        @printf("          %s%10s %20s %20s %20s %20s%s\n", cb, "", "[km]", "[km / s]", "[ ]", "", cd)
+        @printf(
+            "          %s%10s %20s %20s %20s %20s%s\n",
+            cy,
+            "Iteration",
+            "Position RMSE",
+            "Velocity RMSE",
+            "Total RMSE",
+            "RMSE Variation",
+            cd
+        )
+        @printf(
+            "          %s%10s %20s %20s %20s %20s%s\n",
+            cb,
+            "",
+            "[km]",
+            "[km / s]",
+            "[ ]",
+            "",
+            cd
+        )
         println()
     end
 
     # We need a reference to the covariance inverse because we will invert it and return
     # after the iterations.
-    local ΣJ′WJ
+    ΣJ′WJ = @SMatrix zeros(T, num_states, num_states)
 
-    j4d_ad = jacobian_method isa ForwardDiffJacobian ? _create_j4_ad_propagator(j4d) : nothing
+    j4d_ad =
+        jacobian_method isa ForwardDiffJacobian ? _create_j4_ad_propagator(j4d) : nothing
 
     # Loop until the maximum allowed iteration.
     @inbounds @views for it in 1:max_iterations
@@ -729,7 +738,7 @@ function fit_j4_mean_elements!(
             # Obtain the measured ephemerides.
             y = vcat(vr_i[k - 1 + begin], vv_i[k - 1 + begin])
 
-            # Initialize the SGP4 with the current estimated mean elements.
+            # Initialize the propagator with the current estimated mean elements.
             orb = rv_to_kepler(x₁[1:3], x₁[4:6], epoch)
             j4_init!(j4d, orb)
 
@@ -752,7 +761,7 @@ function fit_j4_mean_elements!(
                 ŷ;
                 perturbation     = jacobian_perturbation,
                 perturbation_tol = jacobian_perturbation_tol,
-                j4d_ad           = j4d_ad
+                j4d_ad           = j4d_ad,
             )
 
             # Accumulation.
@@ -764,7 +773,7 @@ function fit_j4_mean_elements!(
         end
 
         # Normalize and compute the RMS errors.
-        σ_i  = √(σ_i  / num_measurements)
+        σ_i  = √(σ_i / num_measurements)
         σp_i = √(σp_i / num_measurements)
         σv_i = √(σv_i / num_measurements)
 
@@ -783,15 +792,31 @@ function fit_j4_mean_elements!(
 
         # We cannot compute the RMSE variation in the first iteration.
         if it == 1
-            verbose &&
-                @printf("\x1b[A\x1b[2K\r%sPROGRESS:%s %10d %20g %20g %20g %20s\n", cb, cd, it, σp_i / 1000, σv_i / 1000, σ_i, "---")
+            verbose && @printf(
+                "\x1b[A\x1b[2K\r%sPROGRESS:%s %10d %20g %20g %20g %20s\n",
+                cb,
+                cd,
+                it,
+                σp_i / 1000,
+                σv_i / 1000,
+                σ_i,
+                "---"
+            )
 
         else
             # Compute the RMSE variation.
             Δσ = (σ_i - σ_i_₁) / σ_i_₁
 
-            verbose &&
-                @printf("\x1b[A\x1b[2K\r%sPROGRESS:%s %10d %20g %20g %20g %20g %%\n", cb, cd, it, σp_i / 1000, σv_i / 1000, σ_i, 100 * Δσ)
+            verbose && @printf(
+                "\x1b[A\x1b[2K\r%sPROGRESS:%s %10d %20g %20g %20g %20g %%\n",
+                cb,
+                cd,
+                it,
+                σp_i / 1000,
+                σv_i / 1000,
+                σ_i,
+                100 * Δσ
+            )
 
             # Check if the RMSE is increasing.
             if σ_i < σ_i_₁
@@ -818,8 +843,9 @@ function fit_j4_mean_elements!(
 
     # Update the epoch of the fitted mean elements to match the desired one.
     if abs(epoch - mean_elements_epoch) > 0.001 / 86400
-        verbose &&
-            println("$(cy)ACTION:$(cd)   Updating the epoch of the fitted mean elements to match the desired one.")
+        verbose && println(
+            "$(cy)ACTION:$(cd)   Updating the epoch of the fitted mean elements to match the desired one.",
+        )
         orb = update_j4_mean_elements_epoch!(j4d, orb, mean_elements_epoch)
     end
 
@@ -834,7 +860,7 @@ function fit_j4_mean_elements!(
 end
 
 """
-    update_j4_mean_elements_epoch(orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KepleriranElements
+    update_j4_mean_elements_epoch(orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KeplerianElements
 
 Update the epoch of the mean elements `orb` using a J4 orbit propagator to `new_epoch`,
 which can be represented by a Julian Day or a `DateTime`.
@@ -843,7 +869,7 @@ which can be represented by a Julian Day or a `DateTime`.
 
     This algorithm version will allocate a new J4 propagator with the default constants
     `j4c_egm2008`. If another set of constants are required, use the function
-    [`update_j4osc_mean_elements_epoch!`](@ref) instead.
+    [`update_j4_mean_elements_epoch!`](@ref) instead.
 
 # Examples
 
@@ -878,9 +904,8 @@ KeplerianElements{Float64, Float64}:
 ```
 """
 function update_j4_mean_elements_epoch(
-    orb::KeplerianElements{Tepoch, T},
-    new_epoch::Union{Number, DateTime}
-) where {T<:Number, Tepoch<:Number}
+    orb::KeplerianElements{Tepoch, T}, new_epoch::Union{Number, DateTime}
+) where {T <: Number, Tepoch <: Number}
     # Allocate the J4 propagator structure that will propagate the mean elements.
     j4d = J4Propagator{Tepoch, T}()
 
@@ -891,7 +916,7 @@ function update_j4_mean_elements_epoch(
 end
 
 """
-    update_j4_mean_elements_epoch!(j4d::J4Propagator, orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KepleriranElements
+    update_j4_mean_elements_epoch!(j4d::J4Propagator, orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KeplerianElements
 
 Update the epoch of the mean elements `orb` using the propagator `j4d` to `new_epoch`, which
 can be represented by a Julian Day or a `DateTime`.
@@ -938,18 +963,14 @@ KeplerianElements{Float64, Float64}:
 ```
 """
 function update_j4_mean_elements_epoch!(
-    j4d::J4Propagator,
-    orb::KeplerianElements,
-    new_epoch::DateTime
+    j4d::J4Propagator, orb::KeplerianElements, new_epoch::DateTime
 )
     dt = datetime2julian(new_epoch)
     return update_j4_mean_elements_epoch!(j4d, orb, dt)
 end
 
 function update_j4_mean_elements_epoch!(
-    j4d::J4Propagator,
-    orb::KeplerianElements,
-    new_epoch::Number
+    j4d::J4Propagator, orb::KeplerianElements, new_epoch::Number
 )
     # First, we need to initialize the J4 propagator with the mean elements.
     j4_init!(j4d, orb)
@@ -971,9 +992,9 @@ end
 ############################################################################################
 
 function _create_j4_ad_propagator(j4d::J4Propagator{Tepoch, T}) where {Tepoch, T}
-    tag  = ForwardDiff.Tag{Nothing, T}
-    D    = ForwardDiff.Dual{tag, T, 6}
-    j4c  = j4d.j4c
+    tag = ForwardDiff.Tag{Nothing, T}
+    D   = ForwardDiff.Dual{tag, T, 6}
+    j4c = j4d.j4c
 
     ad = J4Propagator{Tepoch, D}()
     ad.j4c = J4PropagatorConstants{D}(D(j4c.R0), D(j4c.μm), D(j4c.J2), D(j4c.J4))
@@ -988,9 +1009,8 @@ function _j4_jacobian(
     y₁::SVector{6, T};
     perturbation::Number = T(1e-3),
     perturbation_tol::Number = T(1e-7),
-    j4d_ad::Union{Nothing, J4Propagator} = nothing
-) where {T<:Number, Tepoch<:Number}
-
+    j4d_ad::Union{Nothing, J4Propagator} = nothing,
+) where {T <: Number, Tepoch <: Number}
     J = MMatrix{6, 6, T}(undef)
     x₂ = x₁
 
@@ -1030,8 +1050,8 @@ function _j4_jacobian(
     y₁::SVector{6, T};
     perturbation::Number = T(1e-3),
     perturbation_tol::Number = T(1e-7),
-    j4d_ad::Union{Nothing, J4Propagator} = nothing
-) where {T<:Number, Tepoch<:Number}
+    j4d_ad::Union{Nothing, J4Propagator} = nothing,
+) where {T <: Number, Tepoch <: Number}
     epoch = j4d.orb₀.t
     N     = 6
     tag   = ForwardDiff.Tag{Nothing, T}
