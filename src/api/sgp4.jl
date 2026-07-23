@@ -53,7 +53,13 @@ function Propagators.mean_elements(orbp::OrbitPropagatorSgp4)
 end
 
 """
-    Propagators.fit_mean_elements(::Val{:SGP4}, vjd::AbstractVector{Tjd}, vr_teme::AbstractVector{Tv}, vv_teme::AbstractVector{Tv}; kwargs...) -> KeplerianElements{Float64, Float64}, SMatrix{6, 6, Float64}
+    Propagators.fit_mean_elements(
+        ::Val{:SGP4},
+        vjd::AbstractVector{Tjd},
+        vr_teme::AbstractVector{Tv},
+        vv_teme::AbstractVector{Tv};
+        kwargs...
+    ) -> KeplerianElements{Float64, Float64}, SMatrix{6, 6, Float64}
 
 Fit a Two-Line Element set (`TLE`) for the SGP4 orbit propagator using the osculating
 elements represented by a set of position vectors `vr_teme` [m] and a set of velocity
@@ -169,7 +175,13 @@ function Propagators.fit_mean_elements(
 end
 
 """
-    Propagators.fit_mean_elements!(orbp::OrbitPropagatorSgp4, vjd::AbstractVector{Tjd}, vr_teme::AbstractVector{Tv}, vv_teme::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector}
+    Propagators.fit_mean_elements!(
+        orbp::OrbitPropagatorSgp4,
+        vjd::AbstractVector{Tjd},
+        vr_teme::AbstractVector{Tv},
+        vv_teme::AbstractVector{Tv};
+        kwargs...
+    ) where {Tjd<:Number, Tv<:AbstractVector}
 
 Fit a Two-Line Element set (`TLE`) for the SGP4 orbit propagator `orbp` using the
 osculating elements represented by a set of position vectors `vr_teme` [m] and a set of
@@ -284,7 +296,19 @@ function Propagators.fit_mean_elements!(
 end
 
 """
-    Propagators.init(Val(:SGP4), epoch::Number, n₀::Number, e₀::Number, i₀::Number, Ω₀::Number, ω₀::Number, M₀::Number, bstar::Number; kwargs...) -> OrbitPropagatorSgp4
+    Propagators.init(
+        Val(:SGP4),
+        epoch::Number,
+        n₀::Number,
+        e₀::Number,
+        i₀::Number,
+        Ω₀::Number,
+        ω₀::Number,
+        M₀::Number,
+        bstar::Number;
+        kwargs...
+    ) -> OrbitPropagatorSgp4
+
     Propagators.init(Val(:SGP4), tle::TLE; kwargs...) -> OrbitPropagatorSgp4
 
 Create and initialize the SGP4 orbit propagator structure using the initial orbit specified
@@ -334,8 +358,24 @@ function Propagators.init(
 end
 
 """
-    Propagators.init!(orbp::OrbitPropagatorSgp4, epoch::Number, n₀::Number, e₀::Number, i₀::Number, Ω₀::Number, ω₀::Number, M₀::Number, bstar::Number; kwargs...) -> Nothing
-    Propagators.init!(orbp::OrbitPropagatorSgp4, tle::TLE; kwargs...) -> Nothing
+    Propagators.init!(
+        orbp::OrbitPropagatorSgp4,
+        epoch::Number,
+        n₀::Number,
+        e₀::Number,
+        i₀::Number,
+        Ω₀::Number,
+        ω₀::Number,
+        M₀::Number,
+        bstar::Number;
+        kwargs...
+    ) -> Nothing
+
+    Propagators.init!(
+        orbp::OrbitPropagatorSgp4,
+        tle::TLE;
+        kwargs...
+    ) -> Nothing
 
 Initialize the SGP4 orbit propagator structure `orbp` using the initial orbit specified
 by the arguments.

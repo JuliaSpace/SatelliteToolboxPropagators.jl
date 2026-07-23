@@ -10,7 +10,13 @@ Propagators.mean_elements(orbp::OrbitPropagatorJ4) = orbp.j4d.orbk
 Propagators.name(orbp::OrbitPropagatorJ4)          = "J4 Orbit Propagator"
 
 """
-    Propagators.fit_mean_elements(::Val{:J4}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) -> KeplerianElements{Float64, Float64}, SMatrix{6, 6, Float64}
+    Propagators.fit_mean_elements(
+        ::Val{:J4},
+        vjd::AbstractVector{Tjd},
+        vr_i::AbstractVector{Tv},
+        vv_i::AbstractVector{Tv};
+        kwargs...
+    ) -> KeplerianElements{Float64, Float64}, SMatrix{6, 6, Float64}
 
 Fit a set of mean Keplerian elements for the J4 orbit propagator using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
@@ -71,7 +77,13 @@ function Propagators.fit_mean_elements(
 end
 
 """
-    Propagators.fit_mean_elements!(orbp::OrbitPropagatorJ4, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector}
+    Propagators.fit_mean_elements!(
+        orbp::OrbitPropagatorJ4,
+        vjd::AbstractVector{Tjd},
+        vr_i::AbstractVector{Tv},
+        vv_i::AbstractVector{Tv};
+        kwargs...
+    ) where {Tjd<:Number, Tv<:AbstractVector}
 
 Fit a set of mean Keplerian elements for the J4 orbit propagator `orbp` using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors

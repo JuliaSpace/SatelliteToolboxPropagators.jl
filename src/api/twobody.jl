@@ -10,7 +10,11 @@ Propagators.mean_elements(orbp::OrbitPropagatorTwoBody) = orbp.tbd.orbk
 Propagators.name(orbp::OrbitPropagatorTwoBody)          = "Two-Body Orbit Propagator"
 
 """
-    Propagators.init(Val(:TwoBody), orb₀::KeplerianElements; kwargs...) -> OrbitPropagatorTwoBody
+    Propagators.init(
+        Val(:TwoBody),
+        orb₀::KeplerianElements;
+        kwargs...
+    ) -> OrbitPropagatorTwoBody
 
 Create and initialize the two-body orbit propagator structure using the mean Keplerian
 elements `orb₀`.
