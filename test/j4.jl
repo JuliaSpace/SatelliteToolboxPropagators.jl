@@ -65,6 +65,10 @@
         @test j4d.Δt == 0
         @test j4d.n̄ == 0
         @test j4d.j4c == j4c_egm2008
+
+        orb = KeplerianElements(0.0, 8000e3, 0, 0, 0, 0, 0)
+        orbp = Propagators.init(Val(:J4), orb)
+        @test orbp.j4d.orb₀ isa KeplerianElements{Float64, Float64}
     end
 
     # == General API Functions =============================================================

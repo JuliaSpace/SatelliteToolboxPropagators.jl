@@ -48,6 +48,10 @@
         @test tbd.Δt == 0
         @test tbd.M₀ == 0
         @test tbd.n₀ == 0
+
+        orb = KeplerianElements(0.0, 8000e3, 0, 0, 0, 0, 0)
+        orbp = Propagators.init(Val(:TwoBody), orb)
+        @test orbp.tbd.orb₀ isa KeplerianElements{Float64, Float64}
     end
 
     # == General API Functions =============================================================
