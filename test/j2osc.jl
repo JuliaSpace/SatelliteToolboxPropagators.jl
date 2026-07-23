@@ -75,7 +75,7 @@
         @test j2oscd.Δt == 0
         @test j2d.orbk == orb
 
-        orb = KeplerianElements(0.0, 8000e3, 0, 0, 0, 0, 0)
+        orb = KeplerianElements(0.0, 8_000_000, 0, 0, 0, 0, 0)
         orbp = Propagators.init(Val(:J2osc), orb)
         @test orbp.j2oscd.j2d.orb₀ isa KeplerianElements{Float64, Float64}
     end

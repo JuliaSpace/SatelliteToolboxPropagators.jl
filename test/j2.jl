@@ -47,7 +47,7 @@
         @test j2d.n̄ == 0
         @test j2d.j2c == j2c_egm2008
 
-        orb = KeplerianElements(0.0, 8000e3, 0, 0, 0, 0, 0)
+        orb = KeplerianElements(0.0, 8_000_000, 0, 0, 0, 0, 0)
         orbp = Propagators.init(Val(:J2), orb)
         @test orbp.j2d.orb₀ isa KeplerianElements{Float64, Float64}
     end
