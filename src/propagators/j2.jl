@@ -186,6 +186,23 @@ function j2_init!(
     i₀ = T(orb₀.i)
     f₀ = T(orb₀.f)
 
+    # The theory implemented here is only valid for elliptical orbits. Without this check,
+    # the user would get a `DomainError` from an internal square root, or silently wrong
+    # results, instead of a message pointing at the offending element.
+    if !(0 <= e₀ < 1)
+        throw(
+            ArgumentError("The eccentricity must be in the interval [0, 1), but it is $e₀.")
+        )
+    end
+
+    if a₀ * (1 - e₀) <= 0
+        throw(
+            ArgumentError(
+                "The perigee radius must be positive, but the semi-major axis is $a₀ m and the eccentricity is $e₀.",
+            ),
+        )
+    end
+
     # Initial values and auxiliary variables.
     al₀ = a₀ / R₀                      # ................... Normalized semi-major axis [er]
     e₀² = e₀^2                         # .......................... Eccentricity squared [ ]

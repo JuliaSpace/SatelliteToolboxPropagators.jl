@@ -1129,3 +1129,85 @@ end
         @test orbk.t == vjd[begin]
     end
 end
+
+@testset "Initialization With Invalid Orbit Elements" verbose = true begin
+    jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+
+    orbit(a, e) = KeplerianElements(jd₀, a, e, 10.0 |> deg2rad, 0.0, 0.0, 0.0)
+
+    # The propagators implement theories that are only valid for elliptical orbits. An
+    # invalid element must produce a message pointing at it instead of a `DomainError`
+    # raised by an internal square root.
+    @testset "$prop" for prop in (:J2, :J2osc, :J4, :J4osc, :TwoBody)
+        @test_throws ArgumentError Propagators.init(Val(prop), orbit(7000e3, 1.0))
+        @test_throws ArgumentError Propagators.init(Val(prop), orbit(7000e3, 1.5))
+        @test_throws ArgumentError Propagators.init(Val(prop), orbit(7000e3, -0.1))
+        @test_throws ArgumentError Propagators.init(Val(prop), orbit(-7000e3, 0.0))
+
+        # A valid orbit must still be accepted.
+        @test Propagators.init(Val(prop), orbit(7000e3, 0.01)) isa OrbitPropagator
+    end
+end
+
+@testset "Osculating Elements Are Wrapped" verbose = true begin
+    jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+
+    # The osculating angles must be wrapped to [0, 2π), like the mean elements. Otherwise,
+    # the argument of perigee can be negative or larger than 2π, since it is obtained from
+    # the difference between the argument of latitude and the true anomaly.
+    orb = KeplerianElements(
+        jd₀,
+        7190.982e3,
+        0.001111,
+        98.405 |> deg2rad,
+        350.0 |> deg2rad,
+        359.0 |> deg2rad,
+        359.0 |> deg2rad,
+    )
+
+    @testset "$prop" for prop in (:J2osc, :J4osc)
+        orbp = Propagators.init(Val(prop), orb)
+
+        for t in 0:97:6000
+            Propagators.propagate!(orbp, Float64(t))
+            orbk = Propagators.mean_elements(orbp)
+
+            @test 0 <= orbk.Ω < 2π
+            @test 0 <= orbk.ω < 2π
+            @test 0 <= orbk.f < 2π
+        end
+    end
+end
+
+@testset "Osculating Correction Does Not Overflow in Float32" verbose = true begin
+    # The short-period correction to the radial rate used to be scaled by `√(p^5)`, which
+    # overflows in `Float32` for orbits above roughly 50 900 km. Dividing by the resulting
+    # `Inf` silently discarded the whole correction instead of raising an error.
+    jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+
+    @testset "$prop" for (prop, kwargs_32, kwargs_64) in (
+        (:J2osc, (; j2c = j2c_egm2008_f32), (; j2c = j2c_egm2008)),
+        (:J4osc, (; j4c = j4c_egm2008_f32), (; j4c = j4c_egm2008)),
+    )
+        for a in (6.0e7, 1.0e8, 3.844e8)
+            orb_32 = KeplerianElements(
+                jd₀, Float32(a), 0.01f0, Float32(10 |> deg2rad), 0.0f0, 0.0f0, 0.0f0
+            )
+
+            orb_64 = KeplerianElements(jd₀, a, 0.01, 10 |> deg2rad, 0.0, 0.0, 0.0)
+
+            orbp_32 = Propagators.init(Val(prop), orb_32; kwargs_32...)
+            orbp_64 = Propagators.init(Val(prop), orb_64; kwargs_64...)
+
+            r_32, v_32 = Propagators.propagate!(orbp_32, 3600.0f0)
+            r_64, v_64 = Propagators.propagate!(orbp_64, 3600.0)
+
+            @test all(isfinite, r_32)
+            @test all(isfinite, v_32)
+
+            # The `Float32` result must agree with the `Float64` one to within the `Float32`
+            # resolution, which is not the case if the correction is discarded.
+            @test maximum(abs.(v_32 .- v_64)) < 1e-3 * maximum(abs.(v_64))
+        end
+    end
+end

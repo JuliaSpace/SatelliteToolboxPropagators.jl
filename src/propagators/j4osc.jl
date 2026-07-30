@@ -229,10 +229,21 @@ function j4osc!(
     e_cos_f_k = e_k * cos_f_k
     e_sin_f_k = e_k * sin_f_k
 
+    # Both `f_k` and `M_k` are wrapped to [0, 2π). Hence, a rounding difference near the
+    # boundary can make this difference jump by 2π, which would otherwise inject a
+    # discontinuity of about 0.5° in the corrections below.
+    Δf_M = rem2pi(f_k - M_k, RoundNearest)
+
     aux1 = 3cos_2u_k + 3e_k * cos_2ω_f_k + e_k * cos_2ω_3f_k
     aux2 = √(1 - e_k²)
     aux3 = 3cos_i_k² - 1
     aux4 = -aux3 / (1 + aux2)
+
+    # Notice that `μm` is √(GM / R0³) and not the standard gravitational parameter. Hence,
+    # `ṙ_k` and `ṙ_osc_k` are not the physical radial rates. This is not a problem because
+    # `μm` cancels out exactly when computing `B_k`, which is what `kepler_to_rv` requires.
+    # However, all the three occurrences must be kept consistent.
+    sqrt_μm_p = √(μm / p_k)
 
     # Compute the short-periodic perturbations considering only the J2 gravitational term.
     δisp_k = +KJ₂ * sin_i_k * cos_i_k / (4p_k²) * aux1
@@ -241,7 +252,7 @@ function j4osc!(
 
     δΩsp_k =
         -KJ₂ * cos_i_k / (4p_k²) *
-        (6 * (f_k - M_k + e_sin_f_k) - 3sin_2u_k - 3e_k * sin_2ω_f_k - e_k * sin_2ω_3f_k)
+        (6 * (Δf_M + e_sin_f_k) - 3sin_2u_k - 3e_k * sin_2ω_f_k - e_k * sin_2ω_3f_k)
 
     δrsp_k =
         -KJ₂ / (4p_k) * (
@@ -250,14 +261,14 @@ function j4osc!(
         )
 
     δṙsp_k =
-        +KJ₂ * √μm / (4 * √(p_k^5)) * (
+        +KJ₂ * sqrt_μm_p / (4p_k²) * (
             aux3 * e_sin_f_k * (aux2 + ((1 + e_cos_f_k)^2) / (1 + aux2)) -
             2sin_i_k² * (1 + e_cos_f_k)^2 * sin_2u_k
         )
 
     δusp_k =
         +KJ₂ / (8p_k²) * (
-            (6 - 30cos_i_k²) * (f_k - M_k) +
+            (6 - 30cos_i_k²) * Δf_M +
             4e_sin_f_k * (1 - 6cos_i_k² + aux4) +
             aux4 * e_k² * 2sin_f_k * cos_f_k +
             (5cos_i_k² - 2) * (2e_k) * sin_2ω_f_k +
@@ -279,10 +290,10 @@ function j4osc!(
     e_osc_k  = √e_osc_k²
     a_osc_k  = p_osc_k / (1 - e_osc_k²)
     i_osc_k  = i_k + δisp_k
-    Ω_osc_k  = Ω_k + δΩsp_k
+    Ω_osc_k  = mod(Ω_k + δΩsp_k, T(2π))
     u_osc_k  = u_k + δusp_k
-    f_osc_k  = atan(B_k, A_k)
-    ω_osc_k  = u_osc_k - f_osc_k
+    f_osc_k  = mod(atan(B_k, A_k), T(2π))
+    ω_osc_k  = mod(u_osc_k - f_osc_k, T(2π))
 
     # Assemble the current osculating elements.
     orbk = KeplerianElements(

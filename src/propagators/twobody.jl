@@ -108,11 +108,30 @@ Initialize the two-body propagator structure `tbd` using the mean Keplerian elem
 function twobody_init!(
     tbd::TwoBodyPropagator{Tepoch, T}, orb₀::KeplerianElements
 ) where {Tepoch <: Number, T <: Number}
+    a₀ = T(orb₀.a)
+    e₀ = T(orb₀.e)
+
+    # Without this check, the user would get a `DomainError` from an internal square root,
+    # or silently wrong results, instead of a message pointing at the offending element.
+    if !(0 <= e₀ < 1)
+        throw(
+            ArgumentError("The eccentricity must be in the interval [0, 1), but it is $e₀.")
+        )
+    end
+
+    if a₀ * (1 - e₀) <= 0
+        throw(
+            ArgumentError(
+                "The perigee radius must be positive, but the semi-major axis is $a₀ m and the eccentricity is $e₀.",
+            ),
+        )
+    end
+
     # Compute the mean motion using the semi-major axis.
-    n₀ = √(tbd.μ / T(orb₀.a)^3)
+    n₀ = √(tbd.μ / a₀^3)
 
     # Compute the initial mean anomaly.
-    M₀ = true_to_mean_anomaly(T(orb₀.e), T(orb₀.f))
+    M₀ = true_to_mean_anomaly(e₀, T(orb₀.f))
 
     # Create and return the two-body orbit propagator structure.
     tbd.orb₀ = orb₀
