@@ -35,6 +35,16 @@ struct J2PropagatorConstants{T <: Number}
     J2::T
 end
 
+function J2PropagatorConstants{T}(j2c::J2PropagatorConstants) where {T <: Number}
+    return J2PropagatorConstants{T}(T(j2c.R0), T(j2c.μm), T(j2c.J2))
+end
+
+function Base.convert(
+    ::Type{J2PropagatorConstants{T}}, j2c::J2PropagatorConstants
+) where {T <: Number}
+    return J2PropagatorConstants{T}(j2c)
+end
+
 """
     mutable struct J2Propagator{Tepoch<:Number, T<:Number}
 
@@ -107,6 +117,16 @@ struct J4PropagatorConstants{T <: Number}
     μm::T
     J2::T
     J4::T
+end
+
+function J4PropagatorConstants{T}(j4c::J4PropagatorConstants) where {T <: Number}
+    return J4PropagatorConstants{T}(T(j4c.R0), T(j4c.μm), T(j4c.J2), T(j4c.J4))
+end
+
+function Base.convert(
+    ::Type{J4PropagatorConstants{T}}, j4c::J4PropagatorConstants
+) where {T <: Number}
+    return J4PropagatorConstants{T}(j4c)
 end
 
 """

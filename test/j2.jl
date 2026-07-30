@@ -568,6 +568,38 @@ end
     # The input orbit is the nominal orbit for the Amazonia-1 satellite, which is Sun
     # synchronous. Thus, the RAAN moves approximately 0.9856002605° per day.
     @test orb.Ω ≈ orb_input.Ω + deg2rad(0.9856002605) atol = 2e-5
+
+    # The function must also work when the element type is not `Float64`, which requires
+    # converting the default propagator constants.
+    orb_input_f32 = KeplerianElements(
+        orb_input.t,
+        Float32(orb_input.a),
+        Float32(orb_input.e),
+        Float32(orb_input.i),
+        Float32(orb_input.Ω),
+        Float32(orb_input.ω),
+        Float32(orb_input.f),
+    )
+
+    orb_f32 = update_j2_mean_elements_epoch(orb_input_f32, DateTime("2023-01-02"))
+
+    @test orb_f32 isa KeplerianElements{Float64, Float32}
+    @test orb_f32.a == orb_input_f32.a
+    @test orb_f32.e == orb_input_f32.e
+    @test orb_f32.i == orb_input_f32.i
+    @test orb_f32.Ω ≈ orb_input_f32.Ω + deg2rad(0.9856002605) atol = 2e-5
+end
+
+@testset "J2 Propagator Constants Conversion" begin
+    j2c = convert(J2PropagatorConstants{Float32}, j2c_egm2008)
+
+    @test j2c isa J2PropagatorConstants{Float32}
+    @test j2c.R0 == Float32(j2c_egm2008.R0)
+    @test j2c.μm == Float32(j2c_egm2008.μm)
+    @test j2c.J2 == Float32(j2c_egm2008.J2)
+
+    # Converting to the same type must be a no-op.
+    @test convert(J2PropagatorConstants{Float64}, j2c_egm2008) === j2c_egm2008
 end
 
 @testset "Copying Structure" verbose = true begin
