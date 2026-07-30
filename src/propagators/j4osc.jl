@@ -252,7 +252,7 @@ function j4osc!(
     δṙsp_k =
         +KJ₂ * √μm / (4 * √(p_k^5)) * (
             aux3 * e_sin_f_k * (aux2 + ((1 + e_cos_f_k)^2) / (1 + aux2)) -
-            2sin_i_k² * (1 - e_cos_f_k)^2 * sin_2u_k
+            2sin_i_k² * (1 + e_cos_f_k)^2 * sin_2u_k
         )
 
     δusp_k =

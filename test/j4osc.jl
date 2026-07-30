@@ -48,7 +48,11 @@
     # Create a matrix with the results.
     #
     # Notice that the results here are not exactly the same because in J4 osculating
-    # propagator the long-term periodics are not taken into account.
+    # propagator the long-term periodics are not taken into account. Hence, the tolerances
+    # below (2 km in position, 3 m / s in velocity) reflect this modeling difference against
+    # the numerical propagator, not the accuracy of the implementation. The short-period
+    # correction itself is checked to a much tighter tolerance in the testset
+    # "Osculating Radial Rate".
     results = [
            0.0  -952.883 -3038.438 -6444.903 -0.460  6.745 -3.116
          600.0 -1034.273  1320.077 -6994.342  0.197  7.315  1.342
@@ -108,15 +112,15 @@
         # Test all the results.
         orbp = Propagators.init(Val(:J4osc), orb; j4c = j4c_egm2008)
 
-        for k in size(results, 1)
+        for k in axes(results, 1)
             r, v = Propagators.propagate!(orbp, results[k, 1])
 
-            @test results[k, 2] ≈ r[1] / 1000 atol = 2e-1
-            @test results[k, 3] ≈ r[2] / 1000 atol = 2e-1
-            @test results[k, 4] ≈ r[3] / 1000 atol = 2e-1
-            @test results[k, 5] ≈ v[1] / 1000 atol = 1e-3
-            @test results[k, 6] ≈ v[2] / 1000 atol = 1e-3
-            @test results[k, 7] ≈ v[3] / 1000 atol = 1e-3
+            @test results[k, 2] ≈ r[1] / 1000 atol = 2
+            @test results[k, 3] ≈ r[2] / 1000 atol = 2
+            @test results[k, 4] ≈ r[3] / 1000 atol = 2
+            @test results[k, 5] ≈ v[1] / 1000 atol = 3e-3
+            @test results[k, 6] ≈ v[2] / 1000 atol = 3e-3
+            @test results[k, 7] ≈ v[3] / 1000 atol = 3e-3
             @test eltype(r) == T
             @test eltype(v) == T
         end
@@ -239,15 +243,15 @@
         # Test all the results.
         orbp = Propagators.init(Val(:J4osc), orb; j4c = j4c_egm2008_f32)
 
-        for k in size(results, 1)
+        for k in axes(results, 1)
             r, v = Propagators.propagate!(orbp, results[k, 1])
 
-            @test results[k, 2] ≈ r[1] / 1000 atol = 2e-1
-            @test results[k, 3] ≈ r[2] / 1000 atol = 2e-1
-            @test results[k, 4] ≈ r[3] / 1000 atol = 2e-1
-            @test results[k, 5] ≈ v[1] / 1000 atol = 1e-3
-            @test results[k, 6] ≈ v[2] / 1000 atol = 1e-3
-            @test results[k, 7] ≈ v[3] / 1000 atol = 1e-3
+            @test results[k, 2] ≈ r[1] / 1000 atol = 2
+            @test results[k, 3] ≈ r[2] / 1000 atol = 2
+            @test results[k, 4] ≈ r[3] / 1000 atol = 2
+            @test results[k, 5] ≈ v[1] / 1000 atol = 3e-3
+            @test results[k, 6] ≈ v[2] / 1000 atol = 3e-3
+            @test results[k, 7] ≈ v[3] / 1000 atol = 3e-3
             @test eltype(r) == T
             @test eltype(v) == T
         end
@@ -657,6 +661,246 @@ end
 
             new_orbp.j4oscd.j4d.Δt = 1000
             @test new_orbp.j4oscd.j4d.Δt != orbp.j4oscd.j4d.Δt
+        end
+    end
+end
+
+# == Osculating Radial Rate ================================================================
+#
+# The short-period correction to the radial rate is not visible in the reference tables
+# above, because those come from a numerical propagator with a full gravity model and differ
+# from these propagators by about 2 km in position and 2 m / s in velocity regardless.
+#
+# The reference values below isolate it. They were obtained by integrating the J2 equations
+# of motion (two-body plus the J2 zonal acceleration, EGM-2008 constants) with a fixed-step
+# RK4 integrator using 2000 steps per orbit, and extracting the mean elements from the
+# resulting trajectory with a Hann-windowed average over six orbital periods, which is the
+# Brouwer definition of mean elements to first order. Each row holds the extracted mean
+# elements and the true osculating radial rate, r ⋅ v / |r|, at the centre of the window:
+#
+#     (a [m], e, i [rad], ω [rad], M [rad], ṙ [m / s])
+#
+# The inclination is 98.405°, the RAAN is 90°, and the eccentricities are 0.02, 0.08, and
+# 0.15, each sampled at eight anomalies.
+#
+# The tolerance is the residue of the first-order theory. The expression previously
+# implemented, which used (1 - e cos f)² instead of (1 + e cos f)² in the second term, is off
+# by up to 1.33 m / s and fails this test.
+
+@testset "Osculating Radial Rate" verbose = true begin
+    reference = [
+        (
+            7183847.8491930151,
+            0.0198000650,
+            1.7175640808,
+            3.4760929577,
+            0.0139527782,
+            0.0000000006,
+        ),
+        (
+            7197161.6035945583,
+            0.0211832948,
+            1.7174314741,
+            3.5221560837,
+            0.7252183073,
+            105.3117091008,
+        ),
+        (
+            7197901.0608316371,
+            0.0198150794,
+            1.7174197442,
+            3.5614404178,
+            1.4606498191,
+            148.9332472863,
+        ),
+        (
+            7185324.8573491490,
+            0.0198369298,
+            1.7175489941,
+            3.4773432427,
+            2.3416455678,
+            105.3117090999,
+        ),
+        (
+            7184330.6082761073,
+            0.0201996025,
+            1.7175602961,
+            3.5029620178,
+            3.1287134373,
+            -0.0000000007,
+        ),
+        (
+            7196425.4519446185,
+            0.0189399367,
+            1.7174323769,
+            3.4549929272,
+            3.9905225353,
+            -105.3117091007,
+        ),
+        (
+            7197900.9734012149,
+            0.0203497524,
+            1.7174213290,
+            3.4221276352,
+            4.8214724651,
+            -148.9332472862,
+        ),
+        (
+            7185077.4157844847,
+            0.0201873767,
+            1.7175525769,
+            3.5049500022,
+            5.5121762531,
+            -105.3117090998,
+        ),
+        (
+            7182931.4258067394,
+            0.0797237059,
+            1.7175708190,
+            3.4864859873,
+            0.0034948928,
+            0.0000000038,
+        ),
+        (
+            7198506.5328443246,
+            0.0812854673,
+            1.7174294882,
+            3.4991320139,
+            0.6678027378,
+            422.5168026141,
+        ),
+        (
+            7198053.9156890949,
+            0.0798197372,
+            1.7174165804,
+            3.5089504189,
+            1.3934319931,
+            597.5289925841,
+        ),
+        (
+            7185599.9070517309,
+            0.0798078064,
+            1.7175443634,
+            3.4881187713,
+            2.2414460706,
+            422.5168026099,
+        ),
+        (
+            7184901.5037797149,
+            0.0801397057,
+            1.7175554962,
+            3.4933659390,
+            3.1383575555,
+            -0.0000000028,
+        ),
+        (
+            7195505.0691928314,
+            0.0790072358,
+            1.7174331431,
+            3.4820872250,
+            4.0528587968,
+            -422.5168026140,
+        ),
+        (
+            7198053.5585980229,
+            0.0803584749,
+            1.7174229967,
+            3.4734442897,
+            4.8898755736,
+            -597.5289925840,
+        ),
+        (
+            7184591.1173784742,
+            0.0801547555,
+            1.7175588688,
+            3.4949929506,
+            5.6025688184,
+            -422.5168026087,
+        ),
+        (
+            7181478.5102035254,
+            0.1496306659,
+            1.7175806949,
+            3.4879659757,
+            0.0019215108,
+            0.0000000140,
+        ),
+        (
+            7200571.5026989058,
+            0.1514567721,
+            1.7174260880,
+            3.4954699797,
+            0.5839455326,
+            798.7165162242,
+        ),
+        (
+            7198483.9469006751,
+            0.1498757265,
+            1.7174115022,
+            3.5011015424,
+            1.2624022277,
+            1129.5557297251,
+        ),
+        (
+            7185794.5462470576,
+            0.1497891434,
+            1.7175398742,
+            3.4898013120,
+            2.1280406405,
+            798.7165162118,
+        ),
+        (
+            7185378.2525120089,
+            0.1500913695,
+            1.7175510083,
+            3.4918752282,
+            3.1398949178,
+            -0.0000000076,
+        ),
+        (
+            7194644.1613620706,
+            0.1490904054,
+            1.7174331680,
+            3.4859319271,
+            4.1607463286,
+            -798.7165162234,
+        ),
+        (
+            7198483.2383694621,
+            0.1504233653,
+            1.7174239326,
+            3.4812668302,
+            5.0209647203,
+            -1129.5557297248,
+        ),
+        (
+            7183802.8619856136,
+            0.1501249115,
+            1.7175679770,
+            3.4934212469,
+            5.6916574363,
+            -798.7165162062,
+        ),
+    ]
+
+    @testset "$prop" for prop in (:J4osc,)
+        for (a, e, i, ω, M, ṙ_ref) in reference
+            orb = KeplerianElements(
+                date_to_jd(2023, 1, 1, 0, 0, 0),
+                a,
+                e,
+                i,
+                90.0 |> deg2rad,
+                ω,
+                mean_to_true_anomaly(e, M),
+            )
+
+            orbp = Propagators.init(Val(prop), orb)
+            r, v = Propagators.propagate!(orbp, 0.0)
+
+            ṙ = sum(r .* v) / sqrt(sum(abs2, r))
+
+            @test ṙ ≈ ṙ_ref atol = 0.35
         end
     end
 end
