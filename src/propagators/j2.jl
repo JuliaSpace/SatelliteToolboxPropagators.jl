@@ -987,17 +987,23 @@ function _j2_jacobian(
     J = MMatrix{6, 6, T}(undef)
     x₂ = x₁
 
+    # Convert the perturbation parameters to the element type once. Otherwise, `ϵ` would be
+    # assigned values of two different types, and the Jacobian columns would be computed in
+    # the promoted type instead of in `T`.
+    ϵ₀ = T(perturbation)
+    ϵ_tol = T(perturbation_tol)
+
     @inbounds @views for j in 1:6
         α = x₂[j]
-        ϵ = α * T(perturbation)
+        ϵ = α * ϵ₀
 
         for _ in 1:5
-            abs(ϵ) > perturbation_tol && break
+            abs(ϵ) > ϵ_tol && break
             ϵ *= T(1.4)
         end
 
-        if abs(ϵ) < perturbation_tol
-            ϵ = signbit(α) ? -perturbation_tol : perturbation_tol
+        if abs(ϵ) < ϵ_tol
+            ϵ = signbit(α) ? -ϵ_tol : ϵ_tol
         end
 
         α += ϵ
@@ -1030,16 +1036,17 @@ function _j2_jacobian(
     tag   = ForwardDiff.Tag{Nothing, T}
     D     = ForwardDiff.Dual{tag, T, N}
 
-    if isnothing(j2d_ad)
-        j2d_ad = _create_j2_ad_propagator(j2d)
-    end
+    # Declaring the type of the local makes the propagator concrete regardless of what
+    # the caller provides. Otherwise, the unparameterised type in the keyword leaves
+    # this call and the ones below dynamically dispatched.
+    ad::J2Propagator{Tepoch, D} = isnothing(j2d_ad) ? _create_j2_ad_propagator(j2d) : j2d_ad
 
     seeds  = ntuple(i -> ForwardDiff.Partials(ntuple(j -> T(i == j), Val(N))), Val(N))
     x_dual = SVector{N, D}(ntuple(i -> D(x₁[i], seeds[i]), Val(N)))
 
     orb = rv_to_kepler(x_dual[SOneTo(3)], x_dual[StaticArrays.SUnitRange(4, 6)], epoch)
-    j2_init!(j2d_ad, orb)
-    r, v   = j2!(j2d_ad, Δt)
+    j2_init!(ad, orb)
+    r, v   = j2!(ad, Δt)
     y_dual = vcat(r, v)
 
     return SMatrix{6, N, T}(
