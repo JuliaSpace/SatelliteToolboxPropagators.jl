@@ -541,19 +541,19 @@ function fit_j2osc_mean_elements!(
     # Assemble the weight vector. Since the weight matrix is diagonal, we store only the
     # diagonal to improve performance by avoiding the Diagonal wrapper.
     W = @SVector T[
-        weight_vector[1],
-        weight_vector[2],
-        weight_vector[3],
-        weight_vector[4],
-        weight_vector[5],
-        weight_vector[6],
+        weight_vector[begin],
+        weight_vector[begin + 1],
+        weight_vector[begin + 2],
+        weight_vector[begin + 3],
+        weight_vector[begin + 4],
+        weight_vector[begin + 5],
     ]
 
     # Initial guess of the mean elements.
     #
     # NOTE: x₁ is the previous estimate and x₂ is the current estimate.
     if !isnothing(initial_guess)
-        epoch = T(mean_elements_epoch)
+        epoch = Tepoch(mean_elements_epoch)
 
         # First, we need to update the mean elements to the desired epoch.
         verbose && println(
@@ -566,7 +566,7 @@ function fit_j2osc_mean_elements!(
     else
         # In this case, we must find the closest osculating vector to the desired epoch.
         id = firstindex(vjd)
-        v  = abs(vjd[1] - mean_elements_epoch)
+        v  = abs(vjd[id] - mean_elements_epoch)
 
         for k in eachindex(vjd)
             vk = abs(vjd[k] - mean_elements_epoch)
@@ -576,7 +576,7 @@ function fit_j2osc_mean_elements!(
             end
         end
 
-        epoch = T(vjd[id])
+        epoch = Tepoch(vjd[id])
         r_i   = vr_i[id]
         v_i   = vv_i[id]
         x₁    = SVector{6, T}(r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3])

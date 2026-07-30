@@ -1083,3 +1083,49 @@ end
         end
     end
 end
+
+@testset "Epoch Type When Fitting Mean Elements" verbose = true begin
+    # The fitted mean elements must keep the epoch in `Tepoch`, which is the whole point of
+    # having a separate epoch type. Converting it to the element type truncates the Julian
+    # Day and makes the return type differ from the documented one.
+    jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+
+    orb = KeplerianElements(
+        jd₀,
+        Float32(7130.982e3),
+        Float32(0.001111),
+        Float32(98.405 |> deg2rad),
+        Float32(90.0 |> deg2rad),
+        Float32(200.0 |> deg2rad),
+        Float32(45.0 |> deg2rad),
+    )
+
+    vt  = collect(0.0:60:6000)
+    vjd = jd₀ .+ vt ./ 86400
+
+    @testset "$prop" for (prop, kwargs) in (
+        (:J2, (; j2c = j2c_egm2008_f32)),
+        (:J2osc, (; j2c = j2c_egm2008_f32)),
+        (:J4, (; j4c = j4c_egm2008_f32)),
+        (:J4osc, (; j4c = j4c_egm2008_f32)),
+    )
+        orbp = Propagators.init(Val(prop), orb; kwargs...)
+        ret  = [Propagators.propagate!(orbp, t) for t in vt]
+
+        vr_i = [SVector{3, Float32}(r) for r in first.(ret)]
+        vv_i = [SVector{3, Float32}(v) for v in last.(ret)]
+
+        orbk, P = Propagators.fit_mean_elements!(
+            orbp,
+            vjd,
+            vr_i,
+            vv_i;
+            mean_elements_epoch = vjd[begin],
+            verbose             = false,
+        )
+
+        @test orbk isa KeplerianElements{Float64, Float32}
+        @test P isa SMatrix{6, 6, Float32}
+        @test orbk.t == vjd[begin]
+    end
+end
