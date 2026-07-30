@@ -303,6 +303,22 @@ generate the orbit parameters. Notice that the perturbation theory requires an i
 frame with true equator.
 """
 function j2!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch <: Number, T <: Number}
+    orbk = _j2_mean_elements!(j2d, t)
+
+    # Compute the position and velocity vectors given the orbital elements.
+    r_i_k, v_i_k = kepler_to_rv(orbk)
+
+    # Return the position and velocity vector represented in the inertial reference frame.
+    return r_i_k, v_i_k
+end
+
+# Propagate the mean elements of `j2d` to the instant `t` [s] measured from the epoch of the
+# initial elements, update the propagator structure, and return the mean elements. The
+# osculating propagator uses this function directly to avoid computing a state vector from
+# the mean elements that it would discard.
+function _j2_mean_elements!(
+    j2d::J2Propagator{Tepoch, T}, t::Number
+) where {Tepoch <: Number, T <: Number}
     # Unpack the variables.
     orb₀  = j2d.orb₀
     M₀    = j2d.M₀
@@ -330,16 +346,12 @@ function j2!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch <: Number, T
     # Assemble the current mean elements.
     orbk = KeplerianElements(epoch + Tepoch(t) / 86400, a₀, e₀, i₀, Ω_k, ω_k, f_k)
 
-    # Compute the position and velocity vectors given the orbital elements.
-    r_i_k, v_i_k = kepler_to_rv(orbk)
-
     # Update the J2 orbit propagator structure.
     j2d.Δt   = Δt
     j2d.M_k  = M_k
     j2d.orbk = orbk
 
-    # Return the position and velocity vector represented in the inertial reference frame.
-    return r_i_k, v_i_k
+    return orbk
 end
 
 """

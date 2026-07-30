@@ -113,11 +113,20 @@ elements `orb₀` [SI units].
     changed. Hence, they must be initialized.
 """
 function j2osc_init!(j2oscd::J2OsculatingPropagator, orb₀::KeplerianElements)
-    # Initialize the J2 propagator that will propagate the mean elements.
-    j2_init!(j2oscd.j2d, orb₀)
+    _j2osc_init!(j2oscd, orb₀)
 
     # Call the propagation one time to update the osculating elements.
     j2osc!(j2oscd, 0)
+
+    return nothing
+end
+
+# Initialize the propagator without computing the osculating elements at the initial instant.
+# The callers that propagate the orbit right afterwards use this function, since the
+# osculating elements would be overwritten anyway.
+function _j2osc_init!(j2oscd::J2OsculatingPropagator, orb₀::KeplerianElements)
+    # Initialize the J2 propagator that will propagate the mean elements.
+    j2_init!(j2oscd.j2d, orb₀)
 
     return nothing
 end
@@ -190,19 +199,13 @@ function j2osc!(
     # First, we need to propagate the mean elements since they are necessary to compute the
     # short-periodic perturbations.
     j2d = j2oscd.j2d
-    j2!(j2d, t)
+    mean_orbk = _j2_mean_elements!(j2d, t)
 
     # Unpack the propagator constants.
     j2c = j2d.j2c
     R₀  = j2c.R0
     μm  = j2c.μm
     J₂  = j2c.J2
-
-    # Time from epoch to propagate the orbit.
-    Δt = T(t)
-
-    # Obtain the mean elements at this time instant.
-    mean_orbk = j2d.orbk
 
     a_k  = mean_orbk.a
     e_k  = mean_orbk.e
@@ -219,11 +222,16 @@ function j2osc!(
     # Auxiliary variables to reduce the computational burden.
     KJ₂ = J₂ * R₀ * R₀
 
-    sin_i_k, cos_i_k         = sincos(i_k)
-    sin_f_k, cos_f_k         = sincos(f_k)
-    sin_2u_k, cos_2u_k       = sincos(2u_k)
-    sin_2ω_f_k, cos_2ω_f_k   = sincos(2ω_k + f_k)
-    sin_2ω_3f_k, cos_2ω_3f_k = sincos(2ω_k + 3f_k)
+    sin_i_k, cos_i_k = sincos(i_k)
+    sin_f_k, cos_f_k = sincos(f_k)
+    sin_2u_k, cos_2u_k = sincos(2u_k)
+
+    # Since `u = ω + f`, we have `2ω + f == 2u - f` and `2ω + 3f == 2u + f`. Hence, we can
+    # obtain the following sines and cosines from the ones already computed.
+    sin_2ω_f_k  = sin_2u_k * cos_f_k - cos_2u_k * sin_f_k
+    cos_2ω_f_k  = cos_2u_k * cos_f_k + sin_2u_k * sin_f_k
+    sin_2ω_3f_k = sin_2u_k * cos_f_k + cos_2u_k * sin_f_k
+    cos_2ω_3f_k = cos_2u_k * cos_f_k - sin_2u_k * sin_f_k
 
     sin_i_k²  = sin_i_k * sin_i_k
     cos_i_k²  = cos_i_k * cos_i_k
@@ -663,7 +671,7 @@ function fit_j2osc_mean_elements!(
 
             # Initialize the propagator with the current estimated mean elements.
             orb = rv_to_kepler(x₁[1:3], x₁[4:6], epoch)
-            j2osc_init!(j2oscd, orb)
+            _j2osc_init!(j2oscd, orb)
 
             # Obtain the propagation time for this measurement.
             Δt = (vjd[k - 1 + begin] - epoch) * 86400
@@ -900,7 +908,7 @@ function update_j2osc_mean_elements_epoch!(
     j2oscd::J2OsculatingPropagator, orb::KeplerianElements, new_epoch::Number
 )
     # First, we need to initialize the J2 osculating propagator with the mean elements.
-    j2osc_init!(j2oscd, orb)
+    _j2osc_init!(j2oscd, orb)
 
     # Now, we just need to propagate the orbit to the desired instant and obtain the mean
     # elements from the J2 propagator structure inside.
@@ -967,7 +975,7 @@ function _j2osc_jacobian(
         x₂ = setindex(x₂, α, j)
 
         orb = rv_to_kepler(x₂[1:3], x₂[4:6], j2oscd.j2d.orb₀.t)
-        j2osc_init!(j2oscd, orb)
+        _j2osc_init!(j2oscd, orb)
         r_i, v_i = j2osc!(j2oscd, Δt)
         y₂ = @SVector [r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3]]
 
@@ -1003,7 +1011,7 @@ function _j2osc_jacobian(
     x_dual = SVector{N, D}(ntuple(i -> D(x₁[i], seeds[i]), Val(N)))
 
     orb = rv_to_kepler(x_dual[SOneTo(3)], x_dual[StaticArrays.SUnitRange(4, 6)], epoch)
-    j2osc_init!(ad, orb)
+    _j2osc_init!(ad, orb)
     r, v   = j2osc!(ad, Δt)
     y_dual = vcat(r, v)
 
