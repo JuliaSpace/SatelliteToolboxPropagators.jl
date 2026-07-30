@@ -1,6 +1,46 @@
 SatelliteToolboxPropagator.jl Changelog
 =======================================
 
+Version 1.2.0
+-------------
+
+- ![Enhancement][badge-enhancement] The propagators now validate the eccentricity and the
+  perigee radius during initialization, throwing an `ArgumentError` that points at the
+  offending element instead of a `DomainError` raised by an internal square root.
+- ![Enhancement][badge-enhancement] Improve the performance of the J2 and J4 osculating
+  propagators by about 17%, and reduce the time to fit the mean elements with the
+  finite-difference Jacobian by about half.
+- ![Enhancement][badge-enhancement] Fitting the mean elements no longer allocates memory
+  proportionally to the number of measurements when the position and velocity are passed as
+  `Vector{Vector}`, which is the type used in all the documentation examples.
+- ![Enhancement][badge-enhancement] The osculating Keplerian elements are now wrapped to
+  [0, 2π), like the mean elements.
+- ![Bugfix][badge-bugfix] Fix the short-period correction to the radial rate in the J2 and
+  J4 osculating propagators, which used `(1 - e cos f)²` instead of `(1 + e cos f)²` in the
+  term multiplying `sin(2u)`. The error vanishes for circular orbits and only affects the
+  velocity.
+- ![Bugfix][badge-bugfix] Fix `update_j2_mean_elements_epoch` and
+  `update_j4_mean_elements_epoch`, which threw a `MethodError` when the elements were not
+  `Float64`.
+- ![Bugfix][badge-bugfix] Fix the `ntasks` keyword. It was rejected by the non-mutating
+  vectorized functions, returned uninitialized elements when set to a value lower than one,
+  and let surplus tasks write concurrently to the same output elements.
+- ![Bugfix][badge-bugfix] Fix the epoch year encoding when obtaining the SGP4 mean elements,
+  which returned an epoch one century away for the years before 1976.
+- ![Bugfix][badge-bugfix] The functions that fit the mean elements now keep the epoch in
+  `Tepoch` instead of converting it to the element type, and always return the documented
+  `KeplerianElements{Tepoch, T}`.
+- ![Bugfix][badge-bugfix] Fix the short-period corrections when the orbit crosses perigee,
+  where a rounding difference could introduce a discontinuity, and avoid an overflow in the
+  radial rate correction for orbits above roughly 50 900 km in `Float32`.
+- ![Bugfix][badge-bugfix] Support arrays whose indices do not start at 1 when fitting the
+  mean elements and when using the `OrbitStateVector` sinks.
+- ![Info][badge-info] The short-period correction and the least-square algorithm that fits
+  the mean elements are now implemented once and shared by the propagators, removing about
+  1,100 duplicated lines.
+- ![Info][badge-info] Fix many errors in the documentation, including wrong return types,
+  wrong signatures, and the undocumented `jacobian_method` keyword.
+
 Version 1.1.1
 -------------
 
