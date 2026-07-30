@@ -132,11 +132,11 @@ function Base.convert(
 end
 
 """
-    J4Propagator{Tepoch, T}
+    mutable struct J4Propagator{Tepoch<:Number, T<:Number}
 
 J4 orbit propagator structure.
 """
-mutable struct J4Propagator{Tepoch, T}
+mutable struct J4Propagator{Tepoch <: Number, T <: Number}
     orb₀::KeplerianElements{Tepoch, T} # ............ Initial mean orbit elements [SI units]
     orbk::KeplerianElements{Tepoch, T} # ............ Current mean orbit elements [SI units]
     j4c::J4PropagatorConstants{T}      # .............................. Propagator constants

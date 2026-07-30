@@ -455,5 +455,5 @@ end
 function Base.copy(
     orbp::OrbitPropagatorSgp4{Tepoch, T}
 ) where {Tepoch <: Number, T <: Number}
-    return OrbitPropagatorSgp4(copy(orbp.sgp4d))
+    return OrbitPropagatorSgp4{Tepoch, T}(copy(orbp.sgp4d))
 end

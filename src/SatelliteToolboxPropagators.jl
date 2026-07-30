@@ -6,13 +6,10 @@ using ForwardDiff
 using Printf
 using LinearAlgebra
 using Reexport
-using SatelliteToolboxSgp4
 using StaticArrays
 
 @reexport using SatelliteToolboxBase
 @reexport using SatelliteToolboxSgp4
-
-import Base: copy
 
 ############################################################################################
 #                                           API                                            #

@@ -663,9 +663,6 @@ function fit_j2_mean_elements!(
     # Number of states in the input vector.
     num_states = 6
 
-    # Covariance matrix.
-    P = SMatrix{num_states, num_states, T}(I)
-
     # Variable to store the last residue.
     σ_i_₁ = T(0)
 

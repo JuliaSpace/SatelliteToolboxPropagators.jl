@@ -8,7 +8,6 @@ module Propagators
 
 using Dates
 using Crayons
-using StaticArrays
 
 import Base: copy, eltype, length, iterate, show
 import SatelliteToolboxBase: @maybe_threads, get_partition, OrbitStateVector
