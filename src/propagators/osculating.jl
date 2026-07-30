@@ -36,8 +36,8 @@ function _osculating_elements(
     p_k² = p_k * p_k
     u_k  = ω_k + f_k
 
-    # Auxiliary variables to reduce the computational burden.
-    KJ₂ = J₂ * R₀ * R₀
+    # kᵢliary variables to reduce the computational burden.
+    KJ₂ = J₂ * R₀ * R₀ / 4
 
     sin_i_k, cos_i_k = sincos(i_k)
     sin_f_k, cos_f_k = sincos(f_k)
@@ -60,10 +60,13 @@ function _osculating_elements(
     # discontinuity of about 0.5° in the corrections below.
     Δf_M = rem2pi(f_k - M_k, RoundNearest)
 
-    aux1 = 3cos_2u_k + 3e_k * cos_2ω_f_k + e_k * cos_2ω_3f_k
-    aux2 = √(1 - e_k²)
-    aux3 = 3cos_i_k² - 1
-    aux4 = -aux3 / (1 + aux2)
+    # Auxiliary variables to reduce the computational burden.
+    k₁  = 3cos_2u_k + 3e_k * cos_2ω_f_k + e_k * cos_2ω_3f_k
+    k₂  = √(1 - e_k²)
+    k₃  = 3cos_i_k² - 1
+    k₄  = -k₃ / (1 + k₂)
+    k₅  = 1 + e_cos_f_k
+    k₅² = k₅ * k₅
 
     # Notice that `μm` is √(GM / R0³) and not the standard gravitational parameter. Hence,
     # `ṙ_k` and `ṙ_osc_k` are not the physical radial rates. This is not a problem because
@@ -72,31 +75,25 @@ function _osculating_elements(
     sqrt_μm_p = √(μm / p_k)
 
     # Compute the short-periodic perturbations considering only the J2 gravitational term.
-    δisp_k = +KJ₂ * sin_i_k * cos_i_k / (4p_k²) * aux1
+    δisp_k = +KJ₂ * sin_i_k * cos_i_k / p_k² * k₁
 
-    δpsp_k = +KJ₂ * sin_i_k² / (2p_k) * aux1
+    δpsp_k = +2KJ₂ * sin_i_k² / p_k * k₁
 
     δΩsp_k =
-        -KJ₂ * cos_i_k / (4p_k²) *
+        -KJ₂ * cos_i_k / p_k² *
         (6 * (Δf_M + e_sin_f_k) - 3sin_2u_k - 3e_k * sin_2ω_f_k - e_k * sin_2ω_3f_k)
 
-    δrsp_k =
-        -KJ₂ / (4p_k) * (
-            aux3 * (2aux2 / (1 + e_cos_f_k) + e_cos_f_k / (1 + aux2) + 1) -
-            sin_i_k² * cos_2u_k
-        )
+    δrsp_k = -KJ₂ / p_k * (k₃ * (2k₂ / k₅ + e_cos_f_k / (1 + k₂) + 1) - sin_i_k² * cos_2u_k)
 
-    δṙsp_k =
-        +KJ₂ * sqrt_μm_p / (4p_k²) * (
-            aux3 * e_sin_f_k * (aux2 + ((1 + e_cos_f_k)^2) / (1 + aux2)) -
-            2sin_i_k² * (1 + e_cos_f_k)^2 * sin_2u_k
-        )
+    δṙsp_k = +KJ₂ * sqrt_μm_p / p_k² * (
+        k₃ * e_sin_f_k * (k₂ + k₅² / (1 + k₂)) - 2sin_i_k² * k₅² * sin_2u_k
+    )
 
     δusp_k =
-        +KJ₂ / (8p_k²) * (
+        +KJ₂ / (2p_k²) * (
             (6 - 30cos_i_k²) * Δf_M +
-            4e_sin_f_k * (1 - 6cos_i_k² + aux4) +
-            aux4 * e_k² * 2sin_f_k * cos_f_k +
+            4e_sin_f_k * (1 - 6cos_i_k² + k₄) +
+            k₄ * e_k² * 2sin_f_k * cos_f_k +
             (5cos_i_k² - 2) * (2e_k) * sin_2ω_f_k +
             (7cos_i_k² - 1) * sin_2u_k +
             2cos_i_k² * e_k * sin_2ω_3f_k
