@@ -290,9 +290,8 @@ end
 
 Initialize the orbit `propagator` and propagate the orbit for every instant defined in `vt`
 [s] or for every period defined in `vp` from the initial orbit epoch. The initialization
-arguments `args...` and `kwargs...` (except for `ntasks`) are the same as in the
-initialization function [`Propagators.init`](@ref). The output type depends on the parameter
-`sink`. If it is omitted, it defaults to `Tuple`, and the output is a tuple with the arrays
+arguments `args...` and `kwargs...` are the same as in the initialization function
+[`Propagators.init`](@ref). The output type depends on the parameter `sink`. If it is omitted, it defaults to `Tuple`, and the output is a tuple with the arrays
 containing the position and velocity vectors.
 
 !!! note
@@ -302,7 +301,9 @@ containing the position and velocity vectors.
 # Keywords
 
 - `ntasks::Integer`: Number of parallel tasks to propagate the orbit. If it is set to a
-    number equal or lower than 1, the function will propagate the orbit sequentially.
+    number equal or lower than 1, the function will propagate the orbit sequentially. The
+    number of tasks is also limited to the number of propagation instants that are actually
+    partitioned among them.
     (**Default** = `Threads.nthreads()`)
 
 # Returns
@@ -328,9 +329,11 @@ function propagate(
     return propagate(prop, vt, args...; kwargs...)
 end
 
-function propagate(prop::Val, vt::AbstractVector, args...; kwargs...)
+function propagate(
+    prop::Val, vt::AbstractVector, args...; ntasks::Integer = Threads.nthreads(), kwargs...
+)
     orbp = Propagators.init(prop, args...; kwargs...)
-    vr_i, vv_i = Propagators.propagate!(orbp, vt)
+    vr_i, vv_i = Propagators.propagate!(orbp, vt; ntasks = ntasks)
     return vr_i, vv_i, orbp
 end
 
@@ -346,10 +349,15 @@ function propagate(
 end
 
 function propagate(
-    ::Type{OrbitStateVector}, prop::Val, vt::AbstractVector, args...; kwargs...
+    ::Type{OrbitStateVector},
+    prop::Val,
+    vt::AbstractVector,
+    args...;
+    ntasks::Integer = Threads.nthreads(),
+    kwargs...,
 )
     orbp = Propagators.init(prop, args...; kwargs...)
-    vsv_i = Propagators.propagate!(orbp, vt, OrbitStateVector)
+    vsv_i = Propagators.propagate!(orbp, vt, OrbitStateVector; ntasks = ntasks)
     return vsv_i, orbp
 end
 
@@ -458,7 +466,9 @@ containing the position and velocity vectors.
 # Keywords
 
 - `ntasks::Integer`: Number of parallel tasks to propagate the orbit. If it is set to a
-    number equal or lower than 1, the function will propagate the orbit sequentially.
+    number equal or lower than 1, the function will propagate the orbit sequentially. The
+    number of tasks is also limited to the number of propagation instants that are actually
+    partitioned among them.
     (**Default** = `Threads.nthreads()`)
 
 # Returns
@@ -508,20 +518,27 @@ function propagate!(
     # correctly.
     Δi = firstindex(vt) - 1
 
-    # Make sure the number of tasks is not higher than the number of propagation points.
-    ntasks = min(ntasks, len_vt)
+    # The first and the last instants are propagated separately. Hence, only `len_vt - 2`
+    # instants are partitioned among the tasks. We must not create more tasks than that,
+    # otherwise the surplus tasks would be assigned the same partition and would write
+    # concurrently to the same output elements. We also must have at least one task,
+    # otherwise no instant would be propagated at all.
+    num_tasks = max(min(Int(ntasks), len_vt - 2), 1)
 
     # If we have only two instants in the time vector, we will not spawn any threads,
     # because the first and the last instants are propagated separately.
     if len_vt > 2
-        @maybe_threads ntasks for c in 1:ntasks
+        # The propagation usually modifies the structure. Hence, we need one propagator per
+        # task. We copy them here because `orbp` is mutated by the task that uses it, and
+        # copying inside the loop would race with that mutation.
+        corbps = [c == 1 ? orbp : copy(orbp) for c in 1:num_tasks]
+
+        @maybe_threads num_tasks for c in 1:num_tasks
             # We already propagated for the first instant, and we must ensure we propagate
             # the last instant at the end of the function.
-            i₀, i₁ = @views get_partition(c, inds[(1 + begin):(end - 1)], ntasks)
+            i₀, i₁ = @views get_partition(c, inds[(1 + begin):(end - 1)], num_tasks)
 
-            # The propagation usually modifies the structure. Hence we need to copy it for
-            # each task.
-            corbp = c == 1 ? orbp : copy(orbp)
+            corbp = corbps[c]
 
             @inbounds for i in i₀:i₁
                 vr[i - Δi], vv[i - Δi] = Propagators.propagate!(corbp, vt[i])
@@ -556,7 +573,12 @@ function propagate!(
     jd₀ = epoch(orbp)
     vr_i, vv_i = propagate!(orbp, vt; kwargs...)
 
-    return map((t, r_i, v_i) -> OrbitStateVector(jd₀ + t / 86400, r_i, v_i), vt, vr_i, vv_i)
+    # `vr_i` and `vv_i` are 1-based, whereas `vt` can have any axes. Hence, we cannot
+    # broadcast them against each other.
+    return map(eachindex(vr_i)) do k
+        t = vt[k + firstindex(vt) - 1]
+        return OrbitStateVector(jd₀ + t / 86400, vr_i[k], vv_i[k])
+    end
 end
 
 """
@@ -684,8 +706,8 @@ end
 
 Initialize the orbit `propagator` and propagate the orbit for every epoch defined in the
 vector of Julian Days `vjd` [UTC] or in the vector of `DateTime` objects `vdt` [UTC]. The
-initialization arguments `args...` and `kwargs...` (except for `ntasks`) are the same as in
-the initialization function [`Propagators.init`](@ref). The output type depends on the
+initialization arguments `args...` and `kwargs...` are the same as in the initialization
+function [`Propagators.init`](@ref). The output type depends on the
 parameter `sink`. If it is omitted, it defaults to `Tuple`, and the output is a tuple with
 the arrays containing the position and velocity vectors.
 
@@ -696,7 +718,9 @@ the arrays containing the position and velocity vectors.
 # Keywords
 
 - `ntasks::Integer`: Number of parallel tasks to propagate the orbit. If it is set to a
-    number equal or lower than 1, the function will propagate the orbit sequentially.
+    number equal or lower than 1, the function will propagate the orbit sequentially. The
+    number of tasks is also limited to the number of propagation instants that are actually
+    partitioned among them.
     (**Default** = `Threads.nthreads()`)
 
 # Returns
@@ -722,10 +746,12 @@ function propagate_to_epoch(
     return propagate_to_epoch(prop, jd, args...; kwargs...)
 end
 
-function propagate_to_epoch(prop::Val, vjd::AbstractVector, args...; kwargs...)
+function propagate_to_epoch(
+    prop::Val, vjd::AbstractVector, args...; ntasks::Integer = Threads.nthreads(), kwargs...
+)
     orbp = init(prop, args...; kwargs...)
-    r_i, v_i = propagate_to_epoch!(orbp, vjd)
-    return r_i, v_i, orbp
+    vr_i, vv_i = propagate_to_epoch!(orbp, vjd; ntasks = ntasks)
+    return vr_i, vv_i, orbp
 end
 
 function propagate_to_epoch(::Type{Tuple}, prop::Val, v::AbstractVector, args...; kwargs...)
@@ -740,11 +766,16 @@ function propagate_to_epoch(
 end
 
 function propagate_to_epoch(
-    ::Type{OrbitStateVector}, prop::Val, vjd::AbstractVector, args...; kwargs...
+    ::Type{OrbitStateVector},
+    prop::Val,
+    vjd::AbstractVector,
+    args...;
+    ntasks::Integer = Threads.nthreads(),
+    kwargs...,
 )
     orbp = init(prop, args...; kwargs...)
-    sv_i = propagate_to_epoch!(orbp, vjd, OrbitStateVector)
-    return sv_i, orbp
+    vsv_i = propagate_to_epoch!(orbp, vjd, OrbitStateVector; ntasks = ntasks)
+    return vsv_i, orbp
 end
 
 """
@@ -850,7 +881,9 @@ the arrays containing the position and velocity vectors.
 # Keywords
 
 - `ntasks::Integer`: Number of parallel tasks to propagate the orbit. If it is set to a
-    number equal or lower than 1, the function will propagate the orbit sequentially.
+    number equal or lower than 1, the function will propagate the orbit sequentially. The
+    number of tasks is also limited to the number of propagation instants that are actually
+    partitioned among them.
     (**Default** = `Threads.nthreads()`)
 
 # Returns
@@ -901,20 +934,27 @@ function propagate_to_epoch!(
     # correctly.
     Δi = firstindex(vjd) - 1
 
-    # Make sure the number of tasks is not higher than the number of propagation points.
-    ntasks = min(ntasks, len_vjd)
+    # The first and the last instants are propagated separately. Hence, only `len_vjd - 2`
+    # instants are partitioned among the tasks. We must not create more tasks than that,
+    # otherwise the surplus tasks would be assigned the same partition and would write
+    # concurrently to the same output elements. We also must have at least one task,
+    # otherwise no instant would be propagated at all.
+    num_tasks = max(min(Int(ntasks), len_vjd - 2), 1)
 
     # If we have only two instants in the time vector, we will not spawn any threads,
     # because the first and the last instants are propagated separately.
     if len_vjd > 2
-        @maybe_threads ntasks for c in 1:ntasks
+        # The propagation usually modifies the structure. Hence, we need one propagator per
+        # task. We copy them here because `orbp` is mutated by the task that uses it, and
+        # copying inside the loop would race with that mutation.
+        corbps = [c == 1 ? orbp : copy(orbp) for c in 1:num_tasks]
+
+        @maybe_threads num_tasks for c in 1:num_tasks
             # We already propagated for the first instant, and we must ensure we propagate
             # the last instant at the end of the function.
-            i₀, i₁ = @views get_partition(c, inds[(1 + begin):(end - 1)], ntasks)
+            i₀, i₁ = @views get_partition(c, inds[(1 + begin):(end - 1)], num_tasks)
 
-            # The propagation usually modifies the structure. Hence we need to copy it for each
-            # task.
-            corbp = c == 1 ? orbp : copy(orbp)
+            corbp = corbps[c]
 
             @inbounds for i in i₀:i₁
                 Δt = 86400 * (vjd[i] - jd₀)
@@ -951,7 +991,11 @@ function propagate_to_epoch!(
 ) where {Tepoch <: Number, T <: Number}
     vr_i, vv_i = propagate_to_epoch!(orbp, vjd; kwargs...)
 
-    return map((jd, r_i, v_i) -> OrbitStateVector(jd, r_i, v_i), vjd, vr_i, vv_i)
+    # `vr_i` and `vv_i` are 1-based, whereas `vjd` can have any axes. Hence, we cannot
+    # broadcast them against each other.
+    return map(eachindex(vr_i)) do k
+        return OrbitStateVector(vjd[k + firstindex(vjd) - 1], vr_i[k], vv_i[k])
+    end
 end
 
 """

@@ -994,3 +994,92 @@ end
     @test Propagators.name(orbp) == "DummyPropagator{Float64, Float64}"
     @test Propagators.mean_elements(orbp) === nothing
 end
+
+@testset "Number of Tasks in the Vectorized Propagation" verbose = true begin
+    jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+
+    orb = KeplerianElements(
+        jd₀,
+        8000e3,
+        0.015,
+        28.5 |> deg2rad,
+        100.0 |> deg2rad,
+        200.0 |> deg2rad,
+        45.0 |> deg2rad,
+    )
+
+    vt  = collect(0.0:10:200)
+    vjd = jd₀ .+ vt ./ 86400
+
+    # Reference obtained propagating each instant separately.
+    orbp = Propagators.init(Val(:J2), orb)
+    vr_ref = [Propagators.propagate!(orbp, t)[1] for t in vt]
+    vv_ref = [Propagators.propagate!(orbp, t)[2] for t in vt]
+
+    # The result must not depend on the number of tasks. `ntasks` lower than 1 must fall
+    # back to a sequential propagation instead of leaving the output uninitialized, and
+    # `ntasks` higher than the number of propagated instants must not lead to tasks writing
+    # concurrently to the same output elements.
+    @testset "propagate! and propagate_to_epoch!" begin
+        for ntasks in (-1, 0, 1, 2, 3, 5, 128)
+            orbp = Propagators.init(Val(:J2), orb)
+            vr, vv = Propagators.propagate!(orbp, vt; ntasks = ntasks)
+
+            @test vr == vr_ref
+            @test vv == vv_ref
+
+            # The propagator must be left at the last requested instant.
+            @test Propagators.last_instant(orbp) == last(vt)
+
+            orbp = Propagators.init(Val(:J2), orb)
+            vr, vv = Propagators.propagate_to_epoch!(orbp, vjd; ntasks = ntasks)
+
+            @test length(vr) == length(vt)
+            @test length(vv) == length(vt)
+        end
+    end
+
+    # The vector must be propagated correctly regardless of its length, which exercises the
+    # cases in which there are fewer instants to partition than tasks.
+    @testset "Short Time Vectors" begin
+        for len in 1:5, ntasks in (0, 1, 8)
+            orbp = Propagators.init(Val(:J2), orb)
+            vr, vv = Propagators.propagate!(orbp, vt[1:len]; ntasks = ntasks)
+
+            @test vr == vr_ref[1:len]
+            @test vv == vv_ref[1:len]
+        end
+    end
+
+    # `ntasks` is a propagation keyword and must not be forwarded to the initialization
+    # function, which does not accept it.
+    @testset "Non-mutating Functions" begin
+        for ntasks in (0, 1, 4)
+            vr, vv, orbp = Propagators.propagate(Val(:J2), vt, orb; ntasks = ntasks)
+
+            @test vr == vr_ref
+            @test vv == vv_ref
+            @test orbp isa OrbitPropagatorJ2
+
+            vsv, orbp = Propagators.propagate(
+                OrbitStateVector, Val(:J2), vt, orb; ntasks = ntasks
+            )
+
+            @test length(vsv) == length(vt)
+            @test [sv.r for sv in vsv] == vr_ref
+
+            vr, vv, orbp = Propagators.propagate_to_epoch(
+                Val(:J2), vjd, orb; ntasks = ntasks
+            )
+
+            @test length(vr) == length(vt)
+
+            vsv, orbp = Propagators.propagate_to_epoch(
+                OrbitStateVector, Val(:J2), vjd, orb; ntasks = ntasks
+            )
+
+            @test length(vsv) == length(vt)
+            @test [sv.t for sv in vsv] == vjd
+        end
+    end
+end
