@@ -42,6 +42,10 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
     the osculating elements in `vr_i` and `vv_i`.
     (**Default** = nothing)
+- `jacobian_method::AbstractJacobianMethod`: Method used to compute the Jacobian matrix. It
+    can be `FiniteDiffJacobian()` for finite differences or `ForwardDiffJacobian()` for
+    `ForwardDiff.jl` automatic differentiation.
+    (**Default** = `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
     finite-difference when calculating the Jacobian matrix.
     (**Default** = 1e-3)
@@ -83,7 +87,7 @@ end
         vr_i::AbstractVector{Tv},
         vv_i::AbstractVector{Tv};
         kwargs...
-    ) where {Tjd<:Number, Tv<:AbstractVector}
+    ) where {Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{Tepoch, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the J4 orbit propagator `orbp` using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
@@ -108,6 +112,10 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
     the osculating elements in `vr_i` and `vv_i`.
     (**Default** = nothing)
+- `jacobian_method::AbstractJacobianMethod`: Method used to compute the Jacobian matrix. It
+    can be `FiniteDiffJacobian()` for finite differences or `ForwardDiffJacobian()` for
+    `ForwardDiff.jl` automatic differentiation.
+    (**Default** = `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
     finite-difference when calculating the Jacobian matrix.
     (**Default** = 1e-3)
@@ -129,8 +137,8 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 
 # Returns
 
-- `KeplerianElements{Float64, Float64}`: Fitted Keplerian elements.
-- `SMatrix{6, 6, Float64}`: Final covariance matrix of the least-square algorithm.
+- `KeplerianElements{Tepoch, T}`: Fitted Keplerian elements.
+- `SMatrix{6, 6, T}`: Final covariance matrix of the least-square algorithm.
 """
 function Propagators.fit_mean_elements!(
     orbp::OrbitPropagatorJ4,

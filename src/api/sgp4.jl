@@ -72,7 +72,7 @@ end
         vr_teme::AbstractVector{Tv},
         vv_teme::AbstractVector{Tv};
         kwargs...
-    ) -> KeplerianElements{Float64, Float64}, SMatrix{6, 6, Float64}
+    ) -> TLE, SMatrix{7, 7, T}
 
 Fit a Two-Line Element set (`TLE`) for the SGP4 orbit propagator using the osculating
 elements represented by a set of position vectors `vr_teme` [m] and a set of velocity
@@ -105,6 +105,10 @@ This algorithm was based on **[1]**.
     osculating elements in `vr_teme` and `vv_teme`. For more information, see the section
     **Initial Guess**.
     (**Default** = nothing)
+- `jacobian_method::AbstractJacobianMethod`: Method used to compute the Jacobian matrix. It
+    can be `FiniteDiffJacobian()` for finite differences or `ForwardDiffJacobian()` for
+    `ForwardDiff.jl` automatic differentiation.
+    (**Default** = `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
     finite-difference when calculating the Jacobian matrix.
     (**Default** = 1e-3)
@@ -194,7 +198,7 @@ end
         vr_teme::AbstractVector{Tv},
         vv_teme::AbstractVector{Tv};
         kwargs...
-    ) where {Tjd<:Number, Tv<:AbstractVector}
+    ) where {Tjd<:Number, Tv<:AbstractVector} -> TLE, SMatrix{7, 7, T}
 
 Fit a Two-Line Element set (`TLE`) for the SGP4 orbit propagator `orbp` using the
 osculating elements represented by a set of position vectors `vr_teme` [m] and a set of
@@ -226,6 +230,10 @@ This algorithm was based on **[1]**.
     osculating elements in `vr_teme` and `vv_teme`. For more information, see the section
     **Initial Guess**.
     (**Default** = nothing)
+- `jacobian_method::AbstractJacobianMethod`: Method used to compute the Jacobian matrix. It
+    can be `FiniteDiffJacobian()` for finite differences or `ForwardDiffJacobian()` for
+    `ForwardDiff.jl` automatic differentiation.
+    (**Default** = `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
     finite-difference when calculating the Jacobian matrix.
     (**Default** = 1e-3)
