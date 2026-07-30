@@ -17,8 +17,21 @@ function Propagators.mean_elements(orbp::OrbitPropagatorSgp4)
     dt  = julian2datetime(Propagators.epoch(orbp))
     dt₀ = DateTime(Year(dt))
 
-    dt_year    = year(dt)
-    epoch_year = dt_year < 1980 ? dt_year - 1900 : dt_year - 2000
+    # A TLE stores the epoch year with two digits, which are interpreted as 1900 + y if
+    # y > 75 and as 2000 + y otherwise. Hence, only the years between 1976 and 2075 can be
+    # represented.
+    dt_year = year(dt)
+
+    if (dt_year < 1976) || (dt_year > 2075)
+        throw(
+            ArgumentError(
+                "The epoch year $dt_year cannot be represented in a TLE, which only supports " *
+                "the years between 1976 and 2075.",
+            ),
+        )
+    end
+
+    epoch_year = mod(dt_year, 100)
     epoch_day  = (dt - dt₀).value / 1000 / 86400 + 1
 
     tle = TLE(;
@@ -43,7 +56,7 @@ function Propagators.mean_elements(orbp::OrbitPropagatorSgp4)
     # Create and return the Keplerian elements.
     return KeplerianElements(
         new_epoch,
-        (sgp4c.XKE / sgp4d.n₀)^(2 / 3) * (1000 * sgp4c.R0),
+        (sgp4c.XKE / sgp4d.n₀)^(2 // 3) * (1000 * sgp4c.R0),
         sgp4d.e₀,
         sgp4d.i₀,
         sgp4d.Ω₀,
