@@ -427,284 +427,9 @@ function fit_j4osc_mean_elements!(
     vjd::AbstractVector{Tjd},
     vr_i::AbstractVector{Tv},
     vv_i::AbstractVector{Tv};
-    atol::Number                                     = 2e-4,
-    rtol::Number                                     = 2e-4,
-    initial_guess::Union{Nothing, KeplerianElements} = nothing,
-    jacobian_method::AbstractJacobianMethod          = FiniteDiffJacobian(),
-    jacobian_perturbation::Number                    = 1e-3,
-    jacobian_perturbation_tol::Number                = 1e-7,
-    max_iterations::Int                              = 50,
-    mean_elements_epoch::Number                      = vjd[end],
-    verbose::Bool                                    = true,
-    weight_vector::AbstractVector                    = @SVector(ones(Bool, 6)),
-) where {T <: Number, Tepoch <: Number, Tjd <: Number, Tv <: AbstractVector}
-    # Number of available measurements.
-    num_measurements = length(vjd)
-
-    # Check the inputs.
-    length(vr_i) != num_measurements &&
-        throw(ArgumentError("The number of elements in `vjd` and `vr_i` must be the same."))
-
-    length(vv_i) != num_measurements &&
-        throw(ArgumentError("The number of elements in `vjd` and `vv_i` must be the same."))
-
-    if length(weight_vector) != 6
-        throw(ArgumentError("The weight vector must have 6 elements."))
-    end
-
-    # Check if stdout supports colors.
-    has_color = get(stdout, :color, false)::Bool
-    cd = has_color ? _D : ""
-    cb = has_color ? _B : ""
-    cy = has_color ? _Y : ""
-
-    # Assemble the weight vector. Since the weight matrix is diagonal, we store only the
-    # diagonal to improve performance by avoiding the Diagonal wrapper.
-    W = @SVector T[
-        weight_vector[begin],
-        weight_vector[begin + 1],
-        weight_vector[begin + 2],
-        weight_vector[begin + 3],
-        weight_vector[begin + 4],
-        weight_vector[begin + 5],
-    ]
-
-    # Initial guess of the mean elements.
-    #
-    # NOTE: x₁ is the previous estimate and x₂ is the current estimate.
-    if !isnothing(initial_guess)
-        epoch = Tepoch(mean_elements_epoch)
-
-        # First, we need to update the mean elements to the desired epoch.
-        verbose && println(
-            "$(cy)ACTION:$(cd)   Updating the epoch of the initial mean elements guess to match the desired one.",
-        )
-        orb = update_j4osc_mean_elements_epoch!(j4oscd, initial_guess, epoch)
-
-        r_i, v_i = kepler_to_rv(orb)
-        x₁ = SVector{6, T}(r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3])
-    else
-        # In this case, we must find the closest osculating vector to the desired epoch.
-        id = firstindex(vjd)
-        v  = abs(vjd[id] - mean_elements_epoch)
-
-        for k in eachindex(vjd)
-            vk = abs(vjd[k] - mean_elements_epoch)
-            if vk < v
-                id = k
-                v  = vk
-            end
-        end
-
-        epoch = Tepoch(vjd[id])
-        r_i   = vr_i[id]
-        v_i   = vv_i[id]
-        x₁    = SVector{6, T}(r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3])
-    end
-
-    x₂ = x₁
-
-    # Number of states in the input vector.
-    num_states = 6
-
-    # Variable to store the last residue.
-    σ_i_₁ = T(0)
-
-    # Variable to store how many iterations the residue increased. This is used to account
-    # for divergence.
-    Δd = 0
-
-    # Header.
-    if verbose
-        println(
-            "$(cy)ACTION:$(cd)   Fitting the mean elements for the J4 osculating propagator.",
-        )
-        @printf(
-            "          %s%10s %20s %20s %20s %20s%s\n",
-            cy,
-            "Iteration",
-            "Position RMSE",
-            "Velocity RMSE",
-            "Total RMSE",
-            "RMSE Variation",
-            cd
-        )
-        @printf(
-            "          %s%10s %20s %20s %20s %20s%s\n",
-            cb,
-            "",
-            "[km]",
-            "[km / s]",
-            "[ ]",
-            "",
-            cd
-        )
-        println()
-    end
-
-    # We need a reference to the covariance inverse because we will invert it and return
-    # after the iterations.
-    ΣJ′WJ = @SMatrix zeros(T, num_states, num_states)
-
-    j4oscd_ad =
-        jacobian_method isa ForwardDiffJacobian ? _create_j4osc_ad_propagator(j4oscd) :
-        nothing
-
-    # The finite-difference Jacobian overwrites the propagator it uses. Giving it its own
-    # propagator lets us initialize `j4oscd` once per iteration instead of once per
-    # measurement.
-    j4oscd_fd =
-        jacobian_method isa FiniteDiffJacobian ? _create_j4osc_fd_propagator(j4oscd) :
-        nothing
-
-    # Loop until the maximum allowed iteration.
-    @inbounds @views for it in 1:max_iterations
-        x₁ = x₂
-
-        # Variables to store the summations to compute the least square fitting algorithm.
-        ΣJ′WJ = @SMatrix zeros(T, num_states, num_states)
-        ΣJ′Wb = @SVector zeros(T, num_states)
-
-        # Variable to store the RMS errors in this iteration.
-        σ_i  = T(0)
-        σp_i = T(0)
-        σv_i = T(0)
-
-        # The estimated mean elements do not change within an iteration, so the propagator
-        # only needs to be initialized once, outside the measurement loop.
-        orb = rv_to_kepler(x₁[SOneTo(3)], x₁[StaticArrays.SUnitRange(4, 6)], epoch)
-        _j4osc_init!(j4oscd, orb)
-
-        for k in 1:num_measurements
-            # Obtain the measured ephemerides.
-            r_i = vr_i[k - 1 + begin]
-            v_i = vv_i[k - 1 + begin]
-
-            y = SVector{6, T}(
-                r_i[begin],
-                r_i[begin + 1],
-                r_i[begin + 2],
-                v_i[begin],
-                v_i[begin + 1],
-                v_i[begin + 2],
-            )
-
-            # Obtain the propagation time for this measurement.
-            Δt = (vjd[k - 1 + begin] - epoch) * 86400
-
-            # Propagate the orbit.
-            r̂_i, v̂_i = j4osc!(j4oscd, Δt)
-            ŷ = vcat(r̂_i, v̂_i)
-
-            # Compute the residue.
-            b = y - ŷ
-
-            # Compute the Jacobian in-place.
-            J = _j4osc_jacobian(
-                jacobian_method,
-                j4oscd,
-                Δt,
-                x₁,
-                ŷ;
-                perturbation     = jacobian_perturbation,
-                perturbation_tol = jacobian_perturbation_tol,
-                j4oscd_ad        = j4oscd_ad,
-                j4oscd_fd        = j4oscd_fd,
-            )
-
-            # Accumulation.
-            ΣJ′WJ += J' * (W .* J)
-            ΣJ′Wb += J' * (W .* b)
-            σ_i   += dot(b, W .* b)
-            σp_i  += dot(b[SOneTo(3)], b[SOneTo(3)])
-            σv_i  += dot(b[StaticArrays.SUnitRange(4, 6)], b[StaticArrays.SUnitRange(4, 6)])
-        end
-
-        # Normalize and compute the RMS errors.
-        σ_i  = √(σ_i / num_measurements)
-        σp_i = √(σp_i / num_measurements)
-        σv_i = √(σv_i / num_measurements)
-
-        # Update the estimate.
-        δx = ΣJ′WJ \ ΣJ′Wb
-
-        # Limit the correction to avoid divergence.
-        for i in 1:num_states
-            threshold = T(0.1)
-            if abs(δx[i] / x₁[i]) > threshold
-                δx = setindex(δx, threshold * abs(x₁[i]) * sign(δx[i]), i)
-            end
-        end
-
-        x₂ = x₁ + δx
-
-        # We cannot compute the RMSE variation in the first iteration.
-        if it == 1
-            verbose && @printf(
-                "\x1b[A\x1b[2K\r%sPROGRESS:%s %10d %20g %20g %20g %20s\n",
-                cb,
-                cd,
-                it,
-                σp_i / 1000,
-                σv_i / 1000,
-                σ_i,
-                "---"
-            )
-
-        else
-            # Compute the RMSE variation.
-            Δσ = (σ_i - σ_i_₁) / σ_i_₁
-
-            verbose && @printf(
-                "\x1b[A\x1b[2K\r%sPROGRESS:%s %10d %20g %20g %20g %20g %%\n",
-                cb,
-                cd,
-                it,
-                σp_i / 1000,
-                σv_i / 1000,
-                σ_i,
-                100 * Δσ
-            )
-
-            # Check if the RMSE is increasing.
-            if σ_i < σ_i_₁
-                Δd = 0
-            else
-                Δd += 1
-            end
-
-            # If the RMSE increased by three iterations and its value is higher than 5e11,
-            # we abort because the iterations are diverging.
-            ((Δd ≥ 3) && (σ_i > 5e11)) && error("The iterations diverged!")
-
-            # Check if the condition to stop has been reached.
-            ((abs(Δσ) < rtol) || (σ_i < atol) || (it ≥ max_iterations)) && break
-        end
-
-        σ_i_₁ = σ_i
-    end
-
-    verbose && println()
-
-    # Obtain the mean elements.
-    orb = rv_to_kepler(x₂[SOneTo(3)], x₂[StaticArrays.SUnitRange(4, 6)], epoch)
-
-    # Update the epoch of the fitted mean elements to match the desired one.
-    if abs(epoch - mean_elements_epoch) > 0.001 / 86400
-        verbose && println(
-            "$(cy)ACTION:$(cd)   Updating the epoch of the fitted mean elements to match the desired one.",
-        )
-        orb = update_j4osc_mean_elements_epoch!(j4oscd, orb, mean_elements_epoch)
-    end
-
-    # Initialize the propagator with the mean elements.
-    j4osc_init!(j4oscd, orb)
-
-    # Compute the final covariance.
-    P = pinv(ΣJ′WJ)
-
-    # Return the mean elements and the covariance.
-    return orb, P
+    kwargs...,
+) where {Tepoch <: Number, T <: Number, Tjd <: Number, Tv <: AbstractVector}
+    return _fit_mean_elements!(j4oscd, vjd, vr_i, vv_i; kwargs...)
 end
 
 """
@@ -875,14 +600,14 @@ function _j4osc_jacobian(
     y₁::SVector{6, T};
     perturbation::Number = T(1e-3),
     perturbation_tol::Number = T(1e-7),
-    j4oscd_ad::Union{Nothing, J4OsculatingPropagator} = nothing,
-    j4oscd_fd::Union{Nothing, J4OsculatingPropagator} = nothing,
+    pd_ad::Union{Nothing, J4OsculatingPropagator} = nothing,
+    pd_fd::Union{Nothing, J4OsculatingPropagator} = nothing,
 ) where {T <: Number, Tepoch <: Number}
     # The perturbed propagations below overwrite the propagator. Use the scratch propagator
     # when the caller provides one, so it can keep `j4oscd` initialized across the
     # measurements instead of reinitializing it for each one.
     epoch = j4oscd.j4d.orb₀.t
-    fd::J4OsculatingPropagator{Tepoch, T} = isnothing(j4oscd_fd) ? j4oscd : j4oscd_fd
+    fd::J4OsculatingPropagator{Tepoch, T} = isnothing(pd_fd) ? j4oscd : pd_fd
 
     J = MMatrix{6, 6, T}(undef)
     x₂ = x₁
@@ -929,8 +654,8 @@ function _j4osc_jacobian(
     y₁::SVector{6, T};
     perturbation::Number = T(1e-3),
     perturbation_tol::Number = T(1e-7),
-    j4oscd_ad::Union{Nothing, J4OsculatingPropagator} = nothing,
-    j4oscd_fd::Union{Nothing, J4OsculatingPropagator} = nothing,
+    pd_ad::Union{Nothing, J4OsculatingPropagator} = nothing,
+    pd_fd::Union{Nothing, J4OsculatingPropagator} = nothing,
 ) where {T <: Number, Tepoch <: Number}
     epoch = j4oscd.j4d.orb₀.t
     N     = 6
@@ -941,7 +666,7 @@ function _j4osc_jacobian(
     # the caller provides. Otherwise, the unparameterised type in the keyword leaves
     # this call and the ones below dynamically dispatched.
     ad::J4OsculatingPropagator{Tepoch, D} =
-        isnothing(j4oscd_ad) ? _create_j4osc_ad_propagator(j4oscd) : j4oscd_ad
+        isnothing(pd_ad) ? _create_j4osc_ad_propagator(j4oscd) : pd_ad
 
     seeds  = ntuple(i -> ForwardDiff.Partials(ntuple(j -> T(i == j), Val(N))), Val(N))
     x_dual = SVector{N, D}(ntuple(i -> D(x₁[i], seeds[i]), Val(N)))

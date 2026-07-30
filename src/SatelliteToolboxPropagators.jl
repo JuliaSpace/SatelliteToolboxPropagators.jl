@@ -53,6 +53,7 @@ include("./propagators/j2osc.jl")
 include("./propagators/j4.jl")
 include("./propagators/j4osc.jl")
 include("./propagators/twobody.jl")
+include("./propagators/fit.jl")
 
 include("./precompile.jl")
 
