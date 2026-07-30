@@ -154,11 +154,11 @@ and propagate the orbit until the time Δt [s].
     instant.
 - `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
     instant.
-- [`J2OsculatingPropagator`](@ref): Structure with the initialized parameters.
+- [`J2OsculatingPropagator`](@ref): Structure with the initialized propagator.
 
 # Remarks
 
-The inertial frame in which the output is represented depends on which frame it was used to
+The inertial frame in which the output is represented depends on which frame was used to
 generate the orbit parameters. Notice that the perturbation theory requires an inertial
 frame with true equator.
 """
@@ -189,7 +189,7 @@ after the epoch of the input mean elements in `j2d`.
 
 # Remarks
 
-The inertial frame in which the output is represented depends on which frame it was used to
+The inertial frame in which the output is represented depends on which frame was used to
 generate the orbit parameters. Notice that the perturbation theory requires an inertial
 frame with true equator.
 """
@@ -335,11 +335,11 @@ the array `vjd` [Julian Day].
 
 # Keywords
 
-- `atol::Number`: Tolerance for the residue absolute value. If the residue is lower than
+- `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
     `atol` at any iteration, the computation loop stops.
     (**Default** = 2e-4)
-- `rtol::Number`: Tolerance for the relative difference between the residues. If the
-    relative difference between the residues in two consecutive iterations is lower than
+- `rtol::Number`: Tolerance for the relative difference between the residuals. If the
+    relative difference between the residuals in two consecutive iterations is lower than
     `rtol`, the computation loop stops.
     (**Default** = 2e-4)
 - `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
@@ -355,7 +355,7 @@ the array `vjd` [Julian Day].
     (**Default** = 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
-    `jacobian_perturbation_tol`, we increase it until it absolute value is higher than
+    `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
     `jacobian_perturbation_tol`. Only used with `FiniteDiffJacobian()`.
     (**Default** = 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
@@ -442,11 +442,11 @@ the array `vjd` [Julian Day].
 
 # Keywords
 
-- `atol::Number`: Tolerance for the residue absolute value. If the residue is lower than
+- `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
     `atol` at any iteration, the computation loop stops.
     (**Default** = 2e-4)
-- `rtol::Number`: Tolerance for the relative difference between the residues. If the
-    relative difference between the residues in two consecutive iterations is lower than
+- `rtol::Number`: Tolerance for the relative difference between the residuals. If the
+    relative difference between the residuals in two consecutive iterations is lower than
     `rtol`, the computation loop stops.
     (**Default** = 2e-4)
 - `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
@@ -462,7 +462,7 @@ the array `vjd` [Julian Day].
     (**Default** = 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
-    `jacobian_perturbation_tol`, we increase it until it absolute value is higher than
+    `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
     `jacobian_perturbation_tol`. Only used with `FiniteDiffJacobian()`.
     (**Default** = 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
@@ -484,7 +484,7 @@ the array `vjd` [Julian Day].
 # Examples
 
 ```julia-repl
-# Allocate a new J2 osculating orbit propagator using a dummy Keplerian elements.
+# Allocate a new J2 osculating orbit propagator using a dummy set of Keplerian elements.
 julia> j2oscd = j2osc_init(KeplerianElements{Float64, Float64}(0, 7000e3, 0, 0, 0, 0, 0));
 
 julia> vr_i = [

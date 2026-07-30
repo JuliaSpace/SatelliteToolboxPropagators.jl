@@ -55,8 +55,8 @@ Create and initialize the two-body propagator structure using the mean Keplerian
 
 !!! note
 
-    The type used in the propagation will be the same as used to define the gravitational
-    constant `m0`.
+    The type used in the propagation will be the same as used to define the standard
+    gravitational parameter `m0`.
 
 # Keywords
 
@@ -69,7 +69,7 @@ function twobody_init(
     # Allocate the propagator structure.
     tbd = TwoBodyPropagator{Tepoch, T}()
 
-    # Assign the constant, which are used in initialization.
+    # Assign the constant, which is used in the initialization.
     tbd.μ = m0
 
     # Initialize the propagator and return.
@@ -86,7 +86,7 @@ function twobody_init(
     # Allocate the propagator structure.
     tbd = TwoBodyPropagator{Tepoch, T}()
 
-    # Assign the constant, which are used in initialization.
+    # Assign the constant, which is used in the initialization.
     tbd.μ = T(m0)
 
     # Initialize the propagator and return.
@@ -96,7 +96,7 @@ function twobody_init(
 end
 
 """
-    twobody_init!(tbd::TwoBodyPropagator, orb₀::KeplerianElements; kwargs...) -> Nothing
+    twobody_init!(tbd::TwoBodyPropagator, orb₀::KeplerianElements) -> Nothing
 
 Initialize the two-body propagator structure `tbd` using the mean Keplerian elements `orb₀`.
 
@@ -151,8 +151,8 @@ the orbit until the time Δt [s].
 
 !!! note
 
-    The type used in the propagation will be the same as used to define the gravitational
-    constant `m0`.
+    The type used in the propagation will be the same as used to define the standard
+    gravitational parameter `m0`.
 
 # Keywords
 
@@ -165,11 +165,11 @@ the orbit until the time Δt [s].
     instant.
 - `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
     instant.
-- [`TwoBodyPropagator`](@ref): Structure with the initialized parameters.
+- [`TwoBodyPropagator`](@ref): Structure with the initialized propagator.
 
 # Remarks
 
-The inertial frame in which the output is represented depends on which frame it was used to
+The inertial frame in which the output is represented depends on which frame was used to
 generate the orbit parameters.
 """
 function twobody(Δt::Number, orb₀::KeplerianElements; m0::T = tbc_m0) where {T <: Number}
@@ -197,7 +197,7 @@ epoch of the input mean elements in `tbd`.
 
 # Remarks
 
-The inertial frame in which the output is represented depends on which frame it was used to
+The inertial frame in which the output is represented depends on which frame was used to
 generate the orbit parameters.
 """
 function twobody!(

@@ -57,7 +57,7 @@ Fit a set of mean elements for the `propagator` using the osculating state vecto
 represented in an inertial reference frame. The state vector can be represented using a set
 of position vectors `vr_i` [m] and a set of velocity vectors `vv_i` [m / s] obtained at the
 instants in the array `vjd` [Julian Day], or an array of `OrbitStateVector` `vsv` [SI],
-containing the same information. The keywords `kwargs` depends on the propagator type.
+containing the same information. The keywords `kwargs` depend on the propagator type.
 
 This function returns the set of mean elements used to initialize the `propagator`.
 """
@@ -92,7 +92,7 @@ Fit a set of mean elements for the propagator `orbp` using the osculating state 
 represented in an inertial reference frame. The state vector can be represented using a set
 of position vectors `vr_i` [m] and a set of velocity vectors `vv_i` [m / s] obtained at the
 instants in the array `vjd` [Julian Day], or an array of `OrbitStateVector` `vsv` [SI],
-containing the same information. The keywords `kwargs` depends on the propagator type.
+containing the same information. The keywords `kwargs` depend on the propagator type.
 
 This function returns the set of mean elements used to initialize the `propagator` and also
 initializes `orbp` with the fitted mean elements.
@@ -546,7 +546,7 @@ function propagate!(
         end
     end
 
-    # We must ensure that the last propagation instant is the obtained at the end to keep
+    # We must ensure that the last propagation instant is the one obtained at the end to keep
     # the internal data of the propagation consistent.
     vr[end], vv[end] = Propagators.propagate!(orbp, last(vt))
 
@@ -731,13 +731,13 @@ If `sink` is `Tuple`:
     propagation instant defined in `vjd` or `vdt`.
 - `Vector{SVector{3, T}}`: Array with the velocity vectors [m / s] in the inertial frame at
     each propagation instant defined in `vjd` or `vdt`.
-- [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized parameters.
+- [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized propagator.
 
 If `sink` is `OrbitStateVector`:
 
 - `Vector{OrbitStateVector{Tepoch, T}}`: Array with the orbit state vectors [SI] at each
     propagation instant defined in `vjd` or `vdt`.
-- [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized parameters.
+- [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized propagator.
 """
 function propagate_to_epoch(
     prop::Val, vdt::AbstractVector{T}, args...; kwargs...
@@ -963,7 +963,7 @@ function propagate_to_epoch!(
         end
     end
 
-    # We must ensure that the last propagation instant is the obtained at the end to keep
+    # We must ensure that the last propagation instant is the one obtained at the end to keep
     # the internal data of the propagation consistent.
     vr[end], vv[end] = Propagators.propagate!(orbp, 86400 * (last(vjd) - jd₀))
 
@@ -1080,7 +1080,7 @@ Base.copy(orbp::OrbitPropagator) = deepcopy(orbp)
 #                                    Iterator Interface                                    #
 ############################################################################################
 
-# There functions allow broadcast when using the orbit propagators.
+# These functions allow broadcast when using the orbit propagators.
 iterate(orbp::OrbitPropagator) = (orbp, nothing)
 iterate(orbp::OrbitPropagator, ::Nothing) = nothing
 length(orbp::OrbitPropagator) = 1
@@ -1130,4 +1130,4 @@ function _toms(p::Dates.CompoundPeriod)
     return isempty(p.periods) ? 0.0 : Float64(sum(Dates.toms, p.periods))
 end
 
-end # module Propagator
+end # module Propagators

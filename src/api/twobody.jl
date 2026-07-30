@@ -21,8 +21,8 @@ elements `orb₀`.
 
 !!! note
 
-    The type used in the propagation will be the same as used to define the gravitational
-    constant `m0`.
+    The type used in the propagation will be the same as used to define the standard
+    gravitational parameter `m0`.
 
 # Keywords
 
@@ -42,7 +42,8 @@ Initialize the two-body orbit propagator structure `orbp` using the mean Kepleri
 
 !!! warning
 
-    The propagation constant `m0::Number` in `tbd` will not be changed. Hence, it must be
+    The propagation constant `μ::T` in `orbp.tbd`, set from the keyword `m0`, will not be
+    changed. Hence, it must be
     initialized.
 
 # Arguments

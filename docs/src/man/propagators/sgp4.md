@@ -110,15 +110,15 @@ This algorithm was based on **[4]**.
 
 The following keywords are available to configure the fitting process:
 
-- `atol::Number`: Tolerance for the residue absolute value. If the residue is lower than
+- `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
     `atol` at any iteration, the computation loop stops.
     (**Default** = 2e-4)
-- `rtol::Number`: Tolerance for the relative difference between the residues. If the
-    relative difference between the residues in two consecutive iterations is lower than
+- `rtol::Number`: Tolerance for the relative difference between the residuals. If the
+    relative difference between the residuals in two consecutive iterations is lower than
     `rtol`, the computation loop stops.
     (**Default** = 2e-4)
 - `estimate_bstar::Bool`: If `true`, the algorithm will try to estimate the B* parameter.
-    Otherwise, it will be set to 0 or to the value in initial guess (see section  **Initial
+    Otherwise, it will be set to 0 or to the value in the initial guess (see section **Initial
     Guess**).
     (**Default** = true)
 - `initial_guess::Union{Nothing, AbstractVector, TLE}`: Initial guess for the TLE fitting
@@ -131,7 +131,7 @@ The following keywords are available to configure the fitting process:
     (**Default** = 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
-    `jacobian_perturbation_tol`, we increase it until it absolute value is higher than
+    `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
     `jacobian_perturbation_tol`.
     (**Default** = 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
