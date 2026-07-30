@@ -651,6 +651,13 @@ function fit_j4osc_mean_elements!(
         jacobian_method isa ForwardDiffJacobian ? _create_j4osc_ad_propagator(j4oscd) :
         nothing
 
+    # The finite-difference Jacobian overwrites the propagator it uses. Giving it its own
+    # propagator lets us initialize `j4oscd` once per iteration instead of once per
+    # measurement.
+    j4oscd_fd =
+        jacobian_method isa FiniteDiffJacobian ? _create_j4osc_fd_propagator(j4oscd) :
+        nothing
+
     # Loop until the maximum allowed iteration.
     @inbounds @views for it in 1:max_iterations
         x₁ = x₂
@@ -664,13 +671,24 @@ function fit_j4osc_mean_elements!(
         σp_i = T(0)
         σv_i = T(0)
 
+        # The estimated mean elements do not change within an iteration, so the propagator
+        # only needs to be initialized once, outside the measurement loop.
+        orb = rv_to_kepler(x₁[SOneTo(3)], x₁[StaticArrays.SUnitRange(4, 6)], epoch)
+        _j4osc_init!(j4oscd, orb)
+
         for k in 1:num_measurements
             # Obtain the measured ephemerides.
-            y = vcat(vr_i[k - 1 + begin], vv_i[k - 1 + begin])
+            r_i = vr_i[k - 1 + begin]
+            v_i = vv_i[k - 1 + begin]
 
-            # Initialize the propagator with the current estimated mean elements.
-            orb = rv_to_kepler(x₁[1:3], x₁[4:6], epoch)
-            _j4osc_init!(j4oscd, orb)
+            y = SVector{6, T}(
+                r_i[begin],
+                r_i[begin + 1],
+                r_i[begin + 2],
+                v_i[begin],
+                v_i[begin + 1],
+                v_i[begin + 2],
+            )
 
             # Obtain the propagation time for this measurement.
             Δt = (vjd[k - 1 + begin] - epoch) * 86400
@@ -692,14 +710,15 @@ function fit_j4osc_mean_elements!(
                 perturbation     = jacobian_perturbation,
                 perturbation_tol = jacobian_perturbation_tol,
                 j4oscd_ad        = j4oscd_ad,
+                j4oscd_fd        = j4oscd_fd,
             )
 
             # Accumulation.
             ΣJ′WJ += J' * (W .* J)
             ΣJ′Wb += J' * (W .* b)
             σ_i   += dot(b, W .* b)
-            σp_i  += dot(b[1:3], b[1:3])
-            σv_i  += dot(b[4:6], b[4:6])
+            σp_i  += dot(b[SOneTo(3)], b[SOneTo(3)])
+            σv_i  += dot(b[StaticArrays.SUnitRange(4, 6)], b[StaticArrays.SUnitRange(4, 6)])
         end
 
         # Normalize and compute the RMS errors.
@@ -769,7 +788,7 @@ function fit_j4osc_mean_elements!(
     verbose && println()
 
     # Obtain the mean elements.
-    orb = @views rv_to_kepler(x₂[1:3], x₂[4:6], epoch)
+    orb = rv_to_kepler(x₂[SOneTo(3)], x₂[StaticArrays.SUnitRange(4, 6)], epoch)
 
     # Update the epoch of the fitted mean elements to match the desired one.
     if abs(epoch - mean_elements_epoch) > 0.001 / 86400
@@ -925,6 +944,17 @@ end
 #                                    Private Functions                                     #
 ############################################################################################
 
+# Create a propagator that the finite-difference Jacobian can use as scratch space, so it
+# does not clobber the propagator kept initialized by the fitting loop.
+function _create_j4osc_fd_propagator(
+    j4oscd::J4OsculatingPropagator{Tepoch, T}
+) where {Tepoch, T}
+    fd = J4OsculatingPropagator{Tepoch, T}()
+    fd.j4d = J4Propagator{Tepoch, T}()
+    fd.j4d.j4c = j4oscd.j4d.j4c
+    return fd
+end
+
 function _create_j4osc_ad_propagator(
     j4oscd::J4OsculatingPropagator{Tepoch, T}
 ) where {Tepoch, T}
@@ -947,7 +977,14 @@ function _j4osc_jacobian(
     perturbation::Number = T(1e-3),
     perturbation_tol::Number = T(1e-7),
     j4oscd_ad::Union{Nothing, J4OsculatingPropagator} = nothing,
+    j4oscd_fd::Union{Nothing, J4OsculatingPropagator} = nothing,
 ) where {T <: Number, Tepoch <: Number}
+    # The perturbed propagations below overwrite the propagator. Use the scratch propagator
+    # when the caller provides one, so it can keep `j4oscd` initialized across the
+    # measurements instead of reinitializing it for each one.
+    epoch = j4oscd.j4d.orb₀.t
+    fd::J4OsculatingPropagator{Tepoch, T} = isnothing(j4oscd_fd) ? j4oscd : j4oscd_fd
+
     J = MMatrix{6, 6, T}(undef)
     x₂ = x₁
 
@@ -973,9 +1010,9 @@ function _j4osc_jacobian(
         α += ϵ
         x₂ = setindex(x₂, α, j)
 
-        orb = rv_to_kepler(x₂[1:3], x₂[4:6], j4oscd.j4d.orb₀.t)
-        _j4osc_init!(j4oscd, orb)
-        r_i, v_i = j4osc!(j4oscd, Δt)
+        orb = rv_to_kepler(x₂[SOneTo(3)], x₂[StaticArrays.SUnitRange(4, 6)], epoch)
+        _j4osc_init!(fd, orb)
+        r_i, v_i = j4osc!(fd, Δt)
         y₂ = @SVector [r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3]]
 
         J[:, j] .= (y₂ .- y₁) ./ ϵ
@@ -994,6 +1031,7 @@ function _j4osc_jacobian(
     perturbation::Number = T(1e-3),
     perturbation_tol::Number = T(1e-7),
     j4oscd_ad::Union{Nothing, J4OsculatingPropagator} = nothing,
+    j4oscd_fd::Union{Nothing, J4OsculatingPropagator} = nothing,
 ) where {T <: Number, Tepoch <: Number}
     epoch = j4oscd.j4d.orb₀.t
     N     = 6

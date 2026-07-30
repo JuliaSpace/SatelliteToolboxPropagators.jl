@@ -1211,3 +1211,81 @@ end
         end
     end
 end
+
+@testset "Allocations When Fitting From Non-Static Vectors" verbose = true begin
+    # The docstring examples pass the measurements as `Vector{Vector{Float64}}`. Building
+    # the measurement vector with `vcat` allocated a new array for every measurement of
+    # every iteration, which `test/performance.jl` never caught because it only exercises
+    # `Vector{SVector{3, Float64}}`.
+    jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+
+    orb = KeplerianElements(
+        jd₀,
+        7130.982e3,
+        0.001111,
+        98.405 |> deg2rad,
+        90.0 |> deg2rad,
+        200.0 |> deg2rad,
+        45.0 |> deg2rad,
+    )
+
+    vt  = collect(0.0:60.0:6000.0)
+    vjd = jd₀ .+ vt ./ 86400
+
+    @testset "$prop" for (prop, fit!, build) in (
+        (:J2, fit_j2_mean_elements!, () -> begin
+            d = J2Propagator{Float64, Float64}()
+            d.j2c = j2c_egm2008
+            d
+        end),
+        (
+            :J2osc,
+            fit_j2osc_mean_elements!,
+            () -> begin
+                d = J2OsculatingPropagator{Float64, Float64}()
+                d.j2d = J2Propagator{Float64, Float64}()
+                d.j2d.j2c = j2c_egm2008
+                d
+            end,
+        ),
+        (:J4, fit_j4_mean_elements!, () -> begin
+            d = J4Propagator{Float64, Float64}()
+            d.j4c = j4c_egm2008
+            d
+        end),
+        (
+            :J4osc,
+            fit_j4osc_mean_elements!,
+            () -> begin
+                d = J4OsculatingPropagator{Float64, Float64}()
+                d.j4d = J4Propagator{Float64, Float64}()
+                d.j4d.j4c = j4c_egm2008
+                d
+            end,
+        ),
+    )
+        orbp = Propagators.init(Val(prop), orb)
+        ret  = [Propagators.propagate!(orbp, t) for t in vt]
+
+        vr_i = [collect(r) for r in first.(ret)]
+        vv_i = [collect(v) for v in last.(ret)]
+
+        f() = fit!(
+            build(),
+            vjd,
+            vr_i,
+            vv_i;
+            mean_elements_epoch = vjd[begin],
+            jacobian_method     = FiniteDiffJacobian(),
+            verbose             = false,
+        )
+
+        # Compile before measuring.
+        f()
+
+        # This input used to allocate between 34 kB and 57 kB, all of it proportional to
+        # the number of measurements. The limit is well above the roughly 1 kB allocated
+        # now, but far below the previous figures.
+        @test (@allocated f()) < 10_000
+    end
+end
