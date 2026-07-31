@@ -85,9 +85,9 @@ function _osculating_elements(
 
     δrsp_k = -KJ₂ / p_k * (k₃ * (2k₂ / k₅ + e_cos_f_k / (1 + k₂) + 1) - sin_i_k² * cos_2u_k)
 
-    δṙsp_k = +KJ₂ * sqrt_μm_p / p_k² * (
-        k₃ * e_sin_f_k * (k₂ + k₅² / (1 + k₂)) - 2sin_i_k² * k₅² * sin_2u_k
-    )
+    δṙsp_k =
+        +KJ₂ * sqrt_μm_p / p_k² *
+        (k₃ * e_sin_f_k * (k₂ + k₅² / (1 + k₂)) - 2sin_i_k² * k₅² * sin_2u_k)
 
     δusp_k =
         +KJ₂ / (2p_k²) * (

@@ -472,10 +472,10 @@ end
             DateTime("2023-01-01") |> datetime2julian,
             7130.982e3,
             0.001111,
-            5   |> deg2rad,
-            90  |> deg2rad,
+            5 |> deg2rad,
+            90 |> deg2rad,
             200 |> deg2rad,
-            45  |> deg2rad,
+            45 |> deg2rad,
         )
 
         orbp_zc = Propagators.init(Val(:J2), orb_zc)
@@ -489,9 +489,9 @@ end
             7130.982e3,
             0.001111,
             0.0,
-            90  |> deg2rad,
+            90 |> deg2rad,
             200 |> deg2rad,
-            45  |> deg2rad,
+            45 |> deg2rad,
         )
 
         r_g, v_g = kepler_to_rv(guess)
