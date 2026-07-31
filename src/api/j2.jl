@@ -181,7 +181,7 @@ Initialize the J2 orbit propagator structure `orbp` using the mean Keplerian ele
 
 !!! warning
 
-    The propagation constants `j2c::J2PropagatorConstants` in `orbp.j2oscd.j2d` will not be
+    The propagation constants `j2c::J2PropagatorConstants` in `orbp.j2d` will not be
     changed. Hence, they must be initialized.
 """
 function Propagators.init!(orbp::OrbitPropagatorJ2, orb₀::KeplerianElements)

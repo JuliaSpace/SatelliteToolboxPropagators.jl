@@ -174,7 +174,7 @@ end
     j2osc!(j2oscd::J2OsculatingPropagator{Tepoch, T}, t::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
 
 Propagate the orbit defined in `j2oscd` (see [`J2OsculatingPropagator`](@ref)) to `t` [s]
-after the epoch of the input mean elements in `j2d`.
+after the epoch of the input mean elements in `j2oscd`.
 
 !!! note
 

@@ -173,7 +173,7 @@ end
     j4osc!(j4oscd::J4OsculatingPropagator{Tepoch, T}, t::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
 
 Propagate the orbit defined in `j4oscd` (see [`J4OsculatingPropagator`](@ref)) to `t` [s]
-after the epoch of the input mean elements in `j4d`.
+after the epoch of the input mean elements in `j4oscd`.
 
 !!! note
 
