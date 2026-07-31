@@ -100,7 +100,7 @@ function _osculating_elements(
         )
 
     r_k = p_k / (1 + e_cos_f_k)
-    ṙ_k = √(μm / p_k) * e_sin_f_k
+    ṙ_k = sqrt_μm_p * e_sin_f_k
 
     r_osc_k = r_k + δrsp_k
     ṙ_osc_k = ṙ_k + δṙsp_k
