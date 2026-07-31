@@ -43,8 +43,7 @@ Initialize the two-body orbit propagator structure `orbp` using the mean Kepleri
 !!! warning
 
     The propagation constant `μ::T` in `orbp.tbd`, set from the keyword `m0`, will not be
-    changed. Hence, it must be
-    initialized.
+    changed. Hence, it must be initialized.
 
 # Arguments
 

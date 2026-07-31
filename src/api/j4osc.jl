@@ -1,11 +1,8 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## Description #############################################################################
 #
-# Description
-# ==========================================================================================
+#  API implementation for J4 osculating orbit propagator.
 #
-#    API implementation for J4 osculating orbit propagator.
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 Propagators.epoch(orbp::OrbitPropagatorJ4Osculating)         = orbp.j4oscd.j4d.orb₀.t
 Propagators.last_instant(orbp::OrbitPropagatorJ4Osculating)  = orbp.j4oscd.Δt
