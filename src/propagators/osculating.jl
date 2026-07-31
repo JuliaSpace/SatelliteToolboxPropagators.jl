@@ -36,7 +36,7 @@ function _osculating_elements(
     p_k² = p_k * p_k
     u_k  = ω_k + f_k
 
-    # kᵢliary variables to reduce the computational burden.
+    # Auxiliary variable to reduce the computational burden.
     KJ₂ = J₂ * R₀ * R₀ / 4
 
     sin_i_k, cos_i_k = sincos(i_k)
