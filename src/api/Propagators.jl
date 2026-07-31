@@ -127,15 +127,15 @@ end
     init(::Val{:propagator}, args...; kwargs...) -> OrbitPropagator
 
 Create and initialize the orbit `propagator`. The arguments `args` and keywords `kwargs`
-depends of the propagator type.
+depend on the propagator type.
 """
 function init end
 
 """
     init!(orbp::OrbitPropagator, args...; kwargs...) -> Nothing
 
-Initialize the orbit propagator `orbp`. The arguments `args` and keywords `kwargs` depends
-of the propagator type.
+Initialize the orbit propagator `orbp`. The arguments `args` and keywords `kwargs` depend
+on the propagator type.
 """
 function init! end
 
@@ -305,8 +305,9 @@ end
 Initialize the orbit `propagator` and propagate the orbit for every instant defined in `vt`
 [s] or for every period defined in `vp` from the initial orbit epoch. The initialization
 arguments `args...` and `kwargs...` are the same as in the initialization function
-[`Propagators.init`](@ref). The output type depends on the parameter `sink`. If it is omitted, it defaults to `Tuple`, and the output is a tuple with the arrays
-containing the position and velocity vectors.
+[`Propagators.init`](@ref). The output type depends on the parameter `sink`. If it is
+omitted, it defaults to `Tuple`, and the output is a tuple with the arrays containing the
+position and velocity vectors.
 
 !!! note
 
