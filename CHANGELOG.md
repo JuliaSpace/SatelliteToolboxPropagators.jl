@@ -48,6 +48,9 @@ Version 1.2.0
   1,100 duplicated lines.
 - ![Info][badge-info] Fix many errors in the documentation, including wrong return types,
   wrong signatures, and the undocumented `jacobian_method` keyword.
+- ![Info][badge-info] Fix the allocation tests of the Jacobian computed with
+  `ForwardDiffJacobian`, which silently passed without testing anything because they used
+  a stale keyword name.
 
 Version 1.1.1
 -------------
