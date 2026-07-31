@@ -463,6 +463,63 @@ end
         @test orb.Ω ≈ orb_input.Ω + deg2rad(0.9856002605) atol = 2e-5
     end
 
+    @testset "Initial Guess with Zero State Components" begin
+        # If a component of the initial mean state vector is exactly zero, the correction
+        # limiter must not freeze it at zero. Here, we use an equatorial initial guess for
+        # an inclined orbit. Hence, the guess z-position and z-velocity are exactly zero,
+        # and the fitting must still recover the true inclination.
+        orb_zc = KeplerianElements(
+            DateTime("2023-01-01") |> datetime2julian,
+            7130.982e3,
+            0.001111,
+            5   |> deg2rad,
+            90  |> deg2rad,
+            200 |> deg2rad,
+            45  |> deg2rad,
+        )
+
+        orbp_zc = Propagators.init(Val(:J2), orb_zc)
+        ret_zc  = Propagators.propagate!.(orbp_zc, 0:100:12_000)
+        vr_i_zc = first.(ret_zc)
+        vv_i_zc = last.(ret_zc)
+        vjd_zc  = Propagators.epoch(orbp_zc) .+ (0:100:12_000) ./ 86400
+
+        guess = KeplerianElements(
+            vjd_zc[begin],
+            7130.982e3,
+            0.001111,
+            0.0,
+            90  |> deg2rad,
+            200 |> deg2rad,
+            45  |> deg2rad,
+        )
+
+        r_g, v_g = kepler_to_rv(guess)
+        @test r_g[3] == 0
+        @test v_g[3] == 0
+
+        orb, ~ = redirect_stdout(devnull) do
+            Propagators.fit_mean_elements(
+                Val(:J2),
+                vjd_zc,
+                vr_i_zc,
+                vv_i_zc;
+                initial_guess = guess,
+                max_iterations = 200,
+                mean_elements_epoch = vjd_zc[begin],
+                rtol = 1e-10,
+            )
+        end
+
+        @test orb.t ≈ orb_zc.t
+        @test orb.a ≈ orb_zc.a atol = 1e-2
+        @test orb.e ≈ orb_zc.e atol = 1e-9
+        @test orb.i ≈ orb_zc.i atol = 1e-9
+        @test orb.Ω ≈ orb_zc.Ω atol = 1e-9
+        @test orb.ω ≈ orb_zc.ω atol = 1e-6
+        @test orb.f ≈ orb_zc.f atol = 1e-6
+    end
+
     @testset "Errors" begin
         # == Wrong dimensions in the input vectors =========================================
 

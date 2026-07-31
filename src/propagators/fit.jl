@@ -269,10 +269,22 @@ function _fit_mean_elements!(
         # Update the estimate.
         δx = ΣJ′WJ \ ΣJ′Wb
 
-        # Limit the correction to avoid divergence.
+        # Limit the correction to avoid divergence. A component that is exactly zero must
+        # be limited against the norm of its position or velocity block instead of its own
+        # magnitude, otherwise the clamped correction would also be zero, freezing the
+        # component at zero for all iterations.
+        norm_r₁ = norm(x₁[SOneTo(3)])
+        norm_v₁ = norm(x₁[StaticArrays.SUnitRange(4, 6)])
+
         for i in 1:num_states
             threshold = T(0.1)
-            if abs(δx[i] / x₁[i]) > threshold
+
+            if iszero(x₁[i])
+                scale = i <= 3 ? norm_r₁ : norm_v₁
+                if abs(δx[i]) > threshold * scale
+                    δx = setindex(δx, threshold * scale * sign(δx[i]), i)
+                end
+            elseif abs(δx[i] / x₁[i]) > threshold
                 δx = setindex(δx, threshold * abs(x₁[i]) * sign(δx[i]), i)
             end
         end
