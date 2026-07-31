@@ -206,9 +206,7 @@ function j4osc!(
     μm  = j4c.μm
     J₂  = j4c.J2
 
-    orbk = _osculating_elements(
-        mean_orbk, j4d.M_k, j4d.orb₀.t + Tepoch(t) / 86400, R₀, μm, J₂
-    )
+    orbk = _osculating_elements(mean_orbk, j4d.M_k, mean_orbk.t, R₀, μm, J₂)
 
     # Compute the position and velocity considering the osculating elements.
     r_i_k, v_i_k = kepler_to_rv(orbk)
