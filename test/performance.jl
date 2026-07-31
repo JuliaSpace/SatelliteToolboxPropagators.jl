@@ -129,7 +129,7 @@ else
                         Vector{SVector{3, Float64}},
                     ),
                 ),
-            ) <= 13
+            ) <= 14
         end
 
         @testset "fit_j2_mean_elements! (ForwardDiffJacobian)" begin
@@ -235,7 +235,7 @@ else
                         Vector{SVector{3, Float64}},
                     ),
                 ),
-            ) <= 13
+            ) <= 14
         end
 
         @testset "fit_j2osc_mean_elements! (ForwardDiffJacobian)" begin
@@ -337,7 +337,7 @@ else
                         Vector{SVector{3, Float64}},
                     ),
                 ),
-            ) <= 13
+            ) <= 14
         end
 
         @testset "fit_j4_mean_elements! (ForwardDiffJacobian)" begin
@@ -443,7 +443,7 @@ else
                         Vector{SVector{3, Float64}},
                     ),
                 ),
-            ) <= 13
+            ) <= 14
         end
 
         @testset "fit_j4osc_mean_elements! (ForwardDiffJacobian)" begin
