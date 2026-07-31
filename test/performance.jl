@@ -95,7 +95,7 @@ else
                 check_allocs(
                     (j2d, j2d_ad, Δt, x₁, y₁) -> begin
                         SatelliteToolboxPropagators._j2_jacobian(
-                            ForwardDiffJacobian(), j2d, Δt, x₁, y₁; j2d_ad = j2d_ad
+                            ForwardDiffJacobian(), j2d, Δt, x₁, y₁; pd_ad = j2d_ad
                         )
                     end,
                     (
@@ -201,12 +201,7 @@ else
                 check_allocs(
                     (j2oscd, j2oscd_ad, Δt, x₁, y₁) -> begin
                         SatelliteToolboxPropagators._j2osc_jacobian(
-                            ForwardDiffJacobian(),
-                            j2oscd,
-                            Δt,
-                            x₁,
-                            y₁;
-                            j2oscd_ad = j2oscd_ad,
+                            ForwardDiffJacobian(), j2oscd, Δt, x₁, y₁; pd_ad = j2oscd_ad
                         )
                     end,
                     (
@@ -308,7 +303,7 @@ else
                 check_allocs(
                     (j4d, j4d_ad, Δt, x₁, y₁) -> begin
                         SatelliteToolboxPropagators._j4_jacobian(
-                            ForwardDiffJacobian(), j4d, Δt, x₁, y₁; j4d_ad = j4d_ad
+                            ForwardDiffJacobian(), j4d, Δt, x₁, y₁; pd_ad = j4d_ad
                         )
                     end,
                     (
@@ -414,12 +409,7 @@ else
                 check_allocs(
                     (j4oscd, j4oscd_ad, Δt, x₁, y₁) -> begin
                         SatelliteToolboxPropagators._j4osc_jacobian(
-                            ForwardDiffJacobian(),
-                            j4oscd,
-                            Δt,
-                            x₁,
-                            y₁;
-                            j4oscd_ad = j4oscd_ad,
+                            ForwardDiffJacobian(), j4oscd, Δt, x₁, y₁; pd_ad = j4oscd_ad
                         )
                     end,
                     (
