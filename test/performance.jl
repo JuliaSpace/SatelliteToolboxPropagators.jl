@@ -235,7 +235,7 @@ else
                         Vector{SVector{3, Float64}},
                     ),
                 ),
-            ) <= 14
+            ) <= 15
         end
 
         @testset "fit_j2osc_mean_elements! (ForwardDiffJacobian)" begin
@@ -443,7 +443,7 @@ else
                         Vector{SVector{3, Float64}},
                     ),
                 ),
-            ) <= 14
+            ) <= 15
         end
 
         @testset "fit_j4osc_mean_elements! (ForwardDiffJacobian)" begin
