@@ -15,6 +15,11 @@ Version 1.2.0
   `Vector{Vector}`, which is the type used in all the documentation examples.
 - ![Enhancement][badge-enhancement] The osculating Keplerian elements are now wrapped to
   [0, 2π), like the mean elements.
+- ![Enhancement][badge-enhancement] The two-body propagator now wraps the mean anomaly to
+  [0, 2π), improving the accuracy for large propagation times, especially when propagating
+  in `Float32`.
+- ![Enhancement][badge-enhancement] The J2 and J4 osculating propagators no longer compute
+  a duplicated square root in the short-period corrections.
 - ![Bugfix][badge-bugfix] Fix the short-period correction to the radial rate in the J2 and
   J4 osculating propagators, which used `(1 - e cos f)²` instead of `(1 + e cos f)²` in the
   term multiplying `sin(2u)`. The error vanishes for circular orbits and only affects the
@@ -35,6 +40,9 @@ Version 1.2.0
   radial rate correction for orbits above roughly 50 900 km in `Float32`.
 - ![Bugfix][badge-bugfix] Support arrays whose indices do not start at 1 when fitting the
   mean elements and when using the `OrbitStateVector` sinks.
+- ![Bugfix][badge-bugfix] Fix the least-square fitting of the mean elements, which could
+  never adjust a state component whose estimate was exactly zero, e.g. the z-axis
+  components when the initial guess is an equatorial orbit.
 - ![Info][badge-info] The short-period correction and the least-square algorithm that fits
   the mean elements are now implemented once and shared by the propagators, removing about
   1,100 duplicated lines.
