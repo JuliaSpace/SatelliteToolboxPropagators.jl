@@ -698,7 +698,7 @@ end
 
     propagate_to_epoch(
         [::Type{Tuple}, ]::Val{:propagator},
-        vdt::DateTime,
+        vdt::AbstractVector{DateTime},
         args...;
         kwargs...
     ) -> Vector{SVector{3, T}}, Vector{SVector{3, T}}, OrbitPropagator{Tepoch, T}
@@ -709,15 +709,15 @@ end
         vjd::AbstractVector,
         args...;
         kwargs...
-    ) -> OrbitStateVector{Tepoch, T}, OrbitPropagator{Tepoch, T}
+    ) -> Vector{OrbitStateVector{Tepoch, T}}, OrbitPropagator{Tepoch, T}
 
     propagate_to_epoch(
         ::Type{OrbitStateVector},
         ::Val{:propagator},
-        vdt::DateTime,
+        vdt::AbstractVector{DateTime},
         args...;
         kwargs...
-    ) -> OrbitStateVector{Tepoch, T}, OrbitPropagator{Tepoch, T}
+    ) -> Vector{OrbitStateVector{Tepoch, T}}, OrbitPropagator{Tepoch, T}
 
 Initialize the orbit `propagator` and propagate the orbit for every epoch defined in the
 vector of Julian Days `vjd` [UTC] or in the vector of `DateTime` objects `vdt` [UTC]. The
