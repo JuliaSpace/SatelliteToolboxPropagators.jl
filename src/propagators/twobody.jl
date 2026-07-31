@@ -216,7 +216,7 @@ function twobody!(
     Δt    = T(t)
 
     # Propagate the orbital elements.
-    M_k = tbd.M₀ + tbd.n₀ * Δt
+    M_k = mod(tbd.M₀ + tbd.n₀ * Δt, T(2π))
 
     # Convert the mean anomaly to true anomaly.
     f_k = mean_to_true_anomaly(e₀, M_k)
