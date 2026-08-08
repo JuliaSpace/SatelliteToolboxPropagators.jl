@@ -42,7 +42,10 @@ Version 1.2.0
   mean elements and when using the `OrbitStateVector` sinks.
 - ![Bugfix][badge-bugfix] Fix the least-square fitting of the mean elements, which could
   never adjust a state component whose estimate was exactly zero, e.g. the z-axis
-  components when the initial guess is an equatorial orbit.
+  components when the initial guess is an equatorial orbit. The correction limiter now
+  bounds each state component against the norm of its position or velocity block instead
+  of its own magnitude, which also removes a very slow convergence when a component is
+  much smaller than the others, making the result robust across platforms.
 - ![Info][badge-info] The short-period correction and the least-square algorithm that fits
   the mean elements are now implemented once and shared by the propagators, removing about
   1,100 duplicated lines.
