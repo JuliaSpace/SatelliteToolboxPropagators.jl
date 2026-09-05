@@ -38,7 +38,7 @@ else
                     (tbd, orb₀) -> twobody_init!(tbd, orb₀),
                     (
                         TwoBodyPropagator{Float64, Float64},
-                        KeplerianElements{Float64, Float64},
+                        KeplerianElements{TrueAnomaly, Float64, Float64},
                     ),
                 ),
             ) == 0
@@ -59,7 +59,7 @@ else
             @test length(
                 check_allocs(
                     (j2d, orb₀) -> j2_init!(j2d, orb₀),
-                    (J2Propagator{Float64, Float64}, KeplerianElements{Float64, Float64}),
+                    (J2Propagator{Float64, Float64}, KeplerianElements{TrueAnomaly, Float64, Float64}),
                 ),
             ) == 0
         end
@@ -163,7 +163,7 @@ else
                     (j2oscd, orb₀) -> j2osc_init!(j2oscd, orb₀),
                     (
                         J2OsculatingPropagator{Float64, Float64},
-                        KeplerianElements{Float64, Float64},
+                        KeplerianElements{TrueAnomaly, Float64, Float64},
                     ),
                 ),
             ) == 0
@@ -267,7 +267,7 @@ else
             @test length(
                 check_allocs(
                     (j4d, orb₀) -> j4_init!(j4d, orb₀),
-                    (J4Propagator{Float64, Float64}, KeplerianElements{Float64, Float64}),
+                    (J4Propagator{Float64, Float64}, KeplerianElements{TrueAnomaly, Float64, Float64}),
                 ),
             ) == 0
         end
@@ -371,7 +371,7 @@ else
                     (j4oscd, orb₀) -> j4osc_init!(j4oscd, orb₀),
                     (
                         J4OsculatingPropagator{Float64, Float64},
-                        KeplerianElements{Float64, Float64},
+                        KeplerianElements{TrueAnomaly, Float64, Float64},
                     ),
                 ),
             ) == 0

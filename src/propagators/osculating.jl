@@ -18,20 +18,20 @@
 # `μm` [rad / s], and `J₂`. The correction considers only the J2 gravitational term, as
 # described in [1, p. 708-710].
 function _osculating_elements(
-    mean_orbk::KeplerianElements{Tepoch, T},
+    mean_orbk::KeplerianElements{Tanomaly, Tepoch, T},
     M_k::Number,
     epoch::Number,
     R₀::Number,
     μm::Number,
     J₂::Number,
-) where {Tepoch <: Number, T <: Number}
-    a_k  = mean_orbk.a
-    e_k  = mean_orbk.e
+) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, T <: Number}
+    a_k  = mean_orbk.semi_major_axis
+    e_k  = mean_orbk.eccentricity
     e_k² = e_k * e_k
-    i_k  = mean_orbk.i
-    Ω_k  = mean_orbk.Ω
-    ω_k  = mean_orbk.ω
-    f_k  = mean_orbk.f
+    i_k  = mean_orbk.inclination
+    Ω_k  = mean_orbk.raan
+    ω_k  = mean_orbk.argument_of_periapsis
+    f_k  = true_anomaly(mean_orbk)
     p_k  = a_k * (1 - e_k²)
     p_k² = p_k * p_k
     u_k  = ω_k + f_k

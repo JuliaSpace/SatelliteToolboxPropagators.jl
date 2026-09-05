@@ -58,8 +58,8 @@
     # == Constructor =======================================================================
 
     @testset "Constructor" begin
-        orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
-        j4d = J4Propagator{Float64, Float64}(orb, orb, j4c_egm2008, 0, 0, 0, 0, 0, 0)
+        orb = KeplerianElements{MeanAnomaly}(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
+        j4d = J4Propagator{Float64, Float64}(orb, orb, j4c_egm2008, 0, 0, 0, 0)
 
         # Test some random fields.
         @test j4d.Δt == 0
@@ -68,13 +68,13 @@
 
         orb = KeplerianElements(0.0, 8_000_000, 0, 0, 0, 0, 0)
         orbp = Propagators.init(Val(:J4), orb)
-        @test orbp.j4d.orb₀ isa KeplerianElements{Float64, Float64}
+        @test orbp.j4d.orb₀ isa KeplerianElements{MeanAnomaly, Float64, Float64}
     end
 
     # == General API Functions =============================================================
 
     @testset "General API Functions" begin
-        orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
+        orb = KeplerianElements{MeanAnomaly}(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
         orbp = Propagators.init(Val(:J4), orb)
         @test Propagators.name(orbp) == "J4 Orbit Propagator"
     end
@@ -578,7 +578,7 @@ end
 
     orb_f32 = update_j4_mean_elements_epoch(orb_input_f32, DateTime("2023-01-02"))
 
-    @test orb_f32 isa KeplerianElements{Float64, Float32}
+    @test orb_f32 isa KeplerianElements{MeanAnomaly, Float64, Float32}
     @test orb_f32.a == orb_input_f32.a
     @test orb_f32.e == orb_input_f32.e
     @test orb_f32.i == orb_input_f32.i

@@ -52,18 +52,23 @@ end
 J2 orbit propagator structure.
 """
 mutable struct J2Propagator{Tepoch <: Number, T <: Number}
-    orb₀::KeplerianElements{Tepoch, T} # ............ Initial mean orbit elements [SI units]
-    orbk::KeplerianElements{Tepoch, T} # ............ Current mean orbit elements [SI units]
-    j2c::J2PropagatorConstants{T}      # .............................. Propagator constants
-    Δt::T                              # ..... Timespan from the initial elements' epoch [s]
+     # Initial mean orbit elements [SI units].
+    orb₀::KeplerianElements{MeanAnomaly, Tepoch, T}
+
+     # Current mean orbit elements [SI units].
+    orbk::KeplerianElements{MeanAnomaly, Tepoch, T}
+
+    # Propagator constants.
+    j2c::J2PropagatorConstants{T}
+
+    # Timespan from the initial elements' epoch [s].
+    Δt::T
 
     # == Auxiliary Variables ===============================================================
 
-    M₀::T # ..................................... Initial mean anomaly (mean elements) [rad]
     ∂Ω::T # ................................................. RAAN time derivative [rad / s]
     ∂ω::T # .................................. Argument of perigee time derivative [rad / s]
     n̄::T  # ................................................ Perturbed mean motion [rad / s]
-    M_k::T # .................................... Current mean anomaly (mean elements) [rad]
 
     # == Constructors ======================================================================
 
@@ -88,7 +93,7 @@ mutable struct J2OsculatingPropagator{Tepoch <: Number, T <: Number}
     Δt::T
 
     # Current osculating Keplerian elements.
-    orbk::KeplerianElements{Tepoch, T}
+    orbk::KeplerianElements{TrueAnomaly, Tepoch, T}
 
     # == Constructors ======================================================================
 
@@ -137,18 +142,23 @@ end
 J4 orbit propagator structure.
 """
 mutable struct J4Propagator{Tepoch <: Number, T <: Number}
-    orb₀::KeplerianElements{Tepoch, T} # ............ Initial mean orbit elements [SI units]
-    orbk::KeplerianElements{Tepoch, T} # ............ Current mean orbit elements [SI units]
-    j4c::J4PropagatorConstants{T}      # .............................. Propagator constants
-    Δt::T                              # ..... Timespan from the initial elements' epoch [s]
+    # Initial mean orbit elements [SI units].
+    orb₀::KeplerianElements{MeanAnomaly, Tepoch, T}
+
+    # Current mean orbit elements [SI units].
+    orbk::KeplerianElements{MeanAnomaly, Tepoch, T}
+
+    # Propagator constants.
+    j4c::J4PropagatorConstants{T}
+
+    # Timespan from the initial elements' epoch [s].
+    Δt::T
 
     # == Auxiliary Variables ===============================================================
 
-    M₀::T # ..................................... Initial mean anomaly (mean elements) [rad]
     ∂Ω::T # ................................................. RAAN time derivative [rad / s]
     ∂ω::T # .................................. Argument of perigee time derivative [rad / s]
     n̄::T  # ................................................ Perturbed mean motion [rad / s]
-    M_k::T # .................................... Current mean anomaly (mean elements) [rad]
 
     # == Constructors ======================================================================
 
@@ -173,7 +183,7 @@ mutable struct J4OsculatingPropagator{Tepoch <: Number, T <: Number}
     Δt::T
 
     # Current osculating Keplerian elements.
-    orbk::KeplerianElements{Tepoch, T}
+    orbk::KeplerianElements{TrueAnomaly, Tepoch, T}
 
     # == Constructors ======================================================================
 
@@ -192,14 +202,20 @@ end
 Two body orbit propagator structure.
 """
 mutable struct TwoBodyPropagator{Tepoch <: Number, T <: Number}
-    orb₀::KeplerianElements{Tepoch, T} # ............ Initial mean orbit elements [SI units]
-    orbk::KeplerianElements{Tepoch, T} # ............ Current mean orbit elements [SI units]
-    μ::T                               # . Central body std. gravitational parameter [m³/s²]
-    Δt::T                              # ..... Timespan from the initial elements' epoch [s]
+    # Initial mean orbit elements [SI units].
+    orb₀::KeplerianElements{MeanAnomaly, Tepoch, T}
+
+    # Current mean orbit elements [SI units].
+    orbk::KeplerianElements{MeanAnomaly, Tepoch, T}
+
+    # Central body std. gravitational parameter [m³/s²].
+    μ::T
+
+    # Timespan from the initial elements' epoch [s].
+    Δt::T
 
     # == Auxiliary Variables ===============================================================
 
-    M₀::T  # .................................... Initial mean anomaly (mean elements) [rad]
     n₀::T  # ........................................................  Mean motion [rad / s]
 
     # == Constructors ======================================================================
@@ -240,8 +256,10 @@ J2 osculating orbit propagator.
 - `j2oscd`: Structure that stores the J2 osculating orbit propagator data (see
     [`J2OsculatingPropagator`](@ref)).
 """
-struct OrbitPropagatorJ2Osculating{Tepoch <: Number, T <: Number} <:
-       OrbitPropagator{Tepoch, T}
+struct OrbitPropagatorJ2Osculating{
+    Tepoch <: Number,
+    T <: Number
+} <: OrbitPropagator{Tepoch, T}
     j2oscd::J2OsculatingPropagator{Tepoch, T}
 end
 
@@ -272,8 +290,10 @@ J4 osculating orbit propagator.
 - `j4oscd`: Structure that stores the J4 osculating orbit propagator data (see
     [`J4OsculatingPropagator`](@ref)).
 """
-struct OrbitPropagatorJ4Osculating{Tepoch <: Number, T <: Number} <:
-       OrbitPropagator{Tepoch, T}
+struct OrbitPropagatorJ4Osculating{
+    Tepoch <: Number,
+    T <: Number
+} <: OrbitPropagator{Tepoch, T}
     j4oscd::J4OsculatingPropagator{Tepoch, T}
 end
 

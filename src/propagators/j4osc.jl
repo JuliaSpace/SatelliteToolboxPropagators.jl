@@ -62,8 +62,14 @@ elements `orb₀`.
     [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm2008`)
 """
 function j4osc_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler}; j4c::J4PropagatorConstants{T} = j4c_egm2008
-) where {Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number}
+    orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
+    j4c::J4PropagatorConstants{T} = j4c_egm2008
+) where {
+    Tanomaly <: AbstractAnomaly,
+    Tepoch <: Number,
+    Tkepler <: AbstractFloat,
+    T <: Number
+}
     # Allocate the J4 propagator structure that will propagate the mean elements.
     j4d = J4Propagator{Tepoch, T}()
 
@@ -81,8 +87,14 @@ function j4osc_init(
 end
 
 function j4osc_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler}; j4c::J4PropagatorConstants{Tj4c} = j4c_egm2008
-) where {Tepoch <: Number, Tkepler <: Number, Tj4c <: Number}
+    orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
+    j4c::J4PropagatorConstants{Tj4c} = j4c_egm2008
+) where {
+    Tanomaly <: AbstractAnomaly,
+    Tepoch <: Number,
+    Tkepler <: Number,
+    Tj4c <: Number
+}
     T = promote_type(Tj4c, Tkepler)
 
     # Allocate the J4 propagator structure that will propagate the mean elements.
@@ -206,7 +218,14 @@ function j4osc!(
     μm  = j4c.μm
     J₂  = j4c.J2
 
-    orbk = _osculating_elements(mean_orbk, j4d.M_k, mean_orbk.t, R₀, μm, J₂)
+    orbk = _osculating_elements(
+        mean_orbk,
+        mean_anomaly(mean_orbk),
+        mean_orbk.epoch,
+        R₀,
+        μm,
+        J₂
+    )
 
     # Compute the position and velocity considering the osculating elements.
     r_i_k, v_i_k = kepler_to_rv(orbk)
@@ -219,7 +238,7 @@ function j4osc!(
 end
 
 """
-    fit_j4osc_mean_elements(vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{Float64, Float64}, SMatrix{6, 6, Float64}
+    fit_j4osc_mean_elements(vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{TrueAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
 
 Fit a set of mean Keplerian elements for the J4 osculating orbit propagator using the
 osculating elements represented by a set of position vectors `vr_i` [m] and a set of
@@ -270,7 +289,7 @@ the array `vjd` [Julian Day].
 
 # Returns
 
-- `KeplerianElements{Float64, Float64}`: Fitted Keplerian elements.
+- `KeplerianElements{TrueAnomaly, Float64, Float64}`: Fitted Keplerian elements.
 - `SMatrix{6, 6, Float64}`: Final covariance matrix of the least-square algorithm.
 
 # Examples
@@ -327,7 +346,7 @@ function fit_j4osc_mean_elements(
 end
 
 """
-    fit_j4osc_mean_elements!(j4oscd::J4OsculatingPropagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {T<:Number, Tepoch<:Number, Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{Tepoch, T}, SMatrix{6, 6, T}
+    fit_j4osc_mean_elements!(j4oscd::J4OsculatingPropagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {T<:Number, Tepoch<:Number, Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{TrueAnomaly, Tepoch, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the J4 osculating orbit propagator `j4oscd` using
 the osculating elements represented by a set of position vectors `vr_i` [m] and a set of
@@ -377,14 +396,14 @@ the array `vjd` [Julian Day].
 
 # Returns
 
-- `KeplerianElements{Tepoch, T}`: Fitted Keplerian elements.
+- `KeplerianElements{TrueAnomaly, Tepoch, T}`: Fitted Keplerian elements.
 - `SMatrix{6, 6, T}`: Final covariance matrix of the least-square algorithm.
 
 # Examples
 
 ```julia-repl
 # Allocate a new J4 osculating orbit propagator using a dummy set of Keplerian elements.
-julia> j4oscd = j4osc_init(KeplerianElements{Float64, Float64}(0, 7000e3, 0, 0, 0, 0, 0));
+julia> j4oscd = j4osc_init(KeplerianElements(0, 7000e3, 0, 0, 0, 0, 0));
 
 julia> vr_i = [
            [-6792.402703741442, 2192.6458461287293, 0.18851758695295118] .* 1000,
@@ -475,8 +494,8 @@ KeplerianElements{Float64, Float64}:
 ```
 """
 function update_j4osc_mean_elements_epoch(
-    orb::KeplerianElements{Tepoch, T}, new_epoch::Union{Number, DateTime}
-) where {T <: Number, Tepoch <: Number}
+    orb::KeplerianElements{Tanomaly, Tepoch, T}, new_epoch::Union{Number, DateTime}
+) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, T <: Number}
     # Allocate the J4 propagator structure that will propagate the mean elements.
     j4d = J4Propagator{Tepoch, T}()
 
@@ -552,7 +571,7 @@ function update_j4osc_mean_elements_epoch!(
 
     # Now, we just need to propagate the orbit to the desired instant and obtain the mean
     # elements from the J4 propagator structure inside.
-    Δt = (new_epoch - j4oscd.j4d.orb₀.t) * 86400
+    Δt = (new_epoch - j4oscd.j4d.orb₀.epoch) * 86400
     j4osc!(j4oscd, Δt)
     orb = j4oscd.j4d.orbk
 
@@ -604,7 +623,7 @@ function _j4osc_jacobian(
     # The perturbed propagations below overwrite the propagator. Use the scratch propagator
     # when the caller provides one, so it can keep `j4oscd` initialized across the
     # measurements instead of reinitializing it for each one.
-    epoch = j4oscd.j4d.orb₀.t
+    epoch = j4oscd.j4d.orb₀.epoch
     fd::J4OsculatingPropagator{Tepoch, T} = isnothing(pd_fd) ? j4oscd : pd_fd
 
     J = MMatrix{6, 6, T}(undef)
@@ -655,7 +674,7 @@ function _j4osc_jacobian(
     pd_ad::Union{Nothing, J4OsculatingPropagator} = nothing,
     pd_fd::Union{Nothing, J4OsculatingPropagator} = nothing,
 ) where {T <: Number, Tepoch <: Number}
-    epoch = j4oscd.j4d.orb₀.t
+    epoch = j4oscd.j4d.orb₀.epoch
     N     = 6
     tag   = ForwardDiff.Tag{Nothing, T}
     D     = ForwardDiff.Dual{tag, T, N}

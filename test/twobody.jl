@@ -37,8 +37,8 @@
     # == Constructor =======================================================================
 
     @testset "Constructor" begin
-        orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
-        tbd = TwoBodyPropagator{Float64, Float64}(orb, orb, 0, 0, 0, 0)
+        orb = KeplerianElements{MeanAnomaly}(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
+        tbd = TwoBodyPropagator{Float64, Float64}(orb, orb, 0, 0, 0)
 
         # Test some random fields.
         @test tbd.Δt == 0
@@ -46,18 +46,17 @@
         @test tbd.orbk == orb
         @test tbd.μ == 0
         @test tbd.Δt == 0
-        @test tbd.M₀ == 0
         @test tbd.n₀ == 0
 
         orb = KeplerianElements(0.0, 8_000_000, 0, 0, 0, 0, 0)
         orbp = Propagators.init(Val(:TwoBody), orb)
-        @test orbp.tbd.orb₀ isa KeplerianElements{Float64, Float64}
+        @test orbp.tbd.orb₀ isa KeplerianElements{MeanAnomaly, Float64, Float64}
     end
 
     # == General API Functions =============================================================
 
     @testset "General API Functions" begin
-        orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
+        orb = KeplerianElements{MeanAnomaly}(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
         orbp = Propagators.init(Val(:TwoBody), orb)
         @test Propagators.name(orbp) == "Two-Body Orbit Propagator"
     end
@@ -76,7 +75,7 @@
         orbp = Propagators.init(Val(:TwoBody), orb)
 
         orbk = Propagators.mean_elements(orbp)
-        @test orbk isa KeplerianElements{Float64, Float64}
+        @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float64}
         @test orbk.t ≈ orb.t
         @test orbk.a ≈ orb.a
         @test orbk.e ≈ orb.e
@@ -130,7 +129,7 @@
         r, v, orbp = Propagators.propagate(Val(:TwoBody), 40 * 60, orb)
 
         orbk = Propagators.mean_elements(orbp)
-        @test orbk isa KeplerianElements{Float64, Float64}
+        @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float64}
 
         @test r[1] / 1000 ≈ -4219.7527 atol = 1e-3
         @test r[2] / 1000 ≈ +4363.0292 atol = 1e-3
@@ -145,7 +144,7 @@
         r, v, orbp = Propagators.propagate_to_epoch(Val(:TwoBody), jd₁, orb)
 
         orbk = Propagators.mean_elements(orbp)
-        @test orbk isa KeplerianElements{Float64, Float64}
+        @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float64}
 
         @test r[1] / 1000 ≈ -4219.7527 atol = 1e-3
         @test r[2] / 1000 ≈ +4363.0292 atol = 1e-3
@@ -190,7 +189,7 @@
         orbp = Propagators.init(Val(:TwoBody), orb; m0 = tbc_m0_f32)
 
         orbk = Propagators.mean_elements(orbp)
-        @test orbk isa KeplerianElements{Float64, Float32}
+        @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float32}
         @test orbk.t ≈ orb.t
         @test orbk.a ≈ orb.a
         @test orbk.e ≈ orb.e
@@ -244,7 +243,7 @@
         r, v, orbp = Propagators.propagate(Val(:TwoBody), 40 * 60, orb; m0 = tbc_m0_f32)
 
         orbk = Propagators.mean_elements(orbp)
-        @test orbk isa KeplerianElements{Float64, Float32}
+        @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float32}
 
         @test r[1] / 1000 ≈ -4219.7527 atol = 5e-1
         @test r[2] / 1000 ≈ +4363.0292 atol = 5e-1
@@ -261,7 +260,7 @@
         )
 
         orbk = Propagators.mean_elements(orbp)
-        @test orbk isa KeplerianElements{Float64, Float32}
+        @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float32}
 
         @test r[1] / 1000 ≈ -4219.7527 atol = 5e-1
         @test r[2] / 1000 ≈ +4363.0292 atol = 5e-1

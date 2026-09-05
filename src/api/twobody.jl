@@ -4,7 +4,7 @@
 #
 ############################################################################################
 
-Propagators.epoch(orbp::OrbitPropagatorTwoBody)         = orbp.tbd.orb₀.t
+Propagators.epoch(orbp::OrbitPropagatorTwoBody)         = orbp.tbd.orb₀.epoch
 Propagators.last_instant(orbp::OrbitPropagatorTwoBody)  = orbp.tbd.Δt
 Propagators.mean_elements(orbp::OrbitPropagatorTwoBody) = orbp.tbd.orbk
 Propagators.name(orbp::OrbitPropagatorTwoBody)          = "Two-Body Orbit Propagator"

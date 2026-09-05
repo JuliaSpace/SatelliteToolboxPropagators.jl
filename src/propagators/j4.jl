@@ -127,8 +127,14 @@ Create and initialize the J4 orbit propagator structure using the mean Keplerian
     (**Default** = `j4c_egm2008`)
 """
 function j4_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler}; j4c::J4PropagatorConstants{T} = j4c_egm2008
-) where {Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number}
+    orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
+    j4c::J4PropagatorConstants{T} = j4c_egm2008
+) where {
+    Tanomaly <: AbstractAnomaly,
+    Tepoch <: Number,
+    Tkepler <: AbstractFloat,
+    T <: Number
+}
     # Allocate the propagator structure.
     j4d = J4Propagator{Tepoch, T}()
 
@@ -142,8 +148,14 @@ function j4_init(
 end
 
 function j4_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler}; j4c::J4PropagatorConstants{Tj4c} = j4c_egm2008
-) where {Tepoch <: Number, Tkepler <: Number, Tj4c <: Number}
+    orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
+    j4c::J4PropagatorConstants{Tj4c} = j4c_egm2008
+) where {
+    Tanomaly <: AbstractAnomaly,
+    Tepoch <: Number,
+    Tkepler <: Number,
+    Tj4c <: Number
+}
     T = promote_type(Tj4c, Tkepler)
 
     # Allocate the propagator structure.
@@ -178,11 +190,13 @@ function j4_init!(
     J₂  = j4c.J2
     J₄  = j4c.J4
 
+    # Make sure the Keplerian elements use the mean anomaly.
+    ke₀ = convert(KeplerianElements{MeanAnomaly, Tepoch, T}, orb₀)
+
     # Unpack orbit elements.
-    a₀ = T(orb₀.a)
-    e₀ = T(orb₀.e)
-    i₀ = T(orb₀.i)
-    f₀ = T(orb₀.f)
+    a₀ = ke₀.semi_major_axis
+    e₀ = ke₀.eccentricity
+    i₀ = ke₀.inclination
 
     # The theory implemented here is only valid for elliptical orbits. Without this check,
     # the user would get a `DomainError` from an internal square root, or silently wrong
@@ -202,14 +216,14 @@ function j4_init!(
     end
 
     # Initial values and auxiliary variables.
-    al₀ = a₀ / R₀                      # ................... Normalized semi-major axis [er]
-    e₀² = e₀^2                         # .......................... Eccentricity squared [ ]
-    p₀  = al₀ * (1 - e₀²)              # ............................ Semi-latus rectum [er]
-    p₀² = p₀^2                         # ................... Semi-latus rectum squared [er²]
-    p₀⁴ = p₀^4                         # .......... Semi-latus rectum to the 4th power [er⁴]
-    n₀  = μm / √(al₀^3)                # ................. Unperturbed mean motion [rad / s]
-    M₀  = true_to_mean_anomaly(e₀, f₀) # ........................ Initial mean anomaly [rad]
-    J₂² = J₂^2                         # ............................... J2 constant squared
+    al₀ = a₀ / R₀           # .............................. Normalized semi-major axis [er]
+    e₀² = e₀^2              # ..................................... Eccentricity squared [ ]
+    p₀  = al₀ * (1 - e₀²)   # ....................................... Semi-latus rectum [er]
+    p₀² = p₀^2              # .............................. Semi-latus rectum squared [er²]
+    p₀⁴ = p₀^4              # ..................... Semi-latus rectum to the 4th power [er⁴]
+    n₀  = μm / √(al₀^3)     # ............................ Unperturbed mean motion [rad / s]
+    M₀  = mean_anomaly(ke₀) # ................................... Initial mean anomaly [rad]
+    J₂² = J₂^2              # .......................................... J2 constant squared
 
     sin_i₀, cos_i₀ = sincos(T(i₀))
 
@@ -276,13 +290,11 @@ function j4_init!(
         (15//128) * k₄ * (64 + 72e₀² - (248 + 252e₀²) * sin_i₀² + (196 + 189e₀²) * sin_i₀⁴)
 
     # Initialize the propagator structure with the data.
-    j4d.orb₀ = j4d.orbk = orb₀
+    j4d.orb₀ = j4d.orbk = ke₀
     j4d.Δt   = 0
-    j4d.M₀   = M₀
     j4d.∂Ω   = ∂Ω
     j4d.∂ω   = ∂ω
     j4d.n̄    = n̄
-    j4d.M_k  = M₀
 
     return nothing
 end
@@ -366,16 +378,16 @@ function _j4_mean_elements!(
 ) where {Tepoch <: Number, T <: Number}
     # Unpack the variables.
     orb₀  = j4d.orb₀
-    M₀    = j4d.M₀
     ∂Ω    = j4d.∂Ω
     ∂ω    = j4d.∂ω
     n̄     = j4d.n̄
-    epoch = orb₀.t
-    a₀    = orb₀.a
-    e₀    = orb₀.e
-    i₀    = orb₀.i
-    Ω₀    = orb₀.Ω
-    ω₀    = orb₀.ω
+    epoch = orb₀.epoch
+    a₀    = orb₀.semi_major_axis
+    e₀    = orb₀.eccentricity
+    i₀    = orb₀.inclination
+    Ω₀    = orb₀.raan
+    ω₀    = orb₀.argument_of_periapsis
+    M₀    = mean_anomaly(orb₀)
 
     # Time elapsed since epoch.
     Δt = T(t)
@@ -385,22 +397,26 @@ function _j4_mean_elements!(
     ω_k = mod(ω₀ + ∂ω * Δt, T(2π))
     M_k = mod(M₀ + n̄ * Δt, T(2π))
 
-    # Convert the mean anomaly to the true anomaly.
-    f_k = mean_to_true_anomaly(e₀, M_k)
-
     # Assemble the current mean elements.
-    orbk = KeplerianElements(epoch + Tepoch(t) / 86400, a₀, e₀, i₀, Ω_k, ω_k, f_k)
+    orbk = KeplerianElements{MeanAnomaly}(
+        epoch + Tepoch(t) / 86400,
+        a₀,
+        e₀,
+        i₀,
+        Ω_k,
+        ω_k,
+        M_k
+    )
 
     # Update the J4 orbit propagator structure.
     j4d.Δt   = Δt
-    j4d.M_k  = M_k
     j4d.orbk = orbk
 
     return orbk
 end
 
 """
-    fit_j4_mean_elements(vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{Float64, Float64}, SMatrix{6, 6, Float64}
+    fit_j4_mean_elements(vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{TrueAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
 
 Fit a set of mean Keplerian elements for the J4 orbit propagator using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
@@ -452,7 +468,7 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 
 # Returns
 
-- `KeplerianElements{Float64, Float64}`: Fitted Keplerian elements.
+- `KeplerianElements{TrueAnomaly, Float64, Float64}`: Fitted Keplerian elements.
 - `SMatrix{6, 6, Float64}`: Final covariance matrix of the least-square algorithm.
 
 # Examples
@@ -517,7 +533,7 @@ function fit_j4_mean_elements(
 end
 
 """
-    fit_j4_mean_elements!(j4d::J4Propagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {T<:Number, Tepoch<:Number, Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{Tepoch, T}, SMatrix{6, 6, T}
+    fit_j4_mean_elements!(j4d::J4Propagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {T<:Number, Tepoch<:Number, Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{TrueAnomaly, Tepoch, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the J4 orbit propagator `j4d` using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
@@ -568,14 +584,14 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 
 # Returns
 
-- `KeplerianElements{Tepoch, T}`: Fitted Keplerian elements.
+- `KeplerianElements{TrueAnomaly, Tepoch, T}`: Fitted Keplerian elements.
 - `SMatrix{6, 6, T}`: Final covariance matrix of the least-square algorithm.
 
 # Examples
 
 ```julia-repl
 # Allocate a new J4 orbit propagator using a dummy set of Keplerian elements.
-julia> j4d = j4_init(KeplerianElements{Float64, Float64}(0, 7000e3, 0, 0, 0, 0, 0));
+julia> j4d = j4_init(KeplerianElements(0, 7000e3, 0, 0, 0, 0, 0));
 
 julia> vr_i = [
            [-6792.402703741442, 2192.6458461287293, 0.18851758695295118]  .* 1000,
@@ -678,8 +694,8 @@ KeplerianElements{Float64, Float64}:
 ```
 """
 function update_j4_mean_elements_epoch(
-    orb::KeplerianElements{Tepoch, T}, new_epoch::Union{Number, DateTime}
-) where {T <: Number, Tepoch <: Number}
+    orb::KeplerianElements{Tanomaly, Tepoch, T}, new_epoch::Union{Number, DateTime}
+) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, T <: Number}
     # Allocate the J4 propagator structure that will propagate the mean elements.
     j4d = J4Propagator{Tepoch, T}()
 
@@ -751,7 +767,7 @@ function update_j4_mean_elements_epoch!(
 
     # Now, we just need to propagate the orbit to the desired instant and obtain the mean
     # elements from the J4 propagator structure inside.
-    Δt = (new_epoch - j4d.orb₀.t) * 86400
+    Δt = (new_epoch - j4d.orb₀.epoch) * 86400
     j4!(j4d, Δt)
     orb = j4d.orbk
 
@@ -797,7 +813,7 @@ function _j4_jacobian(
     # The perturbed propagations below overwrite the propagator. Use the scratch propagator
     # when the caller provides one, so it can keep `j4d` initialized across the
     # measurements instead of reinitializing it for each one.
-    epoch = j4d.orb₀.t
+    epoch = j4d.orb₀.epoch
     fd::J4Propagator{Tepoch, T} = isnothing(pd_fd) ? j4d : pd_fd
 
     J = MMatrix{6, 6, T}(undef)
@@ -848,7 +864,7 @@ function _j4_jacobian(
     pd_ad::Union{Nothing, J4Propagator} = nothing,
     pd_fd::Union{Nothing, J4Propagator} = nothing,
 ) where {T <: Number, Tepoch <: Number}
-    epoch = j4d.orb₀.t
+    epoch = j4d.orb₀.epoch
     N     = 6
     tag   = ForwardDiff.Tag{Nothing, T}
     D     = ForwardDiff.Dual{tag, T, N}

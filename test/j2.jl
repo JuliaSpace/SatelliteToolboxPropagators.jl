@@ -39,8 +39,8 @@
     # == Constructor =======================================================================
 
     @testset "Constructor" begin
-        orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
-        j2d = J2Propagator{Float64, Float64}(orb, orb, j2c_egm2008, 0, 0, 0, 0, 0, 0)
+        orb = KeplerianElements{MeanAnomaly}(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
+        j2d = J2Propagator{Float64, Float64}(orb, orb, j2c_egm2008, 0, 0, 0, 0)
 
         # Test some random fields.
         @test j2d.Δt == 0
@@ -49,13 +49,13 @@
 
         orb = KeplerianElements(0.0, 8_000_000, 0, 0, 0, 0, 0)
         orbp = Propagators.init(Val(:J2), orb)
-        @test orbp.j2d.orb₀ isa KeplerianElements{Float64, Float64}
+        @test orbp.j2d.orb₀ isa KeplerianElements{MeanAnomaly, Float64, Float64}
     end
 
     # == General API Functions =============================================================
 
     @testset "General API Functions" begin
-        orb = KeplerianElements(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
+        orb = KeplerianElements{MeanAnomaly}(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
         orbp = Propagators.init(Val(:J2), orb)
         @test Propagators.name(orbp) == "J2 Orbit Propagator"
     end
@@ -78,7 +78,7 @@
         orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm2008)
 
         orbk = Propagators.mean_elements(orbp)
-        @test orbk isa KeplerianElements{Float64, Float64}
+        @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float64}
         @test orbk.t ≈ orb.t
         @test orbk.a ≈ orb.a
         @test orbk.e ≈ orb.e
@@ -132,7 +132,7 @@
         r, v, orbp = Propagators.propagate(Val(:J2), (jd₁ - jd₀) * 86400, orb)
 
         orbk = Propagators.mean_elements(orbp)
-        @test orbk isa KeplerianElements{Float64, Float64}
+        @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float64}
 
         @test r[1] / 1000 ≈ -6849.654348 atol = 5e-3
         @test r[2] / 1000 ≈ -2253.059809 atol = 5e-3
@@ -147,7 +147,7 @@
         r, v, orbp = Propagators.propagate_to_epoch(Val(:J2), jd₁, orb)
 
         orbk = Propagators.mean_elements(orbp)
-        @test orbk isa KeplerianElements{Float64, Float64}
+        @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float64}
 
         @test r[1] / 1000 ≈ -6849.654348 atol = 5e-3
         @test r[2] / 1000 ≈ -2253.059809 atol = 5e-3
@@ -192,7 +192,7 @@
         orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm2008_f32)
 
         orbk = Propagators.mean_elements(orbp)
-        @test orbk isa KeplerianElements{Float64, Float32}
+        @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float32}
         @test orbk.t ≈ orb.t
         @test orbk.a ≈ orb.a
         @test orbk.e ≈ orb.e
@@ -248,7 +248,7 @@
         )
 
         orbk = Propagators.mean_elements(orbp)
-        @test orbk isa KeplerianElements{Float64, Float32}
+        @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float32}
 
         @test r[1] / 1000 ≈ -6849.654348 atol = 5e-1
         @test r[2] / 1000 ≈ -2253.059809 atol = 5e-1
@@ -265,7 +265,7 @@
         )
 
         orbk = Propagators.mean_elements(orbp)
-        @test orbk isa KeplerianElements{Float64, Float32}
+        @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float32}
 
         @test r[1] / 1000 ≈ -6849.654348 atol = 5e-1
         @test r[2] / 1000 ≈ -2253.059809 atol = 5e-1
@@ -640,7 +640,7 @@ end
 
     orb_f32 = update_j2_mean_elements_epoch(orb_input_f32, DateTime("2023-01-02"))
 
-    @test orb_f32 isa KeplerianElements{Float64, Float32}
+    @test orb_f32 isa KeplerianElements{MeanAnomaly, Float64, Float32}
     @test orb_f32.a == orb_input_f32.a
     @test orb_f32.e == orb_input_f32.e
     @test orb_f32.i == orb_input_f32.i

@@ -129,8 +129,14 @@ Create and initialize the J2 orbit propagator structure using the mean Keplerian
     (**Default** = `j2c_egm2008`)
 """
 function j2_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler}; j2c::J2PropagatorConstants{T} = j2c_egm2008
-) where {Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number}
+    orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
+    j2c::J2PropagatorConstants{T} = j2c_egm2008
+) where {
+    Tanomaly <: AbstractAnomaly,
+    Tepoch <: Number,
+    Tkepler <: AbstractFloat,
+    T <: Number
+}
     # Allocate the propagator structure.
     j2d = J2Propagator{Tepoch, T}()
 
@@ -144,8 +150,14 @@ function j2_init(
 end
 
 function j2_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler}; j2c::J2PropagatorConstants{Tj2c} = j2c_egm2008
-) where {Tepoch <: Number, Tkepler <: Number, Tj2c <: Number}
+    orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
+    j2c::J2PropagatorConstants{Tj2c} = j2c_egm2008
+) where {
+    Tanomaly <: AbstractAnomaly,
+    Tepoch <: Number,
+    Tkepler <: Number,
+    Tj2c <: Number
+}
     T = promote_type(Tj2c, Tkepler)
 
     # Allocate the propagator structure.
@@ -180,11 +192,13 @@ function j2_init!(
     μm  = j2c.μm
     J₂  = j2c.J2
 
+    # Make sure the Keplerian elements use the mean anomaly.
+    ke₀ = convert(KeplerianElements{MeanAnomaly, Tepoch, T}, orb₀)
+
     # Unpack orbit elements.
-    a₀ = T(orb₀.a)
-    e₀ = T(orb₀.e)
-    i₀ = T(orb₀.i)
-    f₀ = T(orb₀.f)
+    a₀ = ke₀.semi_major_axis
+    e₀ = ke₀.eccentricity
+    i₀ = ke₀.inclination
 
     # The theory implemented here is only valid for elliptical orbits. Without this check,
     # the user would get a `DomainError` from an internal square root, or silently wrong
@@ -204,12 +218,12 @@ function j2_init!(
     end
 
     # Initial values and auxiliary variables.
-    al₀ = a₀ / R₀                      # ................... Normalized semi-major axis [er]
-    e₀² = e₀^2                         # .......................... Eccentricity squared [ ]
-    n₀  = μm / √(al₀^3)                # ................... Unperturbed mean motion [rad/s]
-    p₀  = al₀ * (1 - e₀²)              # ............................ Semi-latus rectum [er]
-    p₀² = p₀^2                         # ................... Semi-latus rectum squared [er²]
-    M₀  = true_to_mean_anomaly(e₀, f₀) # ........................ Initial mean anomaly [rad]
+    al₀ = a₀ / R₀            # ............................. Normalized semi-major axis [er]
+    e₀² = e₀^2               # .................................... Eccentricity squared [ ]
+    n₀  = μm / √(al₀^3)      # ............................. Unperturbed mean motion [rad/s]
+    p₀  = al₀ * (1 - e₀²)    # ...................................... Semi-latus rectum [er]
+    p₀² = p₀^2               # ............................. Semi-latus rectum squared [er²]
+    M₀  = mean_anomaly(ke₀)  # ................................... Initial mean anomaly [rad]
 
     sin_i₀, cos_i₀ = sincos(T(i₀))
     sin_i₀² = sin_i₀^2
@@ -231,13 +245,11 @@ function j2_init!(
     ∂ω = +(3//4) * k̄₂ * (4 - 5sin_i₀²)
 
     # Initialize the propagator structure with the data.
-    j2d.orb₀ = j2d.orbk = orb₀
+    j2d.orb₀ = j2d.orbk = ke₀
     j2d.Δt   = 0
-    j2d.M₀   = M₀
     j2d.∂Ω   = ∂Ω
     j2d.∂ω   = ∂ω
     j2d.n̄    = n̄
-    j2d.M_k  = M₀
 
     return nothing
 end
@@ -321,16 +333,16 @@ function _j2_mean_elements!(
 ) where {Tepoch <: Number, T <: Number}
     # Unpack the variables.
     orb₀  = j2d.orb₀
-    M₀    = j2d.M₀
     ∂Ω    = j2d.∂Ω
     ∂ω    = j2d.∂ω
     n̄     = j2d.n̄
-    epoch = orb₀.t
-    a₀    = orb₀.a
-    e₀    = orb₀.e
-    i₀    = orb₀.i
-    Ω₀    = orb₀.Ω
-    ω₀    = orb₀.ω
+    epoch = orb₀.epoch
+    a₀    = orb₀.semi_major_axis
+    e₀    = orb₀.eccentricity
+    i₀    = orb₀.inclination
+    Ω₀    = orb₀.raan
+    ω₀    = orb₀.argument_of_periapsis
+    M₀    = mean_anomaly(orb₀)
 
     # Time from epoch to propagate the orbit.
     Δt = T(t)
@@ -340,22 +352,26 @@ function _j2_mean_elements!(
     ω_k = mod(ω₀ + ∂ω * Δt, T(2π))
     M_k = mod(M₀ + n̄ * Δt, T(2π))
 
-    # Convert the mean anomaly to the true anomaly.
-    f_k = mean_to_true_anomaly(e₀, M_k)
-
     # Assemble the current mean elements.
-    orbk = KeplerianElements(epoch + Tepoch(t) / 86400, a₀, e₀, i₀, Ω_k, ω_k, f_k)
+    orbk = KeplerianElements{MeanAnomaly}(
+        epoch + Tepoch(t) / 86400,
+        a₀,
+        e₀,
+        i₀,
+        Ω_k,
+        ω_k,
+        M_k
+    )
 
     # Update the J2 orbit propagator structure.
     j2d.Δt   = Δt
-    j2d.M_k  = M_k
     j2d.orbk = orbk
 
     return orbk
 end
 
 """
-    fit_j2_mean_elements(vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{Float64, Float64}, SMatrix{6, 6, Float64}
+    fit_j2_mean_elements(vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{TrueAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
 
 Fit a set of mean Keplerian elements for the J2 orbit propagator using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
@@ -407,7 +423,7 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 
 # Returns
 
-- `KeplerianElements{Float64, Float64}`: Fitted Keplerian elements.
+- `KeplerianElements{TrueAnomaly, Float64, Float64}`: Fitted Keplerian elements.
 - `SMatrix{6, 6, Float64}`: Final covariance matrix of the least-square algorithm.
 
 # Examples
@@ -472,7 +488,7 @@ function fit_j2_mean_elements(
 end
 
 """
-    fit_j2_mean_elements!(j2d::J2Propagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {T<:Number, Tepoch<:Number, Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{Tepoch, T}, SMatrix{6, 6, T}
+    fit_j2_mean_elements!(j2d::J2Propagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {T<:Number, Tepoch<:Number, Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{TrueAnomaly, Tepoch, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the J2 orbit propagator `j2d` using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
@@ -523,14 +539,14 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 
 # Returns
 
-- `KeplerianElements{Tepoch, T}`: Fitted Keplerian elements.
+- `KeplerianElements{TrueAnomaly, Tepoch, T}`: Fitted Keplerian elements.
 - `SMatrix{6, 6, T}`: Final covariance matrix of the least-square algorithm.
 
 # Examples
 
 ```julia-repl
 # Allocate a new J2 orbit propagator using a dummy set of Keplerian elements.
-julia> j2d = j2_init(KeplerianElements{Float64, Float64}(0, 7000e3, 0, 0, 0, 0, 0));
+julia> j2d = j2_init(KeplerianElements(0, 7000e3, 0, 0, 0, 0, 0));
 
 julia> vr_i = [
            [-6792.402703741442, 2192.6458461287293, 0.18851758695295118]  .* 1000,
@@ -633,8 +649,8 @@ KeplerianElements{Float64, Float64}:
 ```
 """
 function update_j2_mean_elements_epoch(
-    orb::KeplerianElements{Tepoch, T}, new_epoch::Union{Number, DateTime}
-) where {T <: Number, Tepoch <: Number}
+    orb::KeplerianElements{Tanomaly, Tepoch, T}, new_epoch::Union{Number, DateTime}
+) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, T <: Number}
     # Allocate the J2 propagator structure that will propagate the mean elements.
     j2d = J2Propagator{Tepoch, T}()
 
@@ -706,7 +722,7 @@ function update_j2_mean_elements_epoch!(
 
     # Now, we just need to propagate the orbit to the desired instant and obtain the mean
     # elements from the J2 propagator structure inside.
-    Δt = (new_epoch - j2d.orb₀.t) * 86400
+    Δt = (new_epoch - j2d.orb₀.epoch) * 86400
     j2!(j2d, Δt)
     orb = j2d.orbk
 
@@ -752,7 +768,7 @@ function _j2_jacobian(
     # The perturbed propagations below overwrite the propagator. Use the scratch propagator
     # when the caller provides one, so it can keep `j2d` initialized across the
     # measurements instead of reinitializing it for each one.
-    epoch = j2d.orb₀.t
+    epoch = j2d.orb₀.epoch
     fd::J2Propagator{Tepoch, T} = isnothing(pd_fd) ? j2d : pd_fd
 
     J = MMatrix{6, 6, T}(undef)
@@ -803,7 +819,7 @@ function _j2_jacobian(
     pd_ad::Union{Nothing, J2Propagator} = nothing,
     pd_fd::Union{Nothing, J2Propagator} = nothing,
 ) where {T <: Number, Tepoch <: Number}
-    epoch = j2d.orb₀.t
+    epoch = j2d.orb₀.epoch
     N     = 6
     tag   = ForwardDiff.Tag{Nothing, T}
     D     = ForwardDiff.Dual{tag, T, N}

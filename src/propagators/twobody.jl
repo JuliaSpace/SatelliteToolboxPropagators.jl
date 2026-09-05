@@ -64,8 +64,13 @@ Create and initialize the two-body propagator structure using the mean Keplerian
     (**Default** = `tbc_m0`)
 """
 function twobody_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler}; m0::T = tbc_m0
-) where {Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number}
+    orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler}; m0::T = tbc_m0
+) where {
+    Tanomaly <: AbstractAnomaly,
+    Tepoch <: Number,
+    Tkepler <: AbstractFloat,
+    T <: Number
+}
     # Allocate the propagator structure.
     tbd = TwoBodyPropagator{Tepoch, T}()
 
@@ -79,8 +84,8 @@ function twobody_init(
 end
 
 function twobody_init(
-    orb₀::KeplerianElements{Tepoch, Tkepler}; m0::Tm0 = tbc_m0
-) where {Tepoch <: Number, Tkepler <: Number, Tm0 <: Number}
+    orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler}; m0::Tm0 = tbc_m0
+) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: Number, Tm0 <: Number}
     T = promote_type(Tm0, Tkepler)
 
     # Allocate the propagator structure.
@@ -108,8 +113,13 @@ Initialize the two-body propagator structure `tbd` using the mean Keplerian elem
 function twobody_init!(
     tbd::TwoBodyPropagator{Tepoch, T}, orb₀::KeplerianElements
 ) where {Tepoch <: Number, T <: Number}
-    a₀ = T(orb₀.a)
-    e₀ = T(orb₀.e)
+    # Make sure the Keplerian elements use the mean anomaly.
+    ke₀ = convert(KeplerianElements{MeanAnomaly, Tepoch, T}, orb₀)
+
+    # Unpack elements.
+    a₀ = ke₀.semi_major_axis
+    e₀ = ke₀.eccentricity
+    M₀ = mean_anomaly(ke₀)
 
     # Without this check, the user would get a `DomainError` from an internal square root,
     # or silently wrong results, instead of a message pointing at the offending element.
@@ -130,14 +140,10 @@ function twobody_init!(
     # Compute the mean motion using the semi-major axis.
     n₀ = √(tbd.μ / a₀^3)
 
-    # Compute the initial mean anomaly.
-    M₀ = true_to_mean_anomaly(e₀, T(orb₀.f))
-
     # Create and return the two-body orbit propagator structure.
-    tbd.orb₀ = orb₀
-    tbd.orbk = orb₀
+    tbd.orb₀ = ke₀
+    tbd.orbk = ke₀
     tbd.Δt   = 0
-    tbd.M₀   = M₀
     tbd.n₀   = n₀
 
     return nothing
@@ -205,24 +211,30 @@ function twobody!(
 ) where {Tepoch <: Number, T <: Number}
     # Unpack.
     orb₀ = tbd.orb₀
-    a₀ = orb₀.a
-    e₀ = orb₀.e
-    i₀ = orb₀.i
-    Ω₀ = orb₀.Ω
-    ω₀ = orb₀.ω
+    a₀   = orb₀.semi_major_axis
+    e₀   = orb₀.eccentricity
+    i₀   = orb₀.inclination
+    Ω₀   = orb₀.raan
+    ω₀   = orb₀.argument_of_periapsis
+    M₀   = mean_anomaly(orb₀)
 
     # Time elapsed since epoch.
-    epoch = orb₀.t
+    epoch = orb₀.epoch
     Δt    = T(t)
 
     # Propagate the orbital elements.
-    M_k = mod(tbd.M₀ + tbd.n₀ * Δt, T(2π))
-
-    # Convert the mean anomaly to true anomaly.
-    f_k = mean_to_true_anomaly(e₀, M_k)
+    M_k = mod(M₀ + tbd.n₀ * Δt, T(2π))
 
     # Assemble the current mean elements.
-    orbk = KeplerianElements(epoch + Tepoch(t) / 86400, a₀, e₀, i₀, Ω₀, ω₀, f_k)
+    orbk = KeplerianElements{MeanAnomaly}(
+        epoch + Tepoch(t) / 86400,
+        a₀,
+        e₀,
+        i₀,
+        Ω₀,
+        ω₀,
+        M_k
+    )
 
     # Compute the position and velocity vectors given the orbital elements.
     r_i_k, v_i_k = kepler_to_rv(orbk)

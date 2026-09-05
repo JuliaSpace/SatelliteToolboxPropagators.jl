@@ -90,7 +90,7 @@ The keywords `kwargs...` are the same as in the first version of this function.
 We can use the function:
 
 ```julia
-Propagators.fit_mean_elements(::Val{:SGP4}, vjd::AbstractVector{Tjd}, vr_teme::AbstractVector{Tv}, vv_teme::AbstractVector{Tv}; kwargs...) -> KeplerianElements{Float64, Float64}, SMatrix{6, 6, Float64}
+Propagators.fit_mean_elements(::Val{:SGP4}, vjd::AbstractVector{Tjd}, vr_teme::AbstractVector{Tv}, vv_teme::AbstractVector{Tv}; kwargs...) -> KeplerianElements{TrueAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
 ```
 
 to fit a Two-Line Element set (`TLE`) for the SGP4 orbit propagator using the osculating

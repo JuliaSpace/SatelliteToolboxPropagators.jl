@@ -72,7 +72,7 @@ orbp = Propagators.init(Val(:J2osc), orb)
 We can use the function:
 
 ```julia
-Propagators.fit_mean_elements(::Val{:J2osc}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) -> KeplerianElements{Float64, Float64}, SMatrix{6, 6, Float64}
+Propagators.fit_mean_elements(::Val{:J2osc}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) -> KeplerianElements{TrueAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
 ```
 
 to fit a set of mean Keplerian elements for the J2 osculating orbit propagator using the

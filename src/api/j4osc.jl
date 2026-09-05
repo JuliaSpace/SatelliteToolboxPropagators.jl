@@ -4,7 +4,7 @@
 #
 ############################################################################################
 
-Propagators.epoch(orbp::OrbitPropagatorJ4Osculating)         = orbp.j4oscd.j4d.orb₀.t
+Propagators.epoch(orbp::OrbitPropagatorJ4Osculating)         = orbp.j4oscd.j4d.orb₀.epoch
 Propagators.last_instant(orbp::OrbitPropagatorJ4Osculating)  = orbp.j4oscd.Δt
 Propagators.mean_elements(orbp::OrbitPropagatorJ4Osculating) = orbp.j4oscd.j4d.orbk
 Propagators.name(orbp::OrbitPropagatorJ4Osculating)          = "J4 Osculating Orbit Propagator"
@@ -16,7 +16,7 @@ Propagators.name(orbp::OrbitPropagatorJ4Osculating)          = "J4 Osculating Or
         vr_i::AbstractVector{Tv},
         vv_i::AbstractVector{Tv};
         kwargs...
-    ) -> KeplerianElements{Float64, Float64}, SMatrix{6, 6, Float64}
+    ) -> KeplerianElements{TrueAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
 
 Fit a set of mean Keplerian elements for the J4 osculating orbit propagator using the
 osculating elements represented by a set of position vectors `vr_i` [m] and a set of
@@ -67,7 +67,7 @@ the array `vjd` [Julian Day].
 
 # Returns
 
-- `KeplerianElements{Float64, Float64}`: Fitted Keplerian elements.
+- `KeplerianElements{TrueAnomaly, Float64, Float64}`: Fitted Keplerian elements.
 - `SMatrix{6, 6, Float64}`: Final covariance matrix of the least-square algorithm.
 """
 function Propagators.fit_mean_elements(
@@ -87,7 +87,10 @@ end
         vr_i::AbstractVector{Tv},
         vv_i::AbstractVector{Tv};
         kwargs...
-    ) where {Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{Tepoch, T}, SMatrix{6, 6, T}
+    ) where {
+        Tjd<:Number,
+        Tv<:AbstractVector
+    } -> KeplerianElements{TrueAnomaly, Tepoch, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the J4 osculating orbit propagator `orbp` using the
 osculating elements represented by a set of position vectors `vr_i` [m] and a set of
@@ -137,7 +140,7 @@ the array `vjd` [Julian Day].
 
 # Returns
 
-- `KeplerianElements{Tepoch, T}`: Fitted Keplerian elements.
+- `KeplerianElements{TrueAnomaly, Tepoch, T}`: Fitted Keplerian elements.
 - `SMatrix{6, 6, T}`: Final covariance matrix of the least-square algorithm.
 """
 function Propagators.fit_mean_elements!(

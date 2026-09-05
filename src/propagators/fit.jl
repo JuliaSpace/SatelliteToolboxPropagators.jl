@@ -107,11 +107,11 @@ function _fit_mean_elements!(
     # diagonal to improve performance by avoiding the Diagonal wrapper.
     W = @SVector T[
         weight_vector[begin],
-        weight_vector[begin + 1],
-        weight_vector[begin + 2],
-        weight_vector[begin + 3],
-        weight_vector[begin + 4],
-        weight_vector[begin + 5],
+        weight_vector[1 + begin],
+        weight_vector[2 + begin],
+        weight_vector[3 + begin],
+        weight_vector[4 + begin],
+        weight_vector[5 + begin],
     ]
 
     # Initial guess of the mean elements.
@@ -223,11 +223,11 @@ function _fit_mean_elements!(
 
             y = SVector{6, T}(
                 r_i[begin],
-                r_i[begin + 1],
-                r_i[begin + 2],
+                r_i[1 + begin],
+                r_i[2 + begin],
                 v_i[begin],
-                v_i[begin + 1],
-                v_i[begin + 2],
+                v_i[1 + begin],
+                v_i[2 + begin],
             )
 
             # Obtain the propagation time for this measurement.
@@ -346,7 +346,9 @@ function _fit_mean_elements!(
         verbose && println(
             "$(cy)ACTION:$(cd)   Updating the epoch of the fitted mean elements to match the desired one.",
         )
-        orb = _update_mean_elements_epoch!(pd, orb, mean_elements_epoch)
+        orb = convert(
+            typeof(orb), _update_mean_elements_epoch!(pd, orb, mean_elements_epoch)
+        )
     end
 
     # Initialize the propagator with the mean elements.

@@ -72,7 +72,7 @@ function fit_mean_elements end
 function fit_mean_elements(
     prop::Val, vsv::AbstractVector{OrbitStateVector{Tepoch, T}}; kwargs...
 ) where {Tepoch <: Number, T <: Number}
-    vjd  = map(x -> x.t, vsv)
+    vjd  = map(x -> x.epoch, vsv)
     vr_i = map(x -> x.r, vsv)
     vv_i = map(x -> x.v, vsv)
 
@@ -116,7 +116,7 @@ function fit_mean_elements! end
 function fit_mean_elements!(
     orbp::OrbitPropagator, vsv::AbstractVector{OrbitStateVector{Tepoch, T}}; kwargs...
 ) where {Tepoch <: Number, T <: Number}
-    vjd  = map(x -> x.t, vsv)
+    vjd  = map(x -> x.epoch, vsv)
     vr_i = map(x -> x.r, vsv)
     vv_i = map(x -> x.v, vsv)
 
