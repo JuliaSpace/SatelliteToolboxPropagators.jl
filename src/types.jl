@@ -323,3 +323,40 @@ Two body orbit propagator.
 struct OrbitPropagatorTwoBody{Tepoch <: Number, T <: Number} <: OrbitPropagator{Tepoch, T}
     tbd::TwoBodyPropagator{Tepoch, T}
 end
+
+############################################################################################
+#                                        Julia API                                         #
+############################################################################################
+
+# Union of the low-level propagator structures defined in this package.
+const _PropagatorData{Tepoch, T} = Union{
+    J2Propagator{Tepoch, T},
+    J2OsculatingPropagator{Tepoch, T},
+    J4Propagator{Tepoch, T},
+    J4OsculatingPropagator{Tepoch, T},
+    TwoBodyPropagator{Tepoch, T},
+}
+
+"""
+    Base.copy(pd::P) where {P <: _PropagatorData} -> P
+
+Create a copy of the propagator structure `pd`. The fields that are propagator structures
+themselves, such as the J2 propagator inside the J2 osculating propagator, are copied
+recursively so that the copy can be propagated independently of `pd`.
+"""
+function Base.copy(pd::P) where {P <: _PropagatorData}
+    return P(ntuple(i -> _copy_field(getfield(pd, i)), Val(fieldcount(P)))...)
+end
+
+############################################################################################
+#                                    Private Functions                                     #
+############################################################################################
+
+"""
+    _copy_field(x) -> typeof(x)
+
+Return the value stored in a propagator field when copying the structure. Nested propagator
+structures are copied, whereas every other field is immutable and is returned as is.
+"""
+_copy_field(x) = x
+_copy_field(pd::_PropagatorData) = copy(pd)

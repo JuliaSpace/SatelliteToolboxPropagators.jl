@@ -24,26 +24,6 @@ const TBC_M0     = 3.986004415e14
 const TBC_M0_F32 = 3.986004415f14
 
 ############################################################################################
-#                                        Julia API                                         #
-############################################################################################
-
-# Define `copy` for the propagator structure.
-let
-    fields = fieldnames(TwoBodyPropagator)
-    expressions = [:(new_tbd.$f = tbd.$f) for f in fields]
-
-    @eval begin
-        function Base.copy(
-            tbd::TwoBodyPropagator{Tepoch, T}
-        ) where {Tepoch <: Number, T <: Number}
-            new_tbd = TwoBodyPropagator{Tepoch, T}()
-            $(expressions...)
-            return new_tbd
-        end
-    end
-end
-
-############################################################################################
 #                                        Functions                                         #
 ############################################################################################
 
