@@ -10,6 +10,49 @@
 ############################################################################################
 
 ############################################################################################
+#                                        Constants                                         #
+############################################################################################
+
+# The decorated strings printed by the fitting algorithm are rendered once here with
+# **StyledStrings**, in the plain and in the colored versions, so that the algorithm only
+# prints plain strings. Otherwise, printing an annotated string inside the algorithm adds
+# many allocation sites to it, even though they are only reachable when `verbose` is `true`.
+const _FIT_ACTION_TAG = (
+    "ACTION:",
+    sprint(
+        print, styled"{(foreground=yellow,weight=bold):ACTION:}"; context = :color => true
+    ),
+)
+
+const _FIT_PROGRESS_TAG = (
+    "PROGRESS:", sprint(print, styled"{bold:PROGRESS:}"; context = :color => true)
+)
+
+const _FIT_HEADER = let
+    header = @sprintf(
+        "%10s %20s %20s %20s %20s",
+        "Iteration",
+        "Position RMSE",
+        "Velocity RMSE",
+        "Total RMSE",
+        "RMSE Variation"
+    )
+    (
+        header,
+        sprint(
+            print,
+            styled"{(foreground=yellow,weight=bold):$header}";
+            context = :color => true,
+        ),
+    )
+end
+
+const _FIT_UNITS = let
+    units = @sprintf("%10s %20s %20s %20s", "", "[km]", "[km / s]", "[ ]")
+    (units, sprint(print, styled"{bold:$units}"; context = :color => true))
+end
+
+############################################################################################
 #                                    Private Functions                                     #
 ############################################################################################
 
@@ -160,6 +203,10 @@ function _fit_mean_elements!(
         throw(ArgumentError("The weight vector must have 6 elements."))
     end
 
+    # Check once if `stdout` supports colors, which selects the decorated strings printed by
+    # the algorithm when `verbose` is `true`.
+    has_color = get(stdout, :color, false)::Bool
+
     # Assemble the weight vector. Since the weight matrix is diagonal, we store only the
     # diagonal to improve performance by avoiding the Diagonal wrapper.
     W = @SVector T[
@@ -179,6 +226,7 @@ function _fit_mean_elements!(
 
         # First, we need to update the mean elements to the desired epoch.
         verbose && _fit_print_action(
+            has_color,
             "Updating the epoch of the initial mean elements guess to match the desired one.",
         )
         orb = _update_mean_elements_epoch!(pd, initial_guess, epoch)
@@ -219,15 +267,11 @@ function _fit_mean_elements!(
     # Header.
     if verbose
         _fit_print_action(
-            "Fitting the mean elements for the $(_propagator_name(pd)) propagator."
+            has_color,
+            "Fitting the mean elements for the $(_propagator_name(pd)) propagator.",
         )
 
-        header = @sprintf("%10s %20s %20s %20s %20s", "Iteration", "Position RMSE", "Velocity RMSE", "Total RMSE", "RMSE Variation")
-        units  = @sprintf("%10s %20s %20s %20s", "", "[km]", "[km / s]", "[ ]")
-
-        println("          ", styled"{(foreground=yellow,weight=bold):$header}")
-        println("          ", styled"{bold:$units}")
-        println()
+        _fit_print_header(has_color)
     end
 
     # We need a reference to the covariance inverse because we will invert it and return
@@ -339,6 +383,7 @@ function _fit_mean_elements!(
         # We cannot compute the RMSE variation in the first iteration.
         if it == 1
             verbose && _fit_print_progress(
+                has_color,
                 @sprintf(
                     "%10d %20g %20g %20g %20s", it, σp_i / 1000, σv_i / 1000, σ_i, "---"
                 )
@@ -349,6 +394,7 @@ function _fit_mean_elements!(
             Δσ = (σ_i - σ_i_₁) / σ_i_₁
 
             verbose && _fit_print_progress(
+                has_color,
                 @sprintf(
                     "%10d %20g %20g %20g %20g %%",
                     it,
@@ -388,7 +434,8 @@ function _fit_mean_elements!(
     # Update the epoch of the fitted mean elements to match the desired one.
     if abs(epoch - mean_elements_epoch) > 0.001 / 86400
         verbose && _fit_print_action(
-            "Updating the epoch of the fitted mean elements to match the desired one."
+            has_color,
+            "Updating the epoch of the fitted mean elements to match the desired one.",
         )
         orb = _update_mean_elements_epoch!(pd, orb, mean_elements_epoch)
     end
@@ -406,27 +453,61 @@ end
 # == Helpers ===============================================================================
 
 """
-    _fit_print_action(msg::AbstractString) -> Nothing
+    _fit_print_action(has_color::Bool, msg::AbstractString) -> Nothing
 
-Print to `stdout` the action message `msg` of the fitting algorithm, prefixed by a
-highlighted `ACTION:` tag. The decorations are only emitted if `stdout` supports colors.
+Print to `stdout` the action message `msg` of the fitting algorithm, prefixed by an `ACTION:`
+tag, which is highlighted if `has_color` is `true`.
 """
-function _fit_print_action(msg::AbstractString)
-    println(styled"{(foreground=yellow,weight=bold):ACTION:}   ", msg)
+# The helper is not inlined so that its allocation sites, which are only reachable when the
+# algorithm is verbose, are counted once regardless of the number of call sites.
+@noinline function _fit_print_action(has_color::Bool, msg::AbstractString)
+    println(_fit_decorated(_FIT_ACTION_TAG, has_color), "   ", msg)
     return nothing
 end
 
 """
-    _fit_print_progress(msg::AbstractString) -> Nothing
+    _fit_print_header(has_color::Bool) -> Nothing
+
+Print to `stdout` the header of the progress table of the fitting algorithm, followed by an
+empty line that the first progress line overwrites. The header is decorated if `has_color`
+is `true`.
+"""
+# The helper is not inlined so that its allocation sites, which are only reachable when the
+# algorithm is verbose, are counted once regardless of the number of call sites.
+@noinline function _fit_print_header(has_color::Bool)
+    print(
+        "          ",
+        _fit_decorated(_FIT_HEADER, has_color),
+        "\n          ",
+        _fit_decorated(_FIT_UNITS, has_color),
+        "\n\n",
+    )
+    return nothing
+end
+
+"""
+    _fit_print_progress(has_color::Bool, msg::AbstractString) -> Nothing
 
 Print to `stdout` the progress line `msg` of the fitting algorithm, prefixed by a
-highlighted `PROGRESS:` tag. The previous line is erased first, so consecutive calls update
-the same terminal line. The decorations are only emitted if `stdout` supports colors.
+`PROGRESS:` tag, which is highlighted if `has_color` is `true`. The previous line is erased
+first, so consecutive calls update the same terminal line.
 """
-function _fit_print_progress(msg::AbstractString)
-    print("\x1b[A\x1b[2K\r", styled"{bold:PROGRESS:} ", msg, "\n")
+# The helper is not inlined so that its allocation sites, which are only reachable when the
+# algorithm is verbose, are counted once regardless of the number of call sites.
+@noinline function _fit_print_progress(has_color::Bool, msg::AbstractString)
+    print("\x1b[A\x1b[2K\r", _fit_decorated(_FIT_PROGRESS_TAG, has_color), " ", msg, "\n")
     return nothing
 end
+
+"""
+    _fit_decorated(versions::Tuple{String, String}, has_color::Bool) -> String
+
+Return the colored version of a string printed by the fitting algorithm, stored as the second
+element of `versions`, if `has_color` is `true`. Otherwise, return the plain version stored
+as its first element.
+"""
+_fit_decorated(versions::Tuple{String, String}, has_color::Bool) =
+    versions[has_color ? 2 : 1]
 
 """
     _dual_type(::Type{T}) where {T <: Number} -> Type
