@@ -16,7 +16,7 @@ Propagators.name(orbp::OrbitPropagatorJ2Osculating)          = "J2 Osculating Or
         vr_i::AbstractVector{Tv},
         vv_i::AbstractVector{Tv};
         kwargs...
-    ) -> KeplerianElements{TrueAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
+    ) -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
 
 Fit a set of mean Keplerian elements for the J2 osculating orbit propagator using the
 osculating elements represented by a set of position vectors `vr_i` [m] and a set of
@@ -67,7 +67,7 @@ the array `vjd` [Julian Day].
 
 # Returns
 
-- `KeplerianElements{TrueAnomaly, Float64, Float64}`: Fitted Keplerian elements.
+- `KeplerianElements{MeanAnomaly, Float64, Float64}`: Fitted Keplerian elements.
 - `SMatrix{6, 6, Float64}`: Final covariance matrix of the least-square algorithm.
 """
 function Propagators.fit_mean_elements(
@@ -90,7 +90,7 @@ end
     ) where {
         Tjd<:Number,
         Tv<:AbstractVector
-    } -> KeplerianElements{TrueAnomaly, Tepoch, T}, SMatrix{6, 6, T}
+    } -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the J2 osculating orbit propagator `orbp` using the
 osculating elements represented by a set of position vectors `vr_i` [m] and a set of
@@ -140,7 +140,7 @@ the array `vjd` [Julian Day].
 
 # Returns
 
-- `KeplerianElements{TrueAnomaly, Tepoch, T}`: Fitted Keplerian elements.
+- `KeplerianElements{MeanAnomaly, Tepoch, T}`: Fitted Keplerian elements.
 - `SMatrix{6, 6, T}`: Final covariance matrix of the least-square algorithm.
 """
 function Propagators.fit_mean_elements!(

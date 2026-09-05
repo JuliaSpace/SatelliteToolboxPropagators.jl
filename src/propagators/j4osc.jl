@@ -177,7 +177,7 @@ function j4osc!(
 end
 
 """
-    fit_j4osc_mean_elements(vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{TrueAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
+    fit_j4osc_mean_elements(vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
 
 Fit a set of mean Keplerian elements for the J4 osculating orbit propagator using the
 osculating elements represented by a set of position vectors `vr_i` [m] and a set of
@@ -228,7 +228,7 @@ the array `vjd` [Julian Day].
 
 # Returns
 
-- `KeplerianElements{TrueAnomaly, Float64, Float64}`: Fitted Keplerian elements.
+- `KeplerianElements{MeanAnomaly, Float64, Float64}`: Fitted Keplerian elements.
 - `SMatrix{6, 6, Float64}`: Final covariance matrix of the least-square algorithm.
 
 # Examples
@@ -253,19 +253,19 @@ julia> orb, P = fit_j4osc_mean_elements(vjd, vr_i, vv_i)
 ACTION:   Fitting the mean elements for the J4 osculating propagator.
            Iteration        Position RMSE        Velocity RMSE           Total RMSE       RMSE Variation
                                      [km]             [km / s]                  [ ]
-PROGRESS:          4          1.68852e-05           0.00259716              2.59722          6.52143e-10 %
+PROGRESS:          4          1.68763e-05           0.00259611              2.59616          1.08586e-09 %
 
-(KeplerianElements{Float64, Float64}: Epoch = 2.46003e6 (2023-03-24T16:33:40.388), [0.999942775712293 -0.004901178682591695 … -0.00012021347649120565 -0.0001155014732440418; -0.004901178674245216 1.0007325984965127 … 0.0032661543862499806 3.8581997167487534e-5; … ; -0.00012021347646254671 0.003266154386250846 … 2.204822797002821e-5 5.3982040158043245e-8; -0.00011550147323899825 3.8581997169916946e-5 … 5.398204016417114e-8 2.1657607378172235e-5])
+(KeplerianElements{MeanAnomaly, Float64, Float64}: Epoch = 2.46003e6 (2023-03-24T16:33:40.388), [0.9999427681054915 -0.004901179110064787 … -0.00012021347573371965 -0.00011550159594742305; -0.004901179104382454 1.0007325998821814 … 0.0032661543927207434 3.8582051095353965e-5; … ; -0.00012021347571372953 0.0032661543927214936 … 2.204822799517442e-5 5.3982379473473e-8; -0.00011550159594878459 3.8582051094144375e-5 … 5.3982379468632544e-8 2.1657607939466597e-5])
 
 julia> orb
-KeplerianElements{Float64, Float64}:
-           Epoch :    2.46003e6 (2023-03-24T16:33:40.388)
- Semi-major axis : 7135.79       km
-    Eccentricity :    0.00135314
-     Inclination :   98.4304     °
-            RAAN :  162.113      °
- Arg. of Perigee :   64.9687     °
-    True Anomaly :  313.042      °
+KeplerianElements{MeanAnomaly, Float64, Float64}:
+             Epoch :    2.46003e6 (2023-03-24T16:33:40.388)
+   Semi-major axis : 7135.79       km
+      Eccentricity :    0.00135314
+       Inclination :   98.4304     °
+              RAAN :  162.113      °
+ Arg. of Periapsis :   64.9687     °
+      Mean Anomaly :  313.155      °
 ```
 """
 function fit_j4osc_mean_elements(
@@ -285,7 +285,7 @@ function fit_j4osc_mean_elements(
 end
 
 """
-    fit_j4osc_mean_elements!(j4oscd::J4OsculatingPropagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {T<:Number, Tepoch<:Number, Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{TrueAnomaly, Tepoch, T}, SMatrix{6, 6, T}
+    fit_j4osc_mean_elements!(j4oscd::J4OsculatingPropagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {T<:Number, Tepoch<:Number, Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the J4 osculating orbit propagator `j4oscd` using
 the osculating elements represented by a set of position vectors `vr_i` [m] and a set of
@@ -335,14 +335,14 @@ the array `vjd` [Julian Day].
 
 # Returns
 
-- `KeplerianElements{TrueAnomaly, Tepoch, T}`: Fitted Keplerian elements.
+- `KeplerianElements{MeanAnomaly, Tepoch, T}`: Fitted Keplerian elements.
 - `SMatrix{6, 6, T}`: Final covariance matrix of the least-square algorithm.
 
 # Examples
 
 ```julia-repl
 # Allocate a new J4 osculating orbit propagator using a dummy set of Keplerian elements.
-julia> j4oscd = j4osc_init(KeplerianElements(0, 7000e3, 0, 0, 0, 0, 0));
+julia> j4oscd = j4osc_init(KeplerianElements(0.0, 7000e3, 0, 0, 0, 0, 0));
 
 julia> vr_i = [
            [-6792.402703741442, 2192.6458461287293, 0.18851758695295118] .* 1000,
@@ -363,19 +363,19 @@ julia> orb, P = fit_j4osc_mean_elements!(j4oscd, vjd, vr_i, vv_i)
 ACTION:   Fitting the mean elements for the J4 osculating propagator.
            Iteration        Position RMSE        Velocity RMSE           Total RMSE       RMSE Variation
                                      [km]             [km / s]                  [ ]
-PROGRESS:          4          1.68852e-05           0.00259716              2.59722          6.52143e-10 %
+PROGRESS:          4          1.68763e-05           0.00259611              2.59616          1.08586e-09 %
 
-(KeplerianElements{Float64, Float64}: Epoch = 2.46003e6 (2023-03-24T16:33:40.388), [0.999942775712293 -0.004901178682591695 … -0.00012021347649120565 -0.0001155014732440418; -0.004901178674245216 1.0007325984965127 … 0.0032661543862499806 3.8581997167487534e-5; … ; -0.00012021347646254671 0.003266154386250846 … 2.204822797002821e-5 5.3982040158043245e-8; -0.00011550147323899825 3.8581997169916946e-5 … 5.398204016417114e-8 2.1657607378172235e-5])
+(KeplerianElements{MeanAnomaly, Float64, Float64}: Epoch = 2.46003e6 (2023-03-24T16:33:40.388), [0.9999427681054915 -0.004901179110064787 … -0.00012021347573371965 -0.00011550159594742305; -0.004901179104382454 1.0007325998821814 … 0.0032661543927207434 3.8582051095353965e-5; … ; -0.00012021347571372953 0.0032661543927214936 … 2.204822799517442e-5 5.3982379473473e-8; -0.00011550159594878459 3.8582051094144375e-5 … 5.3982379468632544e-8 2.1657607939466597e-5])
 
 julia> orb
-KeplerianElements{Float64, Float64}:
-           Epoch :    2.46003e6 (2023-03-24T16:33:40.388)
- Semi-major axis : 7135.79       km
-    Eccentricity :    0.00135314
-     Inclination :   98.4304     °
-            RAAN :  162.113      °
- Arg. of Perigee :   64.9687     °
-    True Anomaly :  313.042      °
+KeplerianElements{MeanAnomaly, Float64, Float64}:
+             Epoch :    2.46003e6 (2023-03-24T16:33:40.388)
+   Semi-major axis : 7135.79       km
+      Eccentricity :    0.00135314
+       Inclination :   98.4304     °
+              RAAN :  162.113      °
+ Arg. of Periapsis :   64.9687     °
+      Mean Anomaly :  313.155      °
 ```
 """
 function fit_j4osc_mean_elements!(
@@ -412,24 +412,24 @@ julia> orb = KeplerianElements(
            200    |> deg2rad,
            45     |> deg2rad
        )
-KeplerianElements{Float64, Float64}:
-           Epoch :    2.45995e6 (2023-01-01T00:00:00)
- Semi-major axis : 7190.98     km
-    Eccentricity :    0.001111
-     Inclination :   98.405    °
-            RAAN :   90.0      °
- Arg. of Perigee :  200.0      °
-    True Anomaly :   45.0      °
+KeplerianElements{TrueAnomaly, Float64, Float64}:
+             Epoch :    2.45995e6 (2023-01-01T00:00:00)
+   Semi-major axis : 7190.98     km
+      Eccentricity :    0.001111
+       Inclination :   98.405    °
+              RAAN :   90.0      °
+ Arg. of Periapsis :  200.0      °
+      True Anomaly :   45.0      °
 
 julia> update_j4osc_mean_elements_epoch(orb, DateTime("2023-01-02"))
-KeplerianElements{Float64, Float64}:
-           Epoch :    2.45995e6 (2023-01-02T00:00:00)
- Semi-major axis : 7190.98     km
-    Eccentricity :    0.001111
-     Inclination :   98.405    °
-            RAAN :   90.9555   °
- Arg. of Perigee :  197.079    °
-    True Anomaly :  127.293    °
+KeplerianElements{MeanAnomaly, Float64, Float64}:
+             Epoch :    2.45995e6 (2023-01-02T00:00:00)
+   Semi-major axis : 7190.98     km
+      Eccentricity :    0.001111
+       Inclination :   98.405    °
+              RAAN :   90.9555   °
+ Arg. of Periapsis :  197.079    °
+      Mean Anomaly :  127.191    °
 ```
 """
 function update_j4osc_mean_elements_epoch(
@@ -471,28 +471,28 @@ julia> orb = KeplerianElements(
            200    |> deg2rad,
            45     |> deg2rad
        )
-KeplerianElements{Float64, Float64}:
-           Epoch :    2.45995e6 (2023-01-01T00:00:00)
- Semi-major axis : 7190.98     km
-    Eccentricity :    0.001111
-     Inclination :   98.405    °
-            RAAN :   90.0      °
- Arg. of Perigee :  200.0      °
-    True Anomaly :   45.0      °
+KeplerianElements{TrueAnomaly, Float64, Float64}:
+             Epoch :    2.45995e6 (2023-01-01T00:00:00)
+   Semi-major axis : 7190.98     km
+      Eccentricity :    0.001111
+       Inclination :   98.405    °
+              RAAN :   90.0      °
+ Arg. of Periapsis :  200.0      °
+      True Anomaly :   45.0      °
 
 # Allocate a new J4 osculating orbit propagator using the created Keplerian elements. Notice
 # that any set of Keplerian elements can be used here.
 julia> j4oscd = j4osc_init(orb);
 
 julia> update_j4osc_mean_elements_epoch!(j4oscd, orb, DateTime("2023-01-02"))
-KeplerianElements{Float64, Float64}:
-           Epoch :    2.45995e6 (2023-01-02T00:00:00)
- Semi-major axis : 7190.98     km
-    Eccentricity :    0.001111
-     Inclination :   98.405    °
-            RAAN :   90.9555   °
- Arg. of Perigee :  197.079    °
-    True Anomaly :  127.293    °
+KeplerianElements{MeanAnomaly, Float64, Float64}:
+             Epoch :    2.45995e6 (2023-01-02T00:00:00)
+   Semi-major axis : 7190.98     km
+      Eccentricity :    0.001111
+       Inclination :   98.405    °
+              RAAN :   90.9555   °
+ Arg. of Periapsis :  197.079    °
+      Mean Anomaly :  127.191    °
 ```
 """
 function update_j4osc_mean_elements_epoch!(

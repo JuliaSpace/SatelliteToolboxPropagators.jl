@@ -1124,7 +1124,7 @@ end
             verbose             = false,
         )
 
-        @test orbk isa KeplerianElements{TrueAnomaly, Float64, Float32}
+        @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float32}
         @test P isa SMatrix{6, 6, Float32}
         @test orbk.t == vjd[begin]
     end

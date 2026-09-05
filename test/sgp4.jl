@@ -94,14 +94,15 @@
         @test Propagators.name(orbp) == "SGP4 Orbit Propagator"
 
         orbk = Propagators.mean_elements(orbp)
-        @test orbk.t == Propagators.epoch(orbp)
-        @test orbk.a ==
+        @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float64}
+        @test orbk.epoch == Propagators.epoch(orbp)
+        @test orbk.semi_major_axis ==
             (orbp.sgp4d.sgp4c.XKE / orbp.sgp4d.n₀)^(2 / 3) * (1000 * orbp.sgp4d.sgp4c.R0)
-        @test orbk.e == orbp.sgp4d.e₀
-        @test orbk.i == orbp.sgp4d.i₀
-        @test orbk.Ω == orbp.sgp4d.Ω₀
-        @test orbk.ω == orbp.sgp4d.ω₀
-        @test orbk.f == mean_to_true_anomaly(orbp.sgp4d.e₀, orbp.sgp4d.M₀)
+        @test orbk.eccentricity == orbp.sgp4d.e₀
+        @test orbk.inclination == orbp.sgp4d.i₀
+        @test orbk.raan == orbp.sgp4d.Ω₀
+        @test orbk.argument_of_periapsis == orbp.sgp4d.ω₀
+        @test orbk.anomaly == orbp.sgp4d.M₀
     end
 
     # == Float64 ===========================================================================

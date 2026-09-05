@@ -53,15 +53,16 @@ function Propagators.mean_elements(orbp::OrbitPropagatorSgp4)
     # Initialize the propagator to obtain the mean elements.
     sgp4_init!(sgp4d, updated_tle)
 
-    # Create and return the Keplerian elements.
-    return KeplerianElements(
+    # Create and return the Keplerian elements storing the mean anomaly. The semi-major axis
+    # is recovered from the mean motion using the SGP4 constants, converting it to meters.
+    return KeplerianElements{MeanAnomaly}(
         new_epoch,
         (sgp4c.XKE / sgp4d.n₀)^(2 // 3) * (1000 * sgp4c.R0),
         sgp4d.e₀,
         sgp4d.i₀,
         sgp4d.Ω₀,
         sgp4d.ω₀,
-        mean_to_true_anomaly(sgp4d.e₀, sgp4d.M₀),
+        sgp4d.M₀,
     )
 end
 

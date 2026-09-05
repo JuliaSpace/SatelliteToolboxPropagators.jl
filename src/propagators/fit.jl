@@ -140,15 +140,8 @@ function _fit_mean_elements!(
             "Fitting the mean elements for the $(_propagator_name(pd)) propagator."
         )
 
-        header = @sprintf(
-            "%10s %20s %20s %20s %20s",
-            "Iteration",
-            "Position RMSE",
-            "Velocity RMSE",
-            "Total RMSE",
-            "RMSE Variation"
-        )
-        units = @sprintf("%10s %20s %20s %20s %20s", "", "[km]", "[km / s]", "[ ]", "")
+        header = @sprintf("%10s %20s %20s %20s %20s", "Iteration", "Position RMSE", "Velocity RMSE", "Total RMSE", "RMSE Variation")
+        units  = @sprintf("%10s %20s %20s %20s", "", "[km]", "[km / s]", "[ ]")
 
         println("          ", styled"{(foreground=yellow,weight=bold):$header}")
         println("          ", styled"{bold:$units}")
@@ -301,17 +294,18 @@ function _fit_mean_elements!(
 
     verbose && println()
 
-    # Obtain the mean elements.
-    orb = rv_to_kepler(x₂[SOneTo(3)], x₂[StaticArrays.SUnitRange(4, 6)], epoch)
+    # Obtain the mean elements, which store the mean anomaly.
+    orb = convert(
+        KeplerianElements{MeanAnomaly, Tepoch, T},
+        rv_to_kepler(x₂[SOneTo(3)], x₂[StaticArrays.SUnitRange(4, 6)], epoch),
+    )
 
     # Update the epoch of the fitted mean elements to match the desired one.
     if abs(epoch - mean_elements_epoch) > 0.001 / 86400
         verbose && _fit_print_action(
             "Updating the epoch of the fitted mean elements to match the desired one."
         )
-        orb = convert(
-            typeof(orb), _update_mean_elements_epoch!(pd, orb, mean_elements_epoch)
-        )
+        orb = _update_mean_elements_epoch!(pd, orb, mean_elements_epoch)
     end
 
     # Initialize the propagator with the mean elements.
