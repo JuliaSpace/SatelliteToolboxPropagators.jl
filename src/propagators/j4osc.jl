@@ -63,12 +63,9 @@ elements `orb₀`.
 """
 function j4osc_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j4c::J4PropagatorConstants{T} = j4c_egm2008
+    j4c::J4PropagatorConstants{T} = j4c_egm2008,
 ) where {
-    Tanomaly <: AbstractAnomaly,
-    Tepoch <: Number,
-    Tkepler <: AbstractFloat,
-    T <: Number
+    Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number
 }
     # Allocate the J4 propagator structure that will propagate the mean elements.
     j4d = J4Propagator{Tepoch, T}()
@@ -88,13 +85,8 @@ end
 
 function j4osc_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j4c::J4PropagatorConstants{Tj4c} = j4c_egm2008
-) where {
-    Tanomaly <: AbstractAnomaly,
-    Tepoch <: Number,
-    Tkepler <: Number,
-    Tj4c <: Number
-}
+    j4c::J4PropagatorConstants{Tj4c} = j4c_egm2008,
+) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: Number, Tj4c <: Number}
     T = promote_type(Tj4c, Tkepler)
 
     # Allocate the J4 propagator structure that will propagate the mean elements.
@@ -219,12 +211,7 @@ function j4osc!(
     J₂  = j4c.J2
 
     orbk = _osculating_elements(
-        mean_orbk,
-        mean_anomaly(mean_orbk),
-        mean_orbk.epoch,
-        R₀,
-        μm,
-        J₂
+        mean_orbk, mean_anomaly(mean_orbk), mean_orbk.epoch, R₀, μm, J₂
     )
 
     # Compute the position and velocity considering the osculating elements.

@@ -128,12 +128,9 @@ Create and initialize the J4 orbit propagator structure using the mean Keplerian
 """
 function j4_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j4c::J4PropagatorConstants{T} = j4c_egm2008
+    j4c::J4PropagatorConstants{T} = j4c_egm2008,
 ) where {
-    Tanomaly <: AbstractAnomaly,
-    Tepoch <: Number,
-    Tkepler <: AbstractFloat,
-    T <: Number
+    Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number
 }
     # Allocate the propagator structure.
     j4d = J4Propagator{Tepoch, T}()
@@ -149,13 +146,8 @@ end
 
 function j4_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j4c::J4PropagatorConstants{Tj4c} = j4c_egm2008
-) where {
-    Tanomaly <: AbstractAnomaly,
-    Tepoch <: Number,
-    Tkepler <: Number,
-    Tj4c <: Number
-}
+    j4c::J4PropagatorConstants{Tj4c} = j4c_egm2008,
+) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: Number, Tj4c <: Number}
     T = promote_type(Tj4c, Tkepler)
 
     # Allocate the propagator structure.
@@ -399,13 +391,7 @@ function _j4_mean_elements!(
 
     # Assemble the current mean elements.
     orbk = KeplerianElements{MeanAnomaly}(
-        epoch + Tepoch(t) / 86400,
-        a₀,
-        e₀,
-        i₀,
-        Ω_k,
-        ω_k,
-        M_k
+        epoch + Tepoch(t) / 86400, a₀, e₀, i₀, Ω_k, ω_k, M_k
     )
 
     # Update the J4 orbit propagator structure.

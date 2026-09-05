@@ -59,7 +59,10 @@ else
             @test length(
                 check_allocs(
                     (j2d, orb₀) -> j2_init!(j2d, orb₀),
-                    (J2Propagator{Float64, Float64}, KeplerianElements{TrueAnomaly, Float64, Float64}),
+                    (
+                        J2Propagator{Float64, Float64},
+                        KeplerianElements{TrueAnomaly, Float64, Float64},
+                    ),
                 ),
             ) == 0
         end
@@ -267,7 +270,10 @@ else
             @test length(
                 check_allocs(
                     (j4d, orb₀) -> j4_init!(j4d, orb₀),
-                    (J4Propagator{Float64, Float64}, KeplerianElements{TrueAnomaly, Float64, Float64}),
+                    (
+                        J4Propagator{Float64, Float64},
+                        KeplerianElements{TrueAnomaly, Float64, Float64},
+                    ),
                 ),
             ) == 0
         end

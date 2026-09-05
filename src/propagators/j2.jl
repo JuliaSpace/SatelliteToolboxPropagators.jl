@@ -130,12 +130,9 @@ Create and initialize the J2 orbit propagator structure using the mean Keplerian
 """
 function j2_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j2c::J2PropagatorConstants{T} = j2c_egm2008
+    j2c::J2PropagatorConstants{T} = j2c_egm2008,
 ) where {
-    Tanomaly <: AbstractAnomaly,
-    Tepoch <: Number,
-    Tkepler <: AbstractFloat,
-    T <: Number
+    Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number
 }
     # Allocate the propagator structure.
     j2d = J2Propagator{Tepoch, T}()
@@ -151,13 +148,8 @@ end
 
 function j2_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j2c::J2PropagatorConstants{Tj2c} = j2c_egm2008
-) where {
-    Tanomaly <: AbstractAnomaly,
-    Tepoch <: Number,
-    Tkepler <: Number,
-    Tj2c <: Number
-}
+    j2c::J2PropagatorConstants{Tj2c} = j2c_egm2008,
+) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: Number, Tj2c <: Number}
     T = promote_type(Tj2c, Tkepler)
 
     # Allocate the propagator structure.
@@ -354,13 +346,7 @@ function _j2_mean_elements!(
 
     # Assemble the current mean elements.
     orbk = KeplerianElements{MeanAnomaly}(
-        epoch + Tepoch(t) / 86400,
-        a₀,
-        e₀,
-        i₀,
-        Ω_k,
-        ω_k,
-        M_k
+        epoch + Tepoch(t) / 86400, a₀, e₀, i₀, Ω_k, ω_k, M_k
     )
 
     # Update the J2 orbit propagator structure.

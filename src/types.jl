@@ -52,10 +52,10 @@ end
 J2 orbit propagator structure.
 """
 mutable struct J2Propagator{Tepoch <: Number, T <: Number}
-     # Initial mean orbit elements [SI units].
+    # Initial mean orbit elements [SI units].
     orb₀::KeplerianElements{MeanAnomaly, Tepoch, T}
 
-     # Current mean orbit elements [SI units].
+    # Current mean orbit elements [SI units].
     orbk::KeplerianElements{MeanAnomaly, Tepoch, T}
 
     # Propagator constants.
@@ -256,10 +256,8 @@ J2 osculating orbit propagator.
 - `j2oscd`: Structure that stores the J2 osculating orbit propagator data (see
     [`J2OsculatingPropagator`](@ref)).
 """
-struct OrbitPropagatorJ2Osculating{
-    Tepoch <: Number,
-    T <: Number
-} <: OrbitPropagator{Tepoch, T}
+struct OrbitPropagatorJ2Osculating{Tepoch <: Number, T <: Number} <:
+       OrbitPropagator{Tepoch, T}
     j2oscd::J2OsculatingPropagator{Tepoch, T}
 end
 
@@ -290,10 +288,8 @@ J4 osculating orbit propagator.
 - `j4oscd`: Structure that stores the J4 osculating orbit propagator data (see
     [`J4OsculatingPropagator`](@ref)).
 """
-struct OrbitPropagatorJ4Osculating{
-    Tepoch <: Number,
-    T <: Number
-} <: OrbitPropagator{Tepoch, T}
+struct OrbitPropagatorJ4Osculating{Tepoch <: Number, T <: Number} <:
+       OrbitPropagator{Tepoch, T}
     j4oscd::J4OsculatingPropagator{Tepoch, T}
 end
 

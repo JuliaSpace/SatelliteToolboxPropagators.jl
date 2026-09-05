@@ -66,10 +66,7 @@ Create and initialize the two-body propagator structure using the mean Keplerian
 function twobody_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler}; m0::T = tbc_m0
 ) where {
-    Tanomaly <: AbstractAnomaly,
-    Tepoch <: Number,
-    Tkepler <: AbstractFloat,
-    T <: Number
+    Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number
 }
     # Allocate the propagator structure.
     tbd = TwoBodyPropagator{Tepoch, T}()
@@ -227,13 +224,7 @@ function twobody!(
 
     # Assemble the current mean elements.
     orbk = KeplerianElements{MeanAnomaly}(
-        epoch + Tepoch(t) / 86400,
-        a₀,
-        e₀,
-        i₀,
-        Ω₀,
-        ω₀,
-        M_k
+        epoch + Tepoch(t) / 86400, a₀, e₀, i₀, Ω₀, ω₀, M_k
     )
 
     # Compute the position and velocity vectors given the orbital elements.
