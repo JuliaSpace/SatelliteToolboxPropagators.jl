@@ -40,37 +40,14 @@ elements `orb₀`.
 """
 function j4osc_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j4c::J4PropagatorConstants{T} = J4C_EGM2008,
-) where {
-    Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number
-}
-    # Allocate the J4 propagator structure that will propagate the mean elements.
-    j4d = J4Propagator{Tepoch, T}()
-
-    # Assign the constants, which are used in the initialization.
-    j4d.j4c = j4c
-
-    # Allocate the J4 osculating propagator structure.
-    j4oscd = J4OsculatingPropagator{Tepoch, T}()
-    j4oscd.j4d = j4d
-
-    # Initialize the propagator and return.
-    j4osc_init!(j4oscd, orb₀)
-
-    return j4oscd
-end
-
-function j4osc_init(
-    orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
     j4c::J4PropagatorConstants{Tj4c} = J4C_EGM2008,
 ) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: Number, Tj4c <: Number}
-    T = promote_type(Tj4c, Tkepler)
+    T = _propagator_eltype(Tj4c, Tkepler)
 
-    # Allocate the J4 propagator structure that will propagate the mean elements.
+    # Allocate the J4 propagator structure that will propagate the mean elements and assign
+    # the constants, which are used in the initialization.
     j4d = J4Propagator{Tepoch, T}()
-
-    # Assign the constants, which are used in the initialization.
-    j4d.j4c = J4PropagatorConstants{T}(j4c.R0, j4c.μm, j4c.J2, j4c.J4)
+    j4d.j4c = convert(J4PropagatorConstants{T}, j4c)
 
     # Allocate the J4 osculating propagator structure.
     j4oscd = J4OsculatingPropagator{Tepoch, T}()

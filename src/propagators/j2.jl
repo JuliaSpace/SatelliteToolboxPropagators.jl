@@ -110,33 +110,14 @@ Create and initialize the J2 orbit propagator structure using the mean Keplerian
 """
 function j2_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j2c::J2PropagatorConstants{T} = J2C_EGM2008,
-) where {
-    Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number
-}
-    # Allocate the propagator structure.
-    j2d = J2Propagator{Tepoch, T}()
-
-    # Assign the constants, which are used in the initialization.
-    j2d.j2c = j2c
-
-    # Initialize the propagator and return.
-    j2_init!(j2d, orb₀)
-
-    return j2d
-end
-
-function j2_init(
-    orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
     j2c::J2PropagatorConstants{Tj2c} = J2C_EGM2008,
 ) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: Number, Tj2c <: Number}
-    T = promote_type(Tj2c, Tkepler)
+    T = _propagator_eltype(Tj2c, Tkepler)
 
-    # Allocate the propagator structure.
+    # Allocate the propagator structure and assign the constants, which are used in the
+    # initialization.
     j2d = J2Propagator{Tepoch, T}()
-
-    # Assign the constants, which are used in the initialization.
-    j2d.j2c = J2PropagatorConstants{T}(j2c.R0, j2c.μm, j2c.J2)
+    j2d.j2c = convert(J2PropagatorConstants{T}, j2c)
 
     # Initialize the propagator and return.
     j2_init!(j2d, orb₀)

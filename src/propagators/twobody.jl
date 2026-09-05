@@ -44,31 +44,13 @@ Create and initialize the two-body propagator structure using the mean Keplerian
     (**Default** = `TBC_M0`)
 """
 function twobody_init(
-    orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler}; m0::T = TBC_M0
-) where {
-    Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number
-}
-    # Allocate the propagator structure.
-    tbd = TwoBodyPropagator{Tepoch, T}()
-
-    # Assign the constant, which is used in the initialization.
-    tbd.μ = m0
-
-    # Initialize the propagator and return.
-    twobody_init!(tbd, orb₀)
-
-    return tbd
-end
-
-function twobody_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler}; m0::Tm0 = TBC_M0
 ) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: Number, Tm0 <: Number}
-    T = promote_type(Tm0, Tkepler)
+    T = _propagator_eltype(Tm0, Tkepler)
 
-    # Allocate the propagator structure.
+    # Allocate the propagator structure and assign the constant, which is used in the
+    # initialization.
     tbd = TwoBodyPropagator{Tepoch, T}()
-
-    # Assign the constant, which is used in the initialization.
     tbd.μ = T(m0)
 
     # Initialize the propagator and return.

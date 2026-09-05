@@ -40,37 +40,14 @@ elements `orb₀` [SI units].
 """
 function j2osc_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j2c::J2PropagatorConstants{T} = J2C_EGM2008,
-) where {
-    Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number
-}
-    # Allocate the J2 propagator structure that will propagate the mean elements.
-    j2d = J2Propagator{Tepoch, T}()
-
-    # Assign the constants, which are used in the initialization.
-    j2d.j2c = j2c
-
-    # Allocate the J2 osculating propagator structure.
-    j2oscd = J2OsculatingPropagator{Tepoch, T}()
-    j2oscd.j2d = j2d
-
-    # Initialize the propagator and return.
-    j2osc_init!(j2oscd, orb₀)
-
-    return j2oscd
-end
-
-function j2osc_init(
-    orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
     j2c::J2PropagatorConstants{Tj2c} = J2C_EGM2008,
 ) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: Number, Tj2c <: Number}
-    T = promote_type(Tj2c, Tkepler)
+    T = _propagator_eltype(Tj2c, Tkepler)
 
-    # Allocate the J2 propagator structure that will propagate the mean elements.
+    # Allocate the J2 propagator structure that will propagate the mean elements and assign
+    # the constants, which are used in the initialization.
     j2d = J2Propagator{Tepoch, T}()
-
-    # Assign the constants, which are used in the initialization.
-    j2d.j2c = J2PropagatorConstants{T}(j2c.R0, j2c.μm, j2c.J2)
+    j2d.j2c = convert(J2PropagatorConstants{T}, j2c)
 
     # Allocate the J2 osculating propagator structure.
     j2oscd = J2OsculatingPropagator{Tepoch, T}()

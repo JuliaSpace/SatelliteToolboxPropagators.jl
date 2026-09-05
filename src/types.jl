@@ -360,3 +360,24 @@ structures are copied, whereas every other field is immutable and is returned as
 """
 _copy_field(x) = x
 _copy_field(pd::_PropagatorData) = copy(pd)
+
+"""
+    _propagator_eltype(::Type{Tconstants}, ::Type{Tkepler}) where {Tconstants <: Number, Tkepler <: Number} -> Type
+
+Return the element type used by a propagator initialized with constants of type
+`Tconstants` and Keplerian elements of type `Tkepler`. If `Tkepler` is an `AbstractFloat`,
+the constants type is used, so that, e.g., `Float32` constants select a `Float32`
+propagation regardless of the elements type. Otherwise, the types are promoted, which keeps
+the propagation differentiable when the elements are `ForwardDiff.Dual` numbers.
+"""
+function _propagator_eltype(
+    ::Type{Tconstants}, ::Type{Tkepler}
+) where {Tconstants <: Number, Tkepler <: AbstractFloat}
+    return Tconstants
+end
+
+function _propagator_eltype(
+    ::Type{Tconstants}, ::Type{Tkepler}
+) where {Tconstants <: Number, Tkepler <: Number}
+    return promote_type(Tconstants, Tkepler)
+end
