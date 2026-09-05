@@ -75,11 +75,11 @@ else
             ) == 0
         end
 
-        @testset "_j2_jacobian (FiniteDiffJacobian)" begin
+        @testset "_mean_elements_jacobian (FiniteDiffJacobian)" begin
             @test length(
                 check_allocs(
                     (j2d, Δt, x₁, y₁) -> begin
-                        SatelliteToolboxPropagators._j2_jacobian(
+                        SatelliteToolboxPropagators._mean_elements_jacobian(
                             FiniteDiffJacobian(), j2d, Δt, x₁, y₁
                         )
                     end,
@@ -93,11 +93,11 @@ else
             ) == 0
         end
 
-        @testset "_j2_jacobian (ForwardDiffJacobian)" begin
+        @testset "_mean_elements_jacobian (ForwardDiffJacobian)" begin
             @test length(
                 check_allocs(
                     (j2d, j2d_ad, Δt, x₁, y₁) -> begin
-                        SatelliteToolboxPropagators._j2_jacobian(
+                        SatelliteToolboxPropagators._mean_elements_jacobian(
                             ForwardDiffJacobian(), j2d, Δt, x₁, y₁; pd_ad = j2d_ad
                         )
                     end,
@@ -181,11 +181,11 @@ else
             ) == 0
         end
 
-        @testset "_j2osc_jacobian (FiniteDiffJacobian)" begin
+        @testset "_mean_elements_jacobian (FiniteDiffJacobian)" begin
             @test length(
                 check_allocs(
                     (j2oscd, Δt, x₁, y₁) -> begin
-                        SatelliteToolboxPropagators._j2osc_jacobian(
+                        SatelliteToolboxPropagators._mean_elements_jacobian(
                             FiniteDiffJacobian(), j2oscd, Δt, x₁, y₁
                         )
                     end,
@@ -199,11 +199,11 @@ else
             ) == 0
         end
 
-        @testset "_j2osc_jacobian (ForwardDiffJacobian)" begin
+        @testset "_mean_elements_jacobian (ForwardDiffJacobian)" begin
             @test length(
                 check_allocs(
                     (j2oscd, j2oscd_ad, Δt, x₁, y₁) -> begin
-                        SatelliteToolboxPropagators._j2osc_jacobian(
+                        SatelliteToolboxPropagators._mean_elements_jacobian(
                             ForwardDiffJacobian(), j2oscd, Δt, x₁, y₁; pd_ad = j2oscd_ad
                         )
                     end,
@@ -286,11 +286,11 @@ else
             ) == 0
         end
 
-        @testset "_j4_jacobian (FiniteDiffJacobian)" begin
+        @testset "_mean_elements_jacobian (FiniteDiffJacobian)" begin
             @test length(
                 check_allocs(
                     (j4d, Δt, x₁, y₁) -> begin
-                        SatelliteToolboxPropagators._j4_jacobian(
+                        SatelliteToolboxPropagators._mean_elements_jacobian(
                             FiniteDiffJacobian(), j4d, Δt, x₁, y₁
                         )
                     end,
@@ -304,11 +304,11 @@ else
             ) == 0
         end
 
-        @testset "_j4_jacobian (ForwardDiffJacobian)" begin
+        @testset "_mean_elements_jacobian (ForwardDiffJacobian)" begin
             @test length(
                 check_allocs(
                     (j4d, j4d_ad, Δt, x₁, y₁) -> begin
-                        SatelliteToolboxPropagators._j4_jacobian(
+                        SatelliteToolboxPropagators._mean_elements_jacobian(
                             ForwardDiffJacobian(), j4d, Δt, x₁, y₁; pd_ad = j4d_ad
                         )
                     end,
@@ -392,11 +392,11 @@ else
             ) == 0
         end
 
-        @testset "_j4osc_jacobian (FiniteDiffJacobian)" begin
+        @testset "_mean_elements_jacobian (FiniteDiffJacobian)" begin
             @test length(
                 check_allocs(
                     (j4oscd, Δt, x₁, y₁) -> begin
-                        SatelliteToolboxPropagators._j4osc_jacobian(
+                        SatelliteToolboxPropagators._mean_elements_jacobian(
                             FiniteDiffJacobian(), j4oscd, Δt, x₁, y₁
                         )
                     end,
@@ -410,11 +410,11 @@ else
             ) == 0
         end
 
-        @testset "_j4osc_jacobian (ForwardDiffJacobian)" begin
+        @testset "_mean_elements_jacobian (ForwardDiffJacobian)" begin
             @test length(
                 check_allocs(
                     (j4oscd, j4oscd_ad, Δt, x₁, y₁) -> begin
-                        SatelliteToolboxPropagators._j4osc_jacobian(
+                        SatelliteToolboxPropagators._mean_elements_jacobian(
                             ForwardDiffJacobian(), j4oscd, Δt, x₁, y₁; pd_ad = j4oscd_ad
                         )
                     end,

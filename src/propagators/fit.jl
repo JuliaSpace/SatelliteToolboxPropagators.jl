@@ -19,6 +19,9 @@ const AbstractMeanElementsPropagator{Tepoch, T} = Union{
 }
 
 # == Propagator-Specific Operations ========================================================
+#
+# The generic algorithm only needs to know how to name, initialize, and propagate each
+# structure, and which structure stores the mean elements. Everything else is shared.
 
 _propagator_name(::J2Propagator)           = "J2"
 _propagator_name(::J2OsculatingPropagator) = "J2 osculating"
@@ -37,33 +40,11 @@ _mean_elements_propagate!(pd::J2OsculatingPropagator, Δt) = j2osc!(pd, Δt)
 _mean_elements_propagate!(pd::J4Propagator, Δt)           = j4!(pd, Δt)
 _mean_elements_propagate!(pd::J4OsculatingPropagator, Δt) = j4osc!(pd, Δt)
 
-_create_ad_propagator(pd::J2Propagator)           = _create_j2_ad_propagator(pd)
-_create_ad_propagator(pd::J2OsculatingPropagator) = _create_j2osc_ad_propagator(pd)
-_create_ad_propagator(pd::J4Propagator)           = _create_j4_ad_propagator(pd)
-_create_ad_propagator(pd::J4OsculatingPropagator) = _create_j4osc_ad_propagator(pd)
-
-_create_fd_propagator(pd::J2Propagator)           = _create_j2_fd_propagator(pd)
-_create_fd_propagator(pd::J2OsculatingPropagator) = _create_j2osc_fd_propagator(pd)
-_create_fd_propagator(pd::J4Propagator)           = _create_j4_fd_propagator(pd)
-_create_fd_propagator(pd::J4OsculatingPropagator) = _create_j4osc_fd_propagator(pd)
-
-_update_mean_elements_epoch!(pd::J2Propagator, orb, epoch) =
-    update_j2_mean_elements_epoch!(pd, orb, epoch)
-_update_mean_elements_epoch!(pd::J2OsculatingPropagator, orb, epoch) =
-    update_j2osc_mean_elements_epoch!(pd, orb, epoch)
-_update_mean_elements_epoch!(pd::J4Propagator, orb, epoch) =
-    update_j4_mean_elements_epoch!(pd, orb, epoch)
-_update_mean_elements_epoch!(pd::J4OsculatingPropagator, orb, epoch) =
-    update_j4osc_mean_elements_epoch!(pd, orb, epoch)
-
-_mean_elements_jacobian(m, pd::J2Propagator, args...; kwargs...) =
-    _j2_jacobian(m, pd, args...; kwargs...)
-_mean_elements_jacobian(m, pd::J2OsculatingPropagator, args...; kwargs...) =
-    _j2osc_jacobian(m, pd, args...; kwargs...)
-_mean_elements_jacobian(m, pd::J4Propagator, args...; kwargs...) =
-    _j4_jacobian(m, pd, args...; kwargs...)
-_mean_elements_jacobian(m, pd::J4OsculatingPropagator, args...; kwargs...) =
-    _j4osc_jacobian(m, pd, args...; kwargs...)
+# Structure that stores the initial (`orb₀`) and current (`orbk`) mean elements.
+_mean_elements_propagator(pd::J2Propagator)           = pd
+_mean_elements_propagator(pd::J2OsculatingPropagator) = pd.j2d
+_mean_elements_propagator(pd::J4Propagator)           = pd
+_mean_elements_propagator(pd::J4OsculatingPropagator) = pd.j4d
 
 # == Algorithm =============================================================================
 
@@ -368,4 +349,192 @@ terminal line. The decorations are only emitted if `stdout` supports colors.
 function _fit_print_progress(msg::AbstractString)
     print("\x1b[A\x1b[2K\r", styled"{bold:PROGRESS:} ", msg, "\n")
     return nothing
+end
+
+"""
+    _dual_type(::Type{T}) where {T <: Number} -> Type
+
+Return the `ForwardDiff.Dual` type with six partial derivatives used to differentiate a
+propagation with element type `T` with respect to the six components of the state vector.
+"""
+_dual_type(::Type{T}) where {T <: Number} =
+    ForwardDiff.Dual{ForwardDiff.Tag{Nothing, T}, T, 6}
+
+"""
+    _create_fd_propagator(pd::AbstractMeanElementsPropagator{Tepoch, T}) where {Tepoch <: Number, T <: Number} -> typeof(pd)
+
+Create an uninitialized propagator with the same constants as `pd` that the
+finite-difference Jacobian uses as scratch space, so it does not clobber the propagator kept
+initialized by the fitting loop.
+"""
+function _create_fd_propagator(
+    pd::AbstractMeanElementsPropagator{Tepoch, T}
+) where {Tepoch <: Number, T <: Number}
+    return _similar_propagator(pd, T)
+end
+
+"""
+    _create_ad_propagator(pd::AbstractMeanElementsPropagator{Tepoch, T}) where {Tepoch <: Number, T <: Number} -> AbstractMeanElementsPropagator{Tepoch, D}
+
+Create an uninitialized propagator with the same constants as `pd` but with the element type
+`D = _dual_type(T)`, which the ForwardDiff Jacobian uses to propagate dual numbers.
+"""
+function _create_ad_propagator(
+    pd::AbstractMeanElementsPropagator{Tepoch, T}
+) where {Tepoch <: Number, T <: Number}
+    return _similar_propagator(pd, _dual_type(T))
+end
+
+"""
+    _mean_elements_epoch(pd::AbstractMeanElementsPropagator{Tepoch, T}) where {Tepoch <: Number, T <: Number} -> Tepoch
+
+Return the epoch [Julian Day] of the initial mean elements stored in `pd`.
+"""
+_mean_elements_epoch(pd::AbstractMeanElementsPropagator) =
+    _mean_elements_propagator(pd).orb₀.epoch
+
+"""
+    _update_mean_elements_epoch!(pd::AbstractMeanElementsPropagator{Tepoch, T}, orb::KeplerianElements, new_epoch::Number) where {Tepoch <: Number, T <: Number} -> KeplerianElements{MeanAnomaly, Tepoch, T}
+
+Update the epoch of the mean elements `orb` [SI units] to `new_epoch` [Julian Day] by
+propagating them with `pd`, and initialize `pd` with the returned elements. The osculating
+propagators are initialized without computing the osculating elements at the new epoch; the
+public functions `update_*_mean_elements_epoch!` complete that step.
+"""
+function _update_mean_elements_epoch!(
+    pd::AbstractMeanElementsPropagator, orb::KeplerianElements, new_epoch::Number
+)
+    # First, we need to initialize the propagator with the mean elements.
+    _mean_elements_init!(pd, orb)
+
+    # Now, we just need to propagate the orbit to the desired instant and obtain the mean
+    # elements from the propagator structure.
+    Δt = (new_epoch - _mean_elements_epoch(pd)) * 86400
+    _mean_elements_propagate!(pd, Δt)
+    orbk = _mean_elements_propagator(pd).orbk
+
+    # Finally, we initialize the propagator with the new set of mean elements.
+    _mean_elements_init!(pd, orbk)
+
+    return orbk
+end
+
+"""
+    _mean_elements_jacobian(::FiniteDiffJacobian, pd::AbstractMeanElementsPropagator{Tepoch, T}, Δt::Number, x₁::SVector{6, T}, y₁::SVector{6, T}; kwargs...) where {Tepoch <: Number, T <: Number} -> SMatrix{6, 6, T}
+    _mean_elements_jacobian(::ForwardDiffJacobian, pd::AbstractMeanElementsPropagator{Tepoch, T}, Δt::Number, x₁::SVector{6, T}, y₁::SVector{6, T}; kwargs...) where {Tepoch <: Number, T <: Number} -> SMatrix{6, 6, T}
+
+Compute the Jacobian of the state vector `y₁` [m; m / s] propagated by `Δt` [s] with the
+propagator `pd` with respect to the initial state vector `x₁` [m; m / s] at the epoch of the
+initial mean elements in `pd`. The first argument selects the method: finite differences,
+which perturbs each component of `x₁` and propagates the orbit again, or forward-mode
+automatic differentiation with **ForwardDiff.jl**, which propagates dual numbers once.
+
+!!! note
+
+    The finite-difference method reinitializes `pd` for each perturbed state unless the
+    keyword `pd_fd` is provided. The ForwardDiff method never modifies `pd`.
+
+# Keywords
+
+- `perturbation::Number`: Initial relative state perturbation to compute the finite
+    differences. Only used with `FiniteDiffJacobian`.
+    (**Default**: `T(1e-3)`)
+- `perturbation_tol::Number`: Tolerance to accept the perturbation. If the computed
+    perturbation is lower than `perturbation_tol`, we increase it until its absolute value is
+    higher than `perturbation_tol`. Only used with `FiniteDiffJacobian`.
+    (**Default**: `T(1e-7)`)
+- `pd_ad::Union{Nothing, AbstractMeanElementsPropagator}`: Propagator with the dual element
+    type used by the ForwardDiff method, as created by `_create_ad_propagator`. If it is
+    `nothing`, a new one is allocated.
+    (**Default**: `nothing`)
+- `pd_fd::Union{Nothing, AbstractMeanElementsPropagator}`: Scratch propagator overwritten by
+    the finite-difference method, as created by `_create_fd_propagator`. If it is `nothing`,
+    `pd` itself is used and left initialized with the last perturbed state.
+    (**Default**: `nothing`)
+"""
+function _mean_elements_jacobian(
+    ::FiniteDiffJacobian,
+    pd::AbstractMeanElementsPropagator{Tepoch, T},
+    Δt::Number,
+    x₁::SVector{6, T},
+    y₁::SVector{6, T};
+    perturbation::Number = T(1e-3),
+    perturbation_tol::Number = T(1e-7),
+    pd_ad::Union{Nothing, AbstractMeanElementsPropagator} = nothing,
+    pd_fd::Union{Nothing, AbstractMeanElementsPropagator} = nothing,
+) where {Tepoch <: Number, T <: Number}
+    # The perturbed propagations below overwrite the propagator. Use the scratch propagator
+    # when the caller provides one, so it can keep `pd` initialized across the measurements
+    # instead of reinitializing it for each one.
+    epoch = _mean_elements_epoch(pd)
+    fd    = isnothing(pd_fd) ? pd : pd_fd
+
+    J  = MMatrix{6, 6, T}(undef)
+    x₂ = x₁
+
+    # Convert the perturbation parameters to the element type once. Otherwise, `ϵ` would be
+    # assigned values of two different types, and the Jacobian columns would be computed in
+    # the promoted type instead of in `T`.
+    ϵ₀    = T(perturbation)
+    ϵ_tol = T(perturbation_tol)
+
+    # The loop below only accesses fixed indices of 6-element static arrays. Hence, we can
+    # skip the bounds checking.
+    @inbounds for j in 1:6
+        α = x₂[j]
+        ϵ = α * ϵ₀
+
+        for _ in 1:5
+            abs(ϵ) > ϵ_tol && break
+            ϵ *= T(1.4)
+        end
+
+        if abs(ϵ) < ϵ_tol
+            ϵ = signbit(α) ? -ϵ_tol : ϵ_tol
+        end
+
+        α += ϵ
+        x₂ = setindex(x₂, α, j)
+
+        orb = rv_to_kepler(x₂[SOneTo(3)], x₂[StaticArrays.SUnitRange(4, 6)], epoch)
+        _mean_elements_init!(fd, orb)
+        r_i, v_i = _mean_elements_propagate!(fd, Δt)
+        y₂ = vcat(r_i, v_i)
+
+        J[:, j] .= (y₂ .- y₁) ./ ϵ
+        x₂ = setindex(x₂, x₁[j], j)
+    end
+
+    return SMatrix{6, 6, T}(J)
+end
+
+function _mean_elements_jacobian(
+    ::ForwardDiffJacobian,
+    pd::AbstractMeanElementsPropagator{Tepoch, T},
+    Δt::Number,
+    x₁::SVector{6, T},
+    y₁::SVector{6, T};
+    perturbation::Number = T(1e-3),
+    perturbation_tol::Number = T(1e-7),
+    pd_ad::Union{Nothing, AbstractMeanElementsPropagator} = nothing,
+    pd_fd::Union{Nothing, AbstractMeanElementsPropagator} = nothing,
+) where {Tepoch <: Number, T <: Number}
+    epoch = _mean_elements_epoch(pd)
+    ad    = isnothing(pd_ad) ? _create_ad_propagator(pd) : pd_ad
+
+    # Seed the dual numbers so that the k-th partial derivative is taken with respect to the
+    # k-th component of the state vector.
+    D      = _dual_type(T)
+    seeds  = ntuple(i -> ForwardDiff.Partials(ntuple(j -> T(i == j), Val(6))), Val(6))
+    x_dual = SVector{6, D}(ntuple(i -> D(x₁[i], seeds[i]), Val(6)))
+
+    orb = rv_to_kepler(x_dual[SOneTo(3)], x_dual[StaticArrays.SUnitRange(4, 6)], epoch)
+    _mean_elements_init!(ad, orb)
+    r_i, v_i = _mean_elements_propagate!(ad, Δt)
+    y_dual   = vcat(r_i, v_i)
+
+    # Assemble the Jacobian column by column from the partial derivatives.
+    return SMatrix{6, 6, T}(
+        ntuple(k -> ForwardDiff.partials(y_dual[mod1(k, 6)], cld(k, 6)), Val(36))
+    )
 end

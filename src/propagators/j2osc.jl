@@ -506,17 +506,11 @@ end
 function update_j2osc_mean_elements_epoch!(
     j2oscd::J2OsculatingPropagator, orb::KeplerianElements, new_epoch::Number
 )
-    # First, we need to initialize the J2 osculating propagator with the mean elements.
-    _j2osc_init!(j2oscd, orb)
+    orb = _update_mean_elements_epoch!(j2oscd, orb, new_epoch)
 
-    # Now, we just need to propagate the orbit to the desired instant and obtain the mean
-    # elements from the J2 propagator structure inside.
-    Δt = (new_epoch - j2oscd.j2d.orb₀.epoch) * 86400
-    j2osc!(j2oscd, Δt)
-    orb = j2oscd.j2d.orbk
-
-    # Finally, we initialize the propagator with the new set of mean elements.
-    j2osc_init!(j2oscd, orb)
+    # The generic algorithm initializes the J2 propagator only. Hence, we must compute the
+    # osculating elements at the new epoch to complete the initialization.
+    j2osc!(j2oscd, 0)
 
     return orb
 end
@@ -525,115 +519,16 @@ end
 #                                    Private Functions                                     #
 ############################################################################################
 
-# Create a propagator that the finite-difference Jacobian can use as scratch space, so it
-# does not clobber the propagator kept initialized by the fitting loop.
-function _create_j2osc_fd_propagator(
-    j2oscd::J2OsculatingPropagator{Tepoch, T}
-) where {Tepoch, T}
-    fd = J2OsculatingPropagator{Tepoch, T}()
-    fd.j2d = J2Propagator{Tepoch, T}()
-    fd.j2d.j2c = j2oscd.j2d.j2c
-    return fd
-end
+"""
+    _similar_propagator(j2oscd::J2OsculatingPropagator{Tepoch}, ::Type{T}) where {Tepoch <: Number, T <: Number} -> J2OsculatingPropagator{Tepoch, T}
 
-function _create_j2osc_ad_propagator(
-    j2oscd::J2OsculatingPropagator{Tepoch, T}
-) where {Tepoch, T}
-    tag = ForwardDiff.Tag{Nothing, T}
-    D   = ForwardDiff.Dual{tag, T, 6}
-    j2c = j2oscd.j2d.j2c
-
-    ad = J2OsculatingPropagator{Tepoch, D}()
-    ad.j2d = J2Propagator{Tepoch, D}()
-    ad.j2d.j2c = J2PropagatorConstants{D}(D(j2c.R0), D(j2c.μm), D(j2c.J2))
-    return ad
-end
-
-function _j2osc_jacobian(
-    ::FiniteDiffJacobian,
-    j2oscd::J2OsculatingPropagator{Tepoch, T},
-    Δt::Number,
-    x₁::SVector{6, T},
-    y₁::SVector{6, T};
-    perturbation::Number = T(1e-3),
-    perturbation_tol::Number = T(1e-7),
-    pd_ad::Union{Nothing, J2OsculatingPropagator} = nothing,
-    pd_fd::Union{Nothing, J2OsculatingPropagator} = nothing,
-) where {T <: Number, Tepoch <: Number}
-    # The perturbed propagations below overwrite the propagator. Use the scratch propagator
-    # when the caller provides one, so it can keep `j2oscd` initialized across the
-    # measurements instead of reinitializing it for each one.
-    epoch = j2oscd.j2d.orb₀.epoch
-    fd::J2OsculatingPropagator{Tepoch, T} = isnothing(pd_fd) ? j2oscd : pd_fd
-
-    J = MMatrix{6, 6, T}(undef)
-    x₂ = x₁
-
-    # Convert the perturbation parameters to the element type once. Otherwise, `ϵ` would be
-    # assigned values of two different types, and the Jacobian columns would be computed in
-    # the promoted type instead of in `T`.
-    ϵ₀ = T(perturbation)
-    ϵ_tol = T(perturbation_tol)
-
-    @inbounds @views for j in 1:6
-        α = x₂[j]
-        ϵ = α * ϵ₀
-
-        for _ in 1:5
-            abs(ϵ) > ϵ_tol && break
-            ϵ *= T(1.4)
-        end
-
-        if abs(ϵ) < ϵ_tol
-            ϵ = signbit(α) ? -ϵ_tol : ϵ_tol
-        end
-
-        α += ϵ
-        x₂ = setindex(x₂, α, j)
-
-        orb = rv_to_kepler(x₂[SOneTo(3)], x₂[StaticArrays.SUnitRange(4, 6)], epoch)
-        _j2osc_init!(fd, orb)
-        r_i, v_i = j2osc!(fd, Δt)
-        y₂ = @SVector [r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3]]
-
-        J[:, j] .= (y₂ .- y₁) ./ ϵ
-        x₂ = setindex(x₂, x₁[j], j)
-    end
-
-    return SMatrix{6, 6, T}(J)
-end
-
-function _j2osc_jacobian(
-    ::ForwardDiffJacobian,
-    j2oscd::J2OsculatingPropagator{Tepoch, T},
-    Δt::Number,
-    x₁::SVector{6, T},
-    y₁::SVector{6, T};
-    perturbation::Number = T(1e-3),
-    perturbation_tol::Number = T(1e-7),
-    pd_ad::Union{Nothing, J2OsculatingPropagator} = nothing,
-    pd_fd::Union{Nothing, J2OsculatingPropagator} = nothing,
-) where {T <: Number, Tepoch <: Number}
-    epoch = j2oscd.j2d.orb₀.epoch
-    N     = 6
-    tag   = ForwardDiff.Tag{Nothing, T}
-    D     = ForwardDiff.Dual{tag, T, N}
-
-    # Declaring the type of the local makes the propagator concrete regardless of what
-    # the caller provides. Otherwise, the unparameterised type in the keyword leaves
-    # this call and the ones below dynamically dispatched.
-    ad::J2OsculatingPropagator{Tepoch, D} =
-        isnothing(pd_ad) ? _create_j2osc_ad_propagator(j2oscd) : pd_ad
-
-    seeds  = ntuple(i -> ForwardDiff.Partials(ntuple(j -> T(i == j), Val(N))), Val(N))
-    x_dual = SVector{N, D}(ntuple(i -> D(x₁[i], seeds[i]), Val(N)))
-
-    orb = rv_to_kepler(x_dual[SOneTo(3)], x_dual[StaticArrays.SUnitRange(4, 6)], epoch)
-    _j2osc_init!(ad, orb)
-    r, v   = j2osc!(ad, Δt)
-    y_dual = vcat(r, v)
-
-    return SMatrix{6, N, T}(
-        ntuple(k -> ForwardDiff.partials(y_dual[mod1(k, 6)], cld(k, 6)), Val(6 * N))
-    )
+Create an uninitialized J2 osculating propagator with the same constants as `j2oscd` converted
+to the element type `T`.
+"""
+function _similar_propagator(
+    j2oscd::J2OsculatingPropagator{Tepoch}, ::Type{T}
+) where {Tepoch <: Number, T <: Number}
+    new_j2oscd = J2OsculatingPropagator{Tepoch, T}()
+    new_j2oscd.j2d = _similar_propagator(j2oscd.j2d, T)
+    return new_j2oscd
 end

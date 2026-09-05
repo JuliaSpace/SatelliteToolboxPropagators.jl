@@ -665,127 +665,23 @@ end
 function update_j2_mean_elements_epoch!(
     j2d::J2Propagator, orb::KeplerianElements, new_epoch::Number
 )
-    # First, we need to initialize the J2 propagator with the mean elements.
-    j2_init!(j2d, orb)
-
-    # Now, we just need to propagate the orbit to the desired instant and obtain the mean
-    # elements from the J2 propagator structure inside.
-    Δt = (new_epoch - j2d.orb₀.epoch) * 86400
-    j2!(j2d, Δt)
-    orb = j2d.orbk
-
-    # Finally, we initialize the propagator with the new set of mean elements.
-    j2_init!(j2d, orb)
-
-    return orb
+    return _update_mean_elements_epoch!(j2d, orb, new_epoch)
 end
 
 ############################################################################################
 #                                    Private Functions                                     #
 ############################################################################################
 
-# Create a propagator that the finite-difference Jacobian can use as scratch space, so it
-# does not clobber the propagator kept initialized by the fitting loop.
-function _create_j2_fd_propagator(j2d::J2Propagator{Tepoch, T}) where {Tepoch, T}
-    fd = J2Propagator{Tepoch, T}()
-    fd.j2c = j2d.j2c
-    return fd
-end
+"""
+    _similar_propagator(j2d::J2Propagator{Tepoch}, ::Type{T}) where {Tepoch <: Number, T <: Number} -> J2Propagator{Tepoch, T}
 
-function _create_j2_ad_propagator(j2d::J2Propagator{Tepoch, T}) where {Tepoch, T}
-    tag = ForwardDiff.Tag{Nothing, T}
-    D   = ForwardDiff.Dual{tag, T, 6}
-    j2c = j2d.j2c
-
-    ad = J2Propagator{Tepoch, D}()
-    ad.j2c = J2PropagatorConstants{D}(D(j2c.R0), D(j2c.μm), D(j2c.J2))
-    return ad
-end
-
-function _j2_jacobian(
-    ::FiniteDiffJacobian,
-    j2d::J2Propagator{Tepoch, T},
-    Δt::Number,
-    x₁::SVector{6, T},
-    y₁::SVector{6, T};
-    perturbation::Number = T(1e-3),
-    perturbation_tol::Number = T(1e-7),
-    pd_ad::Union{Nothing, J2Propagator} = nothing,
-    pd_fd::Union{Nothing, J2Propagator} = nothing,
-) where {T <: Number, Tepoch <: Number}
-    # The perturbed propagations below overwrite the propagator. Use the scratch propagator
-    # when the caller provides one, so it can keep `j2d` initialized across the
-    # measurements instead of reinitializing it for each one.
-    epoch = j2d.orb₀.epoch
-    fd::J2Propagator{Tepoch, T} = isnothing(pd_fd) ? j2d : pd_fd
-
-    J = MMatrix{6, 6, T}(undef)
-    x₂ = x₁
-
-    # Convert the perturbation parameters to the element type once. Otherwise, `ϵ` would be
-    # assigned values of two different types, and the Jacobian columns would be computed in
-    # the promoted type instead of in `T`.
-    ϵ₀ = T(perturbation)
-    ϵ_tol = T(perturbation_tol)
-
-    @inbounds @views for j in 1:6
-        α = x₂[j]
-        ϵ = α * ϵ₀
-
-        for _ in 1:5
-            abs(ϵ) > ϵ_tol && break
-            ϵ *= T(1.4)
-        end
-
-        if abs(ϵ) < ϵ_tol
-            ϵ = signbit(α) ? -ϵ_tol : ϵ_tol
-        end
-
-        α += ϵ
-        x₂ = setindex(x₂, α, j)
-
-        orb = rv_to_kepler(x₂[SOneTo(3)], x₂[StaticArrays.SUnitRange(4, 6)], epoch)
-        j2_init!(fd, orb)
-        r_i, v_i = j2!(fd, Δt)
-        y₂ = @SVector [r_i[1], r_i[2], r_i[3], v_i[1], v_i[2], v_i[3]]
-
-        J[:, j] .= (y₂ .- y₁) ./ ϵ
-        x₂ = setindex(x₂, x₁[j], j)
-    end
-
-    return SMatrix{6, 6, T}(J)
-end
-
-function _j2_jacobian(
-    ::ForwardDiffJacobian,
-    j2d::J2Propagator{Tepoch, T},
-    Δt::Number,
-    x₁::SVector{6, T},
-    y₁::SVector{6, T};
-    perturbation::Number = T(1e-3),
-    perturbation_tol::Number = T(1e-7),
-    pd_ad::Union{Nothing, J2Propagator} = nothing,
-    pd_fd::Union{Nothing, J2Propagator} = nothing,
-) where {T <: Number, Tepoch <: Number}
-    epoch = j2d.orb₀.epoch
-    N     = 6
-    tag   = ForwardDiff.Tag{Nothing, T}
-    D     = ForwardDiff.Dual{tag, T, N}
-
-    # Declaring the type of the local makes the propagator concrete regardless of what
-    # the caller provides. Otherwise, the unparameterised type in the keyword leaves
-    # this call and the ones below dynamically dispatched.
-    ad::J2Propagator{Tepoch, D} = isnothing(pd_ad) ? _create_j2_ad_propagator(j2d) : pd_ad
-
-    seeds  = ntuple(i -> ForwardDiff.Partials(ntuple(j -> T(i == j), Val(N))), Val(N))
-    x_dual = SVector{N, D}(ntuple(i -> D(x₁[i], seeds[i]), Val(N)))
-
-    orb = rv_to_kepler(x_dual[SOneTo(3)], x_dual[StaticArrays.SUnitRange(4, 6)], epoch)
-    j2_init!(ad, orb)
-    r, v   = j2!(ad, Δt)
-    y_dual = vcat(r, v)
-
-    return SMatrix{6, N, T}(
-        ntuple(k -> ForwardDiff.partials(y_dual[mod1(k, 6)], cld(k, 6)), Val(6 * N))
-    )
+Create an uninitialized J2 propagator with the same constants as `j2d` converted to the
+element type `T`.
+"""
+function _similar_propagator(
+    j2d::J2Propagator{Tepoch}, ::Type{T}
+) where {Tepoch <: Number, T <: Number}
+    new_j2d = J2Propagator{Tepoch, T}()
+    new_j2d.j2c = convert(J2PropagatorConstants{T}, j2d.j2c)
+    return new_j2d
 end
