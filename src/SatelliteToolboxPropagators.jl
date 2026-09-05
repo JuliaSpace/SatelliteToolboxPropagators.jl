@@ -1,15 +1,18 @@
 module SatelliteToolboxPropagators
 
-using Crayons
 using Dates
-using ForwardDiff
-using Printf
 using LinearAlgebra
+using Printf
+using StyledStrings
+
+using ForwardDiff
 using Reexport
 using StaticArrays
 
 @reexport using SatelliteToolboxBase
 @reexport using SatelliteToolboxSgp4
+
+import PrecompileTools
 
 ############################################################################################
 #                                           API                                            #
@@ -26,15 +29,6 @@ export Propagators, OrbitPropagator
 ############################################################################################
 
 include("./types.jl")
-
-############################################################################################
-#                                        Constants                                         #
-############################################################################################
-
-# Escape sequences related to the crayons.
-const _D = string(Crayon(; reset = true))
-const _B = string(crayon"bold")
-const _Y = string(crayon"bold yellow")
 
 ############################################################################################
 #                                         Includes                                         #

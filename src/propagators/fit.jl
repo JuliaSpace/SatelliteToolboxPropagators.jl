@@ -97,12 +97,6 @@ function _fit_mean_elements!(
         throw(ArgumentError("The weight vector must have 6 elements."))
     end
 
-    # Check if stdout supports colors.
-    has_color = get(stdout, :color, false)::Bool
-    cd = has_color ? _D : ""
-    cb = has_color ? _B : ""
-    cy = has_color ? _Y : ""
-
     # Assemble the weight vector. Since the weight matrix is diagonal, we store only the
     # diagonal to improve performance by avoiding the Diagonal wrapper.
     W = @SVector T[
@@ -121,8 +115,8 @@ function _fit_mean_elements!(
         epoch = Tepoch(mean_elements_epoch)
 
         # First, we need to update the mean elements to the desired epoch.
-        verbose && println(
-            "$(cy)ACTION:$(cd)   Updating the epoch of the initial mean elements guess to match the desired one.",
+        verbose && _fit_print_action(
+            "Updating the epoch of the initial mean elements guess to match the desired one.",
         )
         orb = _update_mean_elements_epoch!(pd, initial_guess, epoch)
 
@@ -161,29 +155,22 @@ function _fit_mean_elements!(
 
     # Header.
     if verbose
-        println(
-            "$(cy)ACTION:$(cd)   Fitting the mean elements for the $(_propagator_name(pd)) propagator.",
+        _fit_print_action(
+            "Fitting the mean elements for the $(_propagator_name(pd)) propagator."
         )
-        @printf(
-            "          %s%10s %20s %20s %20s %20s%s\n",
-            cy,
+
+        header = @sprintf(
+            "%10s %20s %20s %20s %20s",
             "Iteration",
             "Position RMSE",
             "Velocity RMSE",
             "Total RMSE",
-            "RMSE Variation",
-            cd
+            "RMSE Variation"
         )
-        @printf(
-            "          %s%10s %20s %20s %20s %20s%s\n",
-            cb,
-            "",
-            "[km]",
-            "[km / s]",
-            "[ ]",
-            "",
-            cd
-        )
+        units = @sprintf("%10s %20s %20s %20s %20s", "", "[km]", "[km / s]", "[ ]", "")
+
+        println("          ", styled"{(foreground=yellow,weight=bold):$header}")
+        println("          ", styled"{bold:$units}")
         println()
     end
 
@@ -292,30 +279,25 @@ function _fit_mean_elements!(
 
         # We cannot compute the RMSE variation in the first iteration.
         if it == 1
-            verbose && @printf(
-                "\x1b[A\x1b[2K\r%sPROGRESS:%s %10d %20g %20g %20g %20s\n",
-                cb,
-                cd,
-                it,
-                σp_i / 1000,
-                σv_i / 1000,
-                σ_i,
-                "---"
+            verbose && _fit_print_progress(
+                @sprintf(
+                    "%10d %20g %20g %20g %20s", it, σp_i / 1000, σv_i / 1000, σ_i, "---"
+                )
             )
 
         else
             # Compute the RMSE variation.
             Δσ = (σ_i - σ_i_₁) / σ_i_₁
 
-            verbose && @printf(
-                "\x1b[A\x1b[2K\r%sPROGRESS:%s %10d %20g %20g %20g %20g %%\n",
-                cb,
-                cd,
-                it,
-                σp_i / 1000,
-                σv_i / 1000,
-                σ_i,
-                100 * Δσ
+            verbose && _fit_print_progress(
+                @sprintf(
+                    "%10d %20g %20g %20g %20g %%",
+                    it,
+                    σp_i / 1000,
+                    σv_i / 1000,
+                    σ_i,
+                    100 * Δσ
+                )
             )
 
             # Check if the RMSE is increasing.
@@ -343,8 +325,8 @@ function _fit_mean_elements!(
 
     # Update the epoch of the fitted mean elements to match the desired one.
     if abs(epoch - mean_elements_epoch) > 0.001 / 86400
-        verbose && println(
-            "$(cy)ACTION:$(cd)   Updating the epoch of the fitted mean elements to match the desired one.",
+        verbose && _fit_print_action(
+            "Updating the epoch of the fitted mean elements to match the desired one."
         )
         orb = convert(
             typeof(orb), _update_mean_elements_epoch!(pd, orb, mean_elements_epoch)
@@ -359,4 +341,31 @@ function _fit_mean_elements!(
 
     # Return the mean elements and the covariance.
     return orb, P
+end
+
+############################################################################################
+#                                    Private Functions                                     #
+############################################################################################
+
+"""
+    _fit_print_action(msg::AbstractString) -> Nothing
+
+Print to `stdout` the action message `msg` of the fitting algorithm, prefixed by a
+highlighted `ACTION:` tag. The decorations are only emitted if `stdout` supports colors.
+"""
+function _fit_print_action(msg::AbstractString)
+    println(styled"{(foreground=yellow,weight=bold):ACTION:}   ", msg)
+    return nothing
+end
+
+"""
+    _fit_print_progress(msg::AbstractString) -> Nothing
+
+Print to `stdout` the progress line `msg` of the fitting algorithm, prefixed by a highlighted
+`PROGRESS:` tag. The previous line is erased first, so consecutive calls update the same
+terminal line. The decorations are only emitted if `stdout` supports colors.
+"""
+function _fit_print_progress(msg::AbstractString)
+    print("\x1b[A\x1b[2K\r", styled"{bold:PROGRESS:} ", msg, "\n")
+    return nothing
 end

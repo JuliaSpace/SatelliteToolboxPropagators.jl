@@ -4,8 +4,6 @@
 #
 ############################################################################################
 
-import PrecompileTools
-
 PrecompileTools.@setup_workload begin
     orb = KeplerianElements(
         DateTime("2023-01-01") |> datetime2julian,

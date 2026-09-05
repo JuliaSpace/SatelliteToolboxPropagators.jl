@@ -7,20 +7,12 @@
 module Propagators
 
 using Dates
-using Crayons
+using StyledStrings
 
 import Base: copy, eltype, length, iterate, show
 import SatelliteToolboxBase: @maybe_threads, get_partition, OrbitStateVector
 
 export OrbitPropagator
-
-############################################################################################
-#                                         Constants                                         #
-############################################################################################
-
-# Escape sequences related to the crayons.
-const _D = string(Crayon(; reset = true))
-const _B = string(crayon"bold")
 
 ############################################################################################
 #                                          Types                                           #
@@ -1113,20 +1105,16 @@ function show(io::IO, orbp::T) where {T <: OrbitPropagator}
 end
 
 function show(io::IO, mime::MIME"text/plain", orbp::T) where {T <: OrbitPropagator}
-    # Check for color support in the `io`.
-    color = get(io, :color, false)
-    b = color ? _B : ""
-    d = color ? _D : ""
-
     prop_name       = name(orbp)
     prop_epoch      = epoch(orbp)
     prop_epoch_dt   = prop_epoch |> julian2datetime
     last_instant_dt = prop_epoch + last_instant(orbp) / 86400 |> julian2datetime
 
+    # `StyledStrings` only emits the escape sequences if `io` supports colors.
     println(io, string(T), ":")
-    println(io, "$(b)   Propagator name :$(d) ", prop_name)
-    println(io, "$(b)  Propagator epoch :$(d) ", prop_epoch_dt)
-    print(io, "$(b)  Last propagation :$(d) ", last_instant_dt)
+    println(io, styled"{bold:   Propagator name :} ", prop_name)
+    println(io, styled"{bold:  Propagator epoch :} ", prop_epoch_dt)
+    print(io, styled"{bold:  Last propagation :} ", last_instant_dt)
 
     return nothing
 end
