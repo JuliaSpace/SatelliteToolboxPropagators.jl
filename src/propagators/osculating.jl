@@ -13,28 +13,36 @@
 #
 ############################################################################################
 
-# Compute the osculating elements at the epoch `epoch` given the mean elements `mean_orbk`,
-# the mean anomaly `M_k` [rad] associated with them, and the propagator constants `R₀` [m],
-# `μm` [rad / s], and `J₂`. The correction considers only the J2 gravitational term, as
-# described in [1, p. 708-710].
+"""
+    _osculating_elements(mean_orbk::KeplerianElements{MeanAnomaly, Tepoch, T}, R₀::Number, μm::Number, J₂::Number) where {Tepoch <: Number, T <: Number} -> KeplerianElements{TrueAnomaly, Tepoch, T}
+
+Compute the osculating Keplerian elements [SI units] at the epoch of the mean elements
+`mean_orbk` [SI units] by adding the short-period perturbations of the J2 gravitational term
+described in **[1]**, p. 708-710. The propagator constants are the equatorial radius `R₀`
+[m], the normalized gravitational parameter `μm = √(GM / R₀³)` [rad / s], and the zonal
+harmonic `J₂` [-]. The returned RAAN, argument of periapsis, and true anomaly are wrapped to
+the interval [0, 2π).
+
+# References
+
+- **[1]** Vallado, D. A (2013). Fundamentals of Astrodynamics and Applications. 4th ed.
+    Microcosm Press, Hawthorn, CA, USA.
+"""
 function _osculating_elements(
-    mean_orbk::KeplerianElements{Tanomaly, Tepoch, T},
-    M_k::Number,
-    epoch::Number,
-    R₀::Number,
-    μm::Number,
-    J₂::Number,
-) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, T <: Number}
-    a_k  = mean_orbk.semi_major_axis
-    e_k  = mean_orbk.eccentricity
-    e_k² = e_k * e_k
-    i_k  = mean_orbk.inclination
-    Ω_k  = mean_orbk.raan
-    ω_k  = mean_orbk.argument_of_periapsis
-    f_k  = true_anomaly(mean_orbk)
-    p_k  = a_k * (1 - e_k²)
-    p_k² = p_k * p_k
-    u_k  = ω_k + f_k
+    mean_orbk::KeplerianElements{MeanAnomaly, Tepoch, T}, R₀::Number, μm::Number, J₂::Number
+) where {Tepoch <: Number, T <: Number}
+    epoch = mean_orbk.epoch
+    a_k   = mean_orbk.semi_major_axis
+    e_k   = mean_orbk.eccentricity
+    e_k²  = e_k * e_k
+    i_k   = mean_orbk.inclination
+    Ω_k   = mean_orbk.raan
+    ω_k   = mean_orbk.argument_of_periapsis
+    M_k   = mean_orbk.anomaly
+    f_k   = true_anomaly(mean_orbk)
+    p_k   = a_k * (1 - e_k²)
+    p_k²  = p_k * p_k
+    u_k   = ω_k + f_k
 
     # Auxiliary variable to reduce the computational burden.
     KJ₂ = J₂ * R₀ * R₀ / 4
