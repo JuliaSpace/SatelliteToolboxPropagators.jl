@@ -1,6 +1,44 @@
 SatelliteToolboxPropagator.jl Changelog
 =======================================
 
+Version 2.0.0
+-------------
+
+- ![BREAKING][badge-breaking] Require **SatelliteToolboxBase.jl** v2. The propagators store
+  their mean elements as `KeplerianElements{MeanAnomaly}`, and the osculating propagators
+  store the osculating elements as `KeplerianElements{TrueAnomaly}`. The fields `orb₀` and
+  `orbk` of the propagator structures changed their types accordingly.
+- ![BREAKING][badge-breaking] Rename the exported constants to `SCREAMING_SNAKE_CASE`:
+  `J2C_EGM2008`, `J2C_EGM1996`, `J2C_JGM02`, `J2C_JGM03`, `J4C_EGM2008`, `J4C_EGM1996`,
+  `J4C_JGM02`, `J4C_JGM03`, their `_F32` variants, `TBC_M0`, and `TBC_M0_F32`. The lowercase
+  names were removed.
+- ![BREAKING][badge-breaking] Every mean elements output now stores the mean anomaly. The
+  functions that fit mean elements and the functions that update their epoch return
+  `KeplerianElements{MeanAnomaly}`, and `Propagators.mean_elements` returns
+  `KeplerianElements{MeanAnomaly}` for every propagator, including SGP4, which returned the
+  true anomaly.
+- ![Feature][badge-feature] Add the mean elements fitting and the epoch update to the
+  two-body propagator: `fit_twobody_mean_elements`, `fit_twobody_mean_elements!`,
+  `update_twobody_mean_elements_epoch`, `update_twobody_mean_elements_epoch!`, and the
+  methods of `Propagators.fit_mean_elements` and `Propagators.fit_mean_elements!` for
+  `Val(:TwoBody)`.
+- ![Enhancement][badge-enhancement] Replace **Crayons.jl** with **StyledStrings**, which
+  only emits the terminal decorations when the output supports colors.
+- ![Enhancement][badge-enhancement] Share the finite-difference and the ForwardDiff
+  Jacobians, the epoch update, and the multi-threaded propagation of time vectors among the
+  propagators, removing about 900 duplicated lines without changing the behavior or the
+  allocation limits.
+- ![Bugfix][badge-bugfix] Throw the documented `ArgumentError` when initializing a
+  propagator with an invalid eccentricity. The conversion to the mean anomaly ran before the
+  validation and raised a `DomainError` first.
+- ![Bugfix][badge-bugfix] Fix the docstring examples of the fitting functions, which
+  initialized the dummy propagator with an integer epoch and failed with an `InexactError`.
+- ![Info][badge-info] Every function, including the private ones, now has a docstring, and
+  the sources follow the coding style. The private Jacobian functions were merged into
+  `_mean_elements_jacobian`.
+- ![Info][badge-info] The propagator design description moved from `src/API.md` to the
+  documentation, which now builds it as the page "API".
+
 Version 1.2.0
 -------------
 
