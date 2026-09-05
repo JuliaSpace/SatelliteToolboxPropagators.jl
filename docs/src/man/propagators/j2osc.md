@@ -33,20 +33,20 @@ The following keyword selects the gravitational constants for the propagation al
 
 - `j2c::J2PropagatorConstants`: J2 orbit propagator constants (see
   [`J2PropagatorConstants`](@ref)).
-  (**Default** = `j2c_egm2008`)
+  (**Default** = `J2C_EGM2008`)
 
 This package contains some pre-built propagation constants for this propagator:
 
 | **J2 Propagator Constant** | **Description**                  | **Type**  |
 |---------------------------:|:---------------------------------|:----------|
-|              `j2c_egm2008` | EGM-2008 gravitational constants | `Float64` |
-|          `j2c_egm2008_f32` | EGM-2008 gravitational constants | `Float32` |
-|              `j2c_egm1996` | EGM-1996 gravitational constants | `Float64` |
-|          `j2c_egm1996_f32` | EGM-1996 gravitational constants | `Float32` |
-|                `j2c_jgm02` | JGM-02 gravitational constants   | `Float64` |
-|            `j2c_jgm02_f32` | JGM-02 gravitational constants   | `Float32` |
-|                `j2c_jgm03` | JGM-03 gravitational constants   | `Float64` |
-|            `j2c_jgm03_f32` | JGM-03 gravitational constants   | `Float32` |
+|              `J2C_EGM2008` | EGM-2008 gravitational constants | `Float64` |
+|          `J2C_EGM2008_F32` | EGM-2008 gravitational constants | `Float32` |
+|              `J2C_EGM1996` | EGM-1996 gravitational constants | `Float64` |
+|          `J2C_EGM1996_F32` | EGM-1996 gravitational constants | `Float32` |
+|                `J2C_JGM02` | JGM-02 gravitational constants   | `Float64` |
+|            `J2C_JGM02_F32` | JGM-02 gravitational constants   | `Float32` |
+|                `J2C_JGM03` | JGM-03 gravitational constants   | `Float64` |
+|            `J2C_JGM03_F32` | JGM-03 gravitational constants   | `Float32` |
 
 !!! note
 
@@ -86,7 +86,7 @@ algorithm.
 !!! note
 
     This algorithm version will allocate a new J2 propagator with the default constants
-    `j2c_egm2008`. If another set of constants are required, use the function
+    `J2C_EGM2008`. If another set of constants are required, use the function
     [`Propagators.fit_mean_elements!`](@ref) instead.
 
 The following keywords are available to configure the fitting process:

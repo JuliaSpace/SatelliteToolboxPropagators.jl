@@ -28,8 +28,8 @@
 #
 ############################################################################################
 
-export j4c_egm2008, j4c_egm1996, j4c_jgm02, j4c_jgm03
-export j4c_egm2008_f32, j4c_egm1996_f32, j4c_jgm02_f32, j4c_jgm03_f32
+export J4C_EGM2008, J4C_EGM1996, J4C_JGM02, J4C_JGM03
+export J4C_EGM2008_F32, J4C_EGM1996_F32, J4C_JGM02_F32, J4C_JGM03_F32
 export j4_init, j4_init!, j4, j4!
 export fit_j4_mean_elements, fit_j4_mean_elements!
 export update_j4_mean_elements_epoch, update_j4_mean_elements_epoch!
@@ -44,14 +44,14 @@ export update_j4_mean_elements_epoch, update_j4_mean_elements_epoch!
 #
 
 # EGM-08 gravitational constants.
-const j4c_egm2008 = J4PropagatorConstants(
+const J4C_EGM2008 = J4PropagatorConstants(
     6378137.0,
     sqrt(3.986004415e14 / 6378137.0^3),
     0.0010826261738522227,
     -1.6198975999169731e-6,
 )
 
-const j4c_egm2008_f32 = J4PropagatorConstants{Float32}(
+const J4C_EGM2008_F32 = J4PropagatorConstants{Float32}(
     6378137.0,
     sqrt(3.986004415e14 / 6378137.0^3),
     0.0010826261738522227,
@@ -59,29 +59,29 @@ const j4c_egm2008_f32 = J4PropagatorConstants{Float32}(
 )
 
 # EGM-96 gravitational constants.
-const j4c_egm1996 = J4PropagatorConstants(
+const J4C_EGM1996 = J4PropagatorConstants(
     6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826266835531513, -1.619621591367e-6
 )
 
-const j4c_egm1996_f32 = J4PropagatorConstants{Float32}(
+const J4C_EGM1996_F32 = J4PropagatorConstants{Float32}(
     6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826266835531513, -1.619621591367e-6
 )
 
 # JGM-02 gravitational constants.
-const j4c_jgm02 = J4PropagatorConstants(
+const J4C_JGM02 = J4PropagatorConstants(
     6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826269256388149, -1.62042999e-6
 )
 
-const j4c_jgm02_f32 = J4PropagatorConstants{Float32}(
+const J4C_JGM02_F32 = J4PropagatorConstants{Float32}(
     6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826269256388149, -1.62042999e-6
 )
 
 # JGM-03 gravitational constants.
-const j4c_jgm03 = J4PropagatorConstants(
+const J4C_JGM03 = J4PropagatorConstants(
     6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826360229829945, -1.619331205071e-6
 )
 
-const j4c_jgm03_f32 = J4PropagatorConstants{Float32}(
+const J4C_JGM03_F32 = J4PropagatorConstants{Float32}(
     6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826360229829945, -1.619331205071e-6
 )
 
@@ -124,11 +124,11 @@ Create and initialize the J4 orbit propagator structure using the mean Keplerian
 
 - `j4c::J4PropagatorConstants`: J4 orbit propagator constants (see
     [`J4PropagatorConstants`](@ref)).
-    (**Default** = `j4c_egm2008`)
+    (**Default** = `J4C_EGM2008`)
 """
 function j4_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j4c::J4PropagatorConstants{T} = j4c_egm2008,
+    j4c::J4PropagatorConstants{T} = J4C_EGM2008,
 ) where {
     Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number
 }
@@ -146,7 +146,7 @@ end
 
 function j4_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j4c::J4PropagatorConstants{Tj4c} = j4c_egm2008,
+    j4c::J4PropagatorConstants{Tj4c} = J4C_EGM2008,
 ) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: Number, Tj4c <: Number}
     T = promote_type(Tj4c, Tkepler)
 
@@ -307,7 +307,7 @@ orbit until the time Δt [s].
 
 - `j4c::J4PropagatorConstants`: J4 orbit propagator constants (see
     [`J4PropagatorConstants`](@ref)).
-    (**Default** = `j4c_egm2008`)
+    (**Default** = `J4C_EGM2008`)
 
 # Returns
 
@@ -323,7 +323,7 @@ The inertial frame in which the output is represented depends on which frame was
 generate the orbit parameters. Notice that the perturbation theory requires an inertial
 frame with true equator.
 """
-function j4(Δt::Number, orb₀::KeplerianElements; j4c::J4PropagatorConstants = j4c_egm2008)
+function j4(Δt::Number, orb₀::KeplerianElements; j4c::J4PropagatorConstants = J4C_EGM2008)
     j4d = j4_init(orb₀; j4c = j4c)
     r_i, v_i = j4!(j4d, Δt)
     return r_i, v_i, j4d
@@ -413,7 +413,7 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 !!! note
 
     This algorithm version will allocate a new J4 propagator with the default constants
-    `j4c_egm2008`. If another set of constants are required, use the function
+    `J4C_EGM2008`. If another set of constants are required, use the function
     [`fit_j4_mean_elements!`](@ref) instead.
 
 # Keywords
@@ -514,7 +514,7 @@ function fit_j4_mean_elements(
     j4d = J4Propagator{Float64, Float64}()
 
     # Assign the constants, which are used in the initialization.
-    j4d.j4c = j4c_egm2008
+    j4d.j4c = J4C_EGM2008
 
     return fit_j4_mean_elements!(j4d, vjd, vr_i, vv_i; kwargs...)
 end
@@ -645,7 +645,7 @@ which can be represented by a Julian Day or a `DateTime`.
 !!! note
 
     This algorithm version will allocate a new J4 propagator with the default constants
-    `j4c_egm2008`. If another set of constants are required, use the function
+    `J4C_EGM2008`. If another set of constants are required, use the function
     [`update_j4_mean_elements_epoch!`](@ref) instead.
 
 # Examples
@@ -687,7 +687,7 @@ function update_j4_mean_elements_epoch(
     j4d = J4Propagator{Tepoch, T}()
 
     # Assign the constants, which are used in the initialization.
-    j4d.j4c = j4c_egm2008
+    j4d.j4c = J4C_EGM2008
 
     return update_j4_mean_elements_epoch!(j4d, orb, new_epoch)
 end

@@ -16,8 +16,8 @@
 #
 ############################################################################################
 
-export j2c_egm2008, j2c_egm1996, j2c_jgm02, j2c_jgm03
-export j2c_egm2008_f32, j2c_egm1996_f32, j2c_jgm02_f32, j2c_jgm03_f32
+export J2C_EGM2008, J2C_EGM1996, J2C_JGM02, J2C_JGM03
+export J2C_EGM2008_F32, J2C_EGM1996_F32, J2C_JGM02_F32, J2C_JGM03_F32
 export j2_init, j2_init!, j2, j2!
 export fit_j2_mean_elements, fit_j2_mean_elements!
 export update_j2_mean_elements_epoch, update_j2_mean_elements_epoch!
@@ -52,38 +52,38 @@ export update_j2_mean_elements_epoch, update_j2_mean_elements_epoch!
 #
 
 # EGM-08 gravitational constants.
-const j2c_egm2008 = J2PropagatorConstants(
+const J2C_EGM2008 = J2PropagatorConstants(
     6378137.0, √(3.986004415e14 / 6378137.0^3), 0.0010826261738522227
 )
 
-const j2c_egm2008_f32 = J2PropagatorConstants{Float32}(
+const J2C_EGM2008_F32 = J2PropagatorConstants{Float32}(
     6378137.0, √(3.986004415e14 / 6378137.0^3), 0.0010826261738522227
 )
 
 # EGM-96 gravitational constants.
-const j2c_egm1996 = J2PropagatorConstants(
+const J2C_EGM1996 = J2PropagatorConstants(
     6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826266835531513
 )
 
-const j2c_egm1996_f32 = J2PropagatorConstants{Float32}(
+const J2C_EGM1996_F32 = J2PropagatorConstants{Float32}(
     6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826266835531513
 )
 
 # JGM-02 gravitational constants.
-const j2c_jgm02 = J2PropagatorConstants(
+const J2C_JGM02 = J2PropagatorConstants(
     6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826269256388149
 )
 
-const j2c_jgm02_f32 = J2PropagatorConstants{Float32}(
+const J2C_JGM02_F32 = J2PropagatorConstants{Float32}(
     6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826269256388149
 )
 
 # JGM-03 gravitational constants.
-const j2c_jgm03 = J2PropagatorConstants(
+const J2C_JGM03 = J2PropagatorConstants(
     6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826360229829945
 )
 
-const j2c_jgm03_f32 = J2PropagatorConstants{Float32}(
+const J2C_JGM03_F32 = J2PropagatorConstants{Float32}(
     6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826360229829945
 )
 
@@ -126,11 +126,11 @@ Create and initialize the J2 orbit propagator structure using the mean Keplerian
 
 - `j2c::J2PropagatorConstants`: J2 orbit propagator constants (see
     [`J2PropagatorConstants`](@ref)).
-    (**Default** = `j2c_egm2008`)
+    (**Default** = `J2C_EGM2008`)
 """
 function j2_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j2c::J2PropagatorConstants{T} = j2c_egm2008,
+    j2c::J2PropagatorConstants{T} = J2C_EGM2008,
 ) where {
     Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number
 }
@@ -148,7 +148,7 @@ end
 
 function j2_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j2c::J2PropagatorConstants{Tj2c} = j2c_egm2008,
+    j2c::J2PropagatorConstants{Tj2c} = J2C_EGM2008,
 ) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: Number, Tj2c <: Number}
     T = promote_type(Tj2c, Tkepler)
 
@@ -262,7 +262,7 @@ propagate the orbit until the time Δt [s].
 
 - `j2c::J2PropagatorConstants`: J2 orbit propagator constants (see
     [`J2PropagatorConstants`](@ref)).
-    (**Default** = `j2c_egm2008`)
+    (**Default** = `J2C_EGM2008`)
 
 # Returns
 
@@ -278,7 +278,7 @@ The inertial frame in which the output is represented depends on which frame was
 generate the orbit parameters. Notice that the perturbation theory requires an inertial
 frame with true equator.
 """
-function j2(Δt::Number, orb₀::KeplerianElements; j2c::J2PropagatorConstants = j2c_egm2008)
+function j2(Δt::Number, orb₀::KeplerianElements; j2c::J2PropagatorConstants = J2C_EGM2008)
     j2d = j2_init(orb₀; j2c = j2c)
     r_i, v_i = j2!(j2d, Δt)
     return r_i, v_i, j2d
@@ -368,7 +368,7 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 !!! note
 
     This algorithm version will allocate a new J2 propagator with the default constants
-    `j2c_egm2008`. If another set of constants are required, use the function
+    `J2C_EGM2008`. If another set of constants are required, use the function
     [`fit_j2_mean_elements!`](@ref) instead.
 
 # Keywords
@@ -469,7 +469,7 @@ function fit_j2_mean_elements(
     j2d = J2Propagator{Float64, Float64}()
 
     # Assign the constants, which are used in the initialization.
-    j2d.j2c = j2c_egm2008
+    j2d.j2c = J2C_EGM2008
 
     return fit_j2_mean_elements!(j2d, vjd, vr_i, vv_i; kwargs...)
 end
@@ -600,7 +600,7 @@ which can be represented by a Julian Day or a `DateTime`.
 !!! note
 
     This algorithm version will allocate a new J2 propagator with the default constants
-    `j2c_egm2008`. If another set of constants are required, use the function
+    `J2C_EGM2008`. If another set of constants are required, use the function
     [`update_j2_mean_elements_epoch!`](@ref) instead.
 
 # Examples
@@ -642,7 +642,7 @@ function update_j2_mean_elements_epoch(
     j2d = J2Propagator{Tepoch, T}()
 
     # Assign the constants, which are used in the initialization.
-    j2d.j2c = j2c_egm2008
+    j2d.j2c = J2C_EGM2008
 
     return update_j2_mean_elements_epoch!(j2d, orb, new_epoch)
 end

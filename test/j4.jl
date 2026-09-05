@@ -59,12 +59,12 @@
 
     @testset "Constructor" begin
         orb = KeplerianElements{MeanAnomaly}(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
-        j4d = J4Propagator{Float64, Float64}(orb, orb, j4c_egm2008, 0, 0, 0, 0)
+        j4d = J4Propagator{Float64, Float64}(orb, orb, J4C_EGM2008, 0, 0, 0, 0)
 
         # Test some random fields.
         @test j4d.Δt == 0
         @test j4d.n̄ == 0
-        @test j4d.j4c == j4c_egm2008
+        @test j4d.j4c == J4C_EGM2008
 
         orb = KeplerianElements(0.0, 8_000_000, 0, 0, 0, 0, 0)
         orbp = Propagators.init(Val(:J4), orb)
@@ -93,7 +93,7 @@
             T(45) |> deg2rad,
         )
 
-        orbp = Propagators.init(Val(:J4), orb; j4c = j4c_egm2008)
+        orbp = Propagators.init(Val(:J4), orb; j4c = J4C_EGM2008)
         r, v = Propagators.propagate_to_epoch!(orbp, jd₁)
 
         @test eltype(r) == T
@@ -112,7 +112,7 @@
 
         # Test in-place initialization.
         orbp = OrbitPropagatorJ4(J4Propagator{Float64, T}())
-        orbp.j4d.j4c = j4c_egm2008
+        orbp.j4d.j4c = J4C_EGM2008
         Propagators.init!(orbp, orb)
 
         r, v = Propagators.propagate_to_epoch!(orbp, jd₁)
@@ -195,7 +195,7 @@
             T(45) |> deg2rad,
         )
 
-        orbp = Propagators.init(Val(:J4), orb; j4c = j4c_egm2008_f32)
+        orbp = Propagators.init(Val(:J4), orb; j4c = J4C_EGM2008_F32)
         r, v = Propagators.propagate_to_epoch!(orbp, jd₁)
 
         @test eltype(r) == T
@@ -214,7 +214,7 @@
 
         # Test in-place initialization.
         orbp = OrbitPropagatorJ4(J4Propagator{Float64, T}())
-        orbp.j4d.j4c = j4c_egm2008_f32
+        orbp.j4d.j4c = J4C_EGM2008_F32
         Propagators.init!(orbp, orb)
 
         r, v = Propagators.propagate_to_epoch!(orbp, jd₁)
@@ -235,7 +235,7 @@
 
         # Test simultaneous initialization and propagation.
         r, v, orbp = Propagators.propagate(
-            Val(:J4), (jd₁ - jd₀) * 86400, orb; j4c = j4c_egm2008_f32
+            Val(:J4), (jd₁ - jd₀) * 86400, orb; j4c = J4C_EGM2008_F32
         )
 
         @test eltype(r) == T
@@ -253,7 +253,7 @@
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
 
         r, v, orbp = Propagators.propagate_to_epoch(
-            Val(:J4), jd₁, orb; j4c = j4c_egm2008_f32
+            Val(:J4), jd₁, orb; j4c = J4C_EGM2008_F32
         )
 
         @test eltype(r) == T
@@ -270,7 +270,7 @@
 
         @test_broken orbk.Ω |> rad2deg ≈ 84.158846 (atol = 4e-3)
 
-        r, v, j4d = j4((jd₁ - jd₀) * 86400, orb; j4c = j4c_egm2008_f32)
+        r, v, j4d = j4((jd₁ - jd₀) * 86400, orb; j4c = J4C_EGM2008_F32)
 
         @test eltype(r) == T
         @test eltype(v) == T
@@ -586,20 +586,20 @@ end
 end
 
 @testset "J4 Propagator Constants Conversion" begin
-    j4c = convert(J4PropagatorConstants{Float32}, j4c_egm2008)
+    j4c = convert(J4PropagatorConstants{Float32}, J4C_EGM2008)
 
     @test j4c isa J4PropagatorConstants{Float32}
-    @test j4c.R0 == Float32(j4c_egm2008.R0)
-    @test j4c.μm == Float32(j4c_egm2008.μm)
-    @test j4c.J2 == Float32(j4c_egm2008.J2)
-    @test j4c.J4 == Float32(j4c_egm2008.J4)
+    @test j4c.R0 == Float32(J4C_EGM2008.R0)
+    @test j4c.μm == Float32(J4C_EGM2008.μm)
+    @test j4c.J2 == Float32(J4C_EGM2008.J2)
+    @test j4c.J4 == Float32(J4C_EGM2008.J4)
 
     # Converting to the same type must be a no-op.
-    @test convert(J4PropagatorConstants{Float64}, j4c_egm2008) === j4c_egm2008
+    @test convert(J4PropagatorConstants{Float64}, J4C_EGM2008) === J4C_EGM2008
 end
 
 @testset "Copying Structure" verbose = true begin
-    for (T, j4c) in ((Float64, j4c_egm2008), (Float32, j4c_egm2008_f32))
+    for (T, j4c) in ((Float64, J4C_EGM2008), (Float32, J4C_EGM2008_F32))
         @testset "$T" begin
             jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
 

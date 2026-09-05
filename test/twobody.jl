@@ -110,7 +110,7 @@
 
         # Test in-place initialization.
         orbp = OrbitPropagatorTwoBody(TwoBodyPropagator{Float64, T}())
-        orbp.tbd.μ = tbc_m0
+        orbp.tbd.μ = TBC_M0
         Propagators.init!(orbp, orb)
 
         r, v = Propagators.step!(orbp, 40 * 60)
@@ -186,7 +186,7 @@
             date_to_jd(1986, 6, 19, 18, 35, 0),
         )
 
-        orbp = Propagators.init(Val(:TwoBody), orb; m0 = tbc_m0_f32)
+        orbp = Propagators.init(Val(:TwoBody), orb; m0 = TBC_M0_F32)
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float32}
@@ -224,7 +224,7 @@
 
         # Test in-place initialization.
         orbp = OrbitPropagatorTwoBody(TwoBodyPropagator{Float64, T}())
-        orbp.tbd.μ = tbc_m0_f32
+        orbp.tbd.μ = TBC_M0_F32
         Propagators.init!(orbp, orb)
 
         r, v = Propagators.step!(orbp, 40 * 60)
@@ -240,7 +240,7 @@
         @test eltype(v) == T
 
         # Test simultaneous initialization and propagation.
-        r, v, orbp = Propagators.propagate(Val(:TwoBody), 40 * 60, orb; m0 = tbc_m0_f32)
+        r, v, orbp = Propagators.propagate(Val(:TwoBody), 40 * 60, orb; m0 = TBC_M0_F32)
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float32}
@@ -256,7 +256,7 @@
         @test eltype(v) == T
 
         r, v, orbp = Propagators.propagate_to_epoch(
-            Val(:TwoBody), jd₁, orb; m0 = tbc_m0_f32
+            Val(:TwoBody), jd₁, orb; m0 = TBC_M0_F32
         )
 
         orbk = Propagators.mean_elements(orbp)
@@ -272,7 +272,7 @@
         @test v[3] / 1000 ≈ -6.112511 atol = 5e-3
         @test eltype(v) == T
 
-        r, v, tbd = twobody(40 * 60, orb; m0 = tbc_m0_f32)
+        r, v, tbd = twobody(40 * 60, orb; m0 = TBC_M0_F32)
 
         @test tbd isa TwoBodyPropagator{Float64, Float32}
 
@@ -289,7 +289,7 @@
 end
 
 @testset "Copying Structure" verbose = true begin
-    for (T, tbc) in ((Float64, tbc_m0), (Float32, tbc_m0_f32))
+    for (T, tbc) in ((Float64, TBC_M0), (Float32, TBC_M0_F32))
         @testset "$T" begin
             jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
 

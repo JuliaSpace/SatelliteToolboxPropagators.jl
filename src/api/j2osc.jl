@@ -26,7 +26,7 @@ the array `vjd` [Julian Day].
 !!! note
 
     This algorithm version will allocate a new J2 osculating propagator with the default
-    constants `j2c_egm2008`. If another set of constants are required, use the function
+    constants `J2C_EGM2008`. If another set of constants are required, use the function
     [`Propagators.fit_mean_elements!`](@ref) instead.
 
 # Keywords
@@ -167,10 +167,10 @@ elements `orb₀` [SI units].
 # Keywords
 
 - `j2c::J2PropagatorConstants`: J2 orbit propagator constants (see
-  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm2008`)
+  [`J2PropagatorConstants`](@ref)). (**Default** = `J2C_EGM2008`)
 """
 function Propagators.init(
-    ::Val{:J2osc}, orb₀::KeplerianElements; j2c::J2PropagatorConstants = j2c_egm2008
+    ::Val{:J2osc}, orb₀::KeplerianElements; j2c::J2PropagatorConstants = J2C_EGM2008
 )
     j2oscd = j2osc_init(orb₀; j2c = j2c)
     return OrbitPropagatorJ2Osculating(j2oscd)

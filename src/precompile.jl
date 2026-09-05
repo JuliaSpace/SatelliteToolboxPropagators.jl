@@ -38,12 +38,12 @@ PrecompileTools.@setup_workload begin
     redirect_stdout(devnull) do
         PrecompileTools.@compile_workload begin
             for (prop, f32_kwargs) in (
-                (:J2, (; j2c = j2c_egm2008_f32)),
-                (:J2osc, (; j2c = j2c_egm2008_f32)),
-                (:J4, (; j4c = j4c_egm2008_f32)),
-                (:J4osc, (; j4c = j4c_egm2008_f32)),
+                (:J2, (; j2c = J2C_EGM2008_F32)),
+                (:J2osc, (; j2c = J2C_EGM2008_F32)),
+                (:J4, (; j4c = J4C_EGM2008_F32)),
+                (:J4osc, (; j4c = J4C_EGM2008_F32)),
                 (:SGP4, (; sgp4c = sgp4c_wgs84_f32)),
-                (:TwoBody, (; m0 = tbc_m0_f32)),
+                (:TwoBody, (; m0 = TBC_M0_F32)),
             )
                 mean_elements = prop != :SGP4 ? orb : tle
 

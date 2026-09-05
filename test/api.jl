@@ -25,7 +25,7 @@ struct DummyPropagator{Tepoch, T} <: OrbitPropagator{Tepoch, T} end
             T(45) |> deg2rad,
         )
 
-        orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm2008)
+        orbp = Propagators.init(Val(:J2), orb; j2c = J2C_EGM2008)
         ret  = Propagators.propagate!.(orbp, 1:1:100)
 
         @test length(ret) == 100
@@ -53,7 +53,7 @@ struct DummyPropagator{Tepoch, T} <: OrbitPropagator{Tepoch, T} end
             T(45) |> deg2rad,
         )
 
-        orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm2008_f32)
+        orbp = Propagators.init(Val(:J2), orb; j2c = J2C_EGM2008_F32)
         ret  = Propagators.propagate!.(orbp, 1:1:100)
 
         @test length(ret) == 100
@@ -70,7 +70,7 @@ end
 @testset "Dates Support" verbose = true begin
     jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
 
-    for (T, j2c) in ((Float64, j2c_egm2008), (Float32, j2c_egm2008_f32))
+    for (T, j2c) in ((Float64, J2C_EGM2008), (Float32, J2C_EGM2008_F32))
         @testset "$T" begin
             orb = KeplerianElements(
                 jd₀,
@@ -161,7 +161,7 @@ end
 end
 
 @testset "Multi-thread Propagation" verbose = true begin
-    for (T, j2c) in ((Float64, j2c_egm2008), (Float32, j2c_egm2008_f32))
+    for (T, j2c) in ((Float64, J2C_EGM2008), (Float32, J2C_EGM2008_F32))
         @testset "$T" begin
             jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
             jd₁ = date_to_jd(2023, 1, 5, 0, 0, 0)
@@ -319,7 +319,7 @@ end
     @testset "Julian Day" verbose = true begin
         jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
 
-        for (T, j2c) in ((Float64, j2c_egm2008), (Float32, j2c_egm2008_f32))
+        for (T, j2c) in ((Float64, J2C_EGM2008), (Float32, J2C_EGM2008_F32))
             @testset "$T" begin
                 orb = KeplerianElements(
                     jd₀,
@@ -586,7 +586,7 @@ end
     @testset "Dates Support" verbose = true begin
         jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
 
-        for (T, j2c) in ((Float64, j2c_egm2008), (Float32, j2c_egm2008_f32))
+        for (T, j2c) in ((Float64, J2C_EGM2008), (Float32, J2C_EGM2008_F32))
             @testset "$T" begin
                 orb = KeplerianElements(
                     jd₀,
@@ -878,7 +878,7 @@ end
 end
 
 @testset "Fitting Mean Elements Using OrbitStateVector" verbose = true begin
-    for (T, j2c) in ((Float64, j2c_egm2008), (Float32, j2c_egm2008_f32))
+    for (T, j2c) in ((Float64, J2C_EGM2008), (Float32, J2C_EGM2008_F32))
         @testset "$T" begin
             jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
 
@@ -1104,10 +1104,10 @@ end
     vjd = jd₀ .+ vt ./ 86400
 
     @testset "$prop" for (prop, kwargs) in (
-        (:J2, (; j2c = j2c_egm2008_f32)),
-        (:J2osc, (; j2c = j2c_egm2008_f32)),
-        (:J4, (; j4c = j4c_egm2008_f32)),
-        (:J4osc, (; j4c = j4c_egm2008_f32)),
+        (:J2, (; j2c = J2C_EGM2008_F32)),
+        (:J2osc, (; j2c = J2C_EGM2008_F32)),
+        (:J4, (; j4c = J4C_EGM2008_F32)),
+        (:J4osc, (; j4c = J4C_EGM2008_F32)),
     )
         orbp = Propagators.init(Val(prop), orb; kwargs...)
         ret  = [Propagators.propagate!(orbp, t) for t in vt]
@@ -1186,8 +1186,8 @@ end
     jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
 
     @testset "$prop" for (prop, kwargs_32, kwargs_64) in (
-        (:J2osc, (; j2c = j2c_egm2008_f32), (; j2c = j2c_egm2008)),
-        (:J4osc, (; j4c = j4c_egm2008_f32), (; j4c = j4c_egm2008)),
+        (:J2osc, (; j2c = J2C_EGM2008_F32), (; j2c = J2C_EGM2008)),
+        (:J4osc, (; j4c = J4C_EGM2008_F32), (; j4c = J4C_EGM2008)),
     )
         for a in (6.0e7, 1.0e8, 3.844e8)
             orb_32 = KeplerianElements(
@@ -1235,7 +1235,7 @@ end
     @testset "$prop" for (prop, fit!, build) in (
         (:J2, fit_j2_mean_elements!, () -> begin
             d = J2Propagator{Float64, Float64}()
-            d.j2c = j2c_egm2008
+            d.j2c = J2C_EGM2008
             d
         end),
         (
@@ -1244,13 +1244,13 @@ end
             () -> begin
                 d = J2OsculatingPropagator{Float64, Float64}()
                 d.j2d = J2Propagator{Float64, Float64}()
-                d.j2d.j2c = j2c_egm2008
+                d.j2d.j2c = J2C_EGM2008
                 d
             end,
         ),
         (:J4, fit_j4_mean_elements!, () -> begin
             d = J4Propagator{Float64, Float64}()
-            d.j4c = j4c_egm2008
+            d.j4c = J4C_EGM2008
             d
         end),
         (
@@ -1259,7 +1259,7 @@ end
             () -> begin
                 d = J4OsculatingPropagator{Float64, Float64}()
                 d.j4d = J4Propagator{Float64, Float64}()
-                d.j4d.j4c = j4c_egm2008
+                d.j4d.j4c = J4C_EGM2008
                 d
             end,
         ),

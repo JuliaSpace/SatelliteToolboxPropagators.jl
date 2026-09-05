@@ -44,7 +44,7 @@ epoch = orb_input.t
 # Define the J2 propagator map: x₀ = [r₀; v₀] → [r(Δt); v(Δt)]
 # ------------------------------------------------------------------------------------------
 
-function j2_map(x₀::AbstractVector, Δt, epoch_jd; j2c = j2c_egm2008)
+function j2_map(x₀::AbstractVector, Δt, epoch_jd; j2c = J2C_EGM2008)
     r₀ = SVector{3}(x₀[1], x₀[2], x₀[3])
     v₀ = SVector{3}(x₀[4], x₀[5], x₀[6])
 

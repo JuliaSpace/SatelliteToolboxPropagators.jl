@@ -12,7 +12,7 @@
 #
 ############################################################################################
 
-export tbc_m0, tbc_m0_f32
+export TBC_M0, TBC_M0_F32
 export twobody_init, twobody_init!, twobody, twobody!
 
 ############################################################################################
@@ -20,8 +20,8 @@ export twobody_init, twobody_init!, twobody, twobody!
 ############################################################################################
 
 # Earth's standard gravitational parameter [m³/s²]
-const tbc_m0     = 3.986004415e14
-const tbc_m0_f32 = 3.986004415f14
+const TBC_M0     = 3.986004415e14
+const TBC_M0_F32 = 3.986004415f14
 
 ############################################################################################
 #                                        Julia API                                         #
@@ -61,10 +61,10 @@ Create and initialize the two-body propagator structure using the mean Keplerian
 # Keywords
 
 - `m0::T`: Standard gravitational parameter of the central body [m³ / s²].
-    (**Default** = `tbc_m0`)
+    (**Default** = `TBC_M0`)
 """
 function twobody_init(
-    orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler}; m0::T = tbc_m0
+    orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler}; m0::T = TBC_M0
 ) where {
     Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number
 }
@@ -81,7 +81,7 @@ function twobody_init(
 end
 
 function twobody_init(
-    orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler}; m0::Tm0 = tbc_m0
+    orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler}; m0::Tm0 = TBC_M0
 ) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: Number, Tm0 <: Number}
     T = promote_type(Tm0, Tkepler)
 
@@ -160,7 +160,7 @@ the orbit until the time Δt [s].
 # Keywords
 
 - `m0::T`: Standard gravitational parameter of the central body [m³ / s²].
-    (**Default** = `tbc_m0`)
+    (**Default** = `TBC_M0`)
 
 # Returns
 
@@ -175,7 +175,7 @@ the orbit until the time Δt [s].
 The inertial frame in which the output is represented depends on which frame was used to
 generate the orbit parameters.
 """
-function twobody(Δt::Number, orb₀::KeplerianElements; m0::T = tbc_m0) where {T <: Number}
+function twobody(Δt::Number, orb₀::KeplerianElements; m0::T = TBC_M0) where {T <: Number}
     tbd = twobody_init(orb₀; m0 = m0)
     r_i, v_i = twobody!(tbd, Δt)
     return r_i, v_i, tbd

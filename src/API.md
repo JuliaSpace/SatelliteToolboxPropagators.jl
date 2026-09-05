@@ -16,7 +16,7 @@ reduce the computational burden.
 This function shall be named as `<propagator identifier>_init`.
 
 ```julia
-j2d = j2_init(orb; j2c = j2c_egm08)
+j2d = j2_init(orb; j2c = J2C_EGM2008)
 ```
 
 The propagator can also implement the in-place initialization, where a structure will be
@@ -66,7 +66,7 @@ This function must return the same result as the propagator function and also th
 initialized propagator structure.
 
 ```julia
-r_i, v_i, j2d = j2(10, orb; j2c = j2c_egm08)
+r_i, v_i, j2d = j2(10, orb; j2c = J2C_EGM2008)
 ```
 
 ## API

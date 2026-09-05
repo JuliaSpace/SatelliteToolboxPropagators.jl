@@ -40,12 +40,12 @@
 
     @testset "Constructor" begin
         orb = KeplerianElements{MeanAnomaly}(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
-        j2d = J2Propagator{Float64, Float64}(orb, orb, j2c_egm2008, 0, 0, 0, 0)
+        j2d = J2Propagator{Float64, Float64}(orb, orb, J2C_EGM2008, 0, 0, 0, 0)
 
         # Test some random fields.
         @test j2d.Δt == 0
         @test j2d.n̄ == 0
-        @test j2d.j2c == j2c_egm2008
+        @test j2d.j2c == J2C_EGM2008
 
         orb = KeplerianElements(0.0, 8_000_000, 0, 0, 0, 0, 0)
         orbp = Propagators.init(Val(:J2), orb)
@@ -75,7 +75,7 @@
             T(45) |> deg2rad,
         )
 
-        orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm2008)
+        orbp = Propagators.init(Val(:J2), orb; j2c = J2C_EGM2008)
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float64}
@@ -113,7 +113,7 @@
 
         # Test in-place initialization.
         orbp = OrbitPropagatorJ2(J2Propagator{Float64, T}())
-        orbp.j2d.j2c = j2c_egm2008
+        orbp.j2d.j2c = J2C_EGM2008
         Propagators.init!(orbp, orb)
 
         r, v = Propagators.step!(orbp, (jd₁ - jd₀) * 86400)
@@ -189,7 +189,7 @@
             T(45) |> deg2rad,
         )
 
-        orbp = Propagators.init(Val(:J2), orb; j2c = j2c_egm2008_f32)
+        orbp = Propagators.init(Val(:J2), orb; j2c = J2C_EGM2008_F32)
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float32}
@@ -227,7 +227,7 @@
 
         # Test in-place initialization.
         orbp = OrbitPropagatorJ2(J2Propagator{Float64, T}())
-        orbp.j2d.j2c = j2c_egm2008_f32
+        orbp.j2d.j2c = J2C_EGM2008_F32
         Propagators.init!(orbp, orb)
 
         r, v = Propagators.step!(orbp, (jd₁ - jd₀) * 86400)
@@ -244,7 +244,7 @@
 
         # Test simultaneous initialization and propagation.
         r, v, orbp = Propagators.propagate(
-            Val(:J2), (jd₁ - jd₀) * 86400, orb; j2c = j2c_egm2008_f32
+            Val(:J2), (jd₁ - jd₀) * 86400, orb; j2c = J2C_EGM2008_F32
         )
 
         orbk = Propagators.mean_elements(orbp)
@@ -261,7 +261,7 @@
         @test eltype(v) == T
 
         r, v, orbp = Propagators.propagate_to_epoch(
-            Val(:J2), jd₁, orb; j2c = j2c_egm2008_f32
+            Val(:J2), jd₁, orb; j2c = J2C_EGM2008_F32
         )
 
         orbk = Propagators.mean_elements(orbp)
@@ -277,7 +277,7 @@
         @test v[3] / 1000 ≈ -1.266334 atol = 1e-3
         @test eltype(v) == T
 
-        r, v, j2d = j2((jd₁ - jd₀) * 86400, orb; j2c = j2c_egm2008_f32)
+        r, v, j2d = j2((jd₁ - jd₀) * 86400, orb; j2c = J2C_EGM2008_F32)
 
         @test j2d isa J2Propagator{Float64, Float32}
 
@@ -648,19 +648,19 @@ end
 end
 
 @testset "J2 Propagator Constants Conversion" begin
-    j2c = convert(J2PropagatorConstants{Float32}, j2c_egm2008)
+    j2c = convert(J2PropagatorConstants{Float32}, J2C_EGM2008)
 
     @test j2c isa J2PropagatorConstants{Float32}
-    @test j2c.R0 == Float32(j2c_egm2008.R0)
-    @test j2c.μm == Float32(j2c_egm2008.μm)
-    @test j2c.J2 == Float32(j2c_egm2008.J2)
+    @test j2c.R0 == Float32(J2C_EGM2008.R0)
+    @test j2c.μm == Float32(J2C_EGM2008.μm)
+    @test j2c.J2 == Float32(J2C_EGM2008.J2)
 
     # Converting to the same type must be a no-op.
-    @test convert(J2PropagatorConstants{Float64}, j2c_egm2008) === j2c_egm2008
+    @test convert(J2PropagatorConstants{Float64}, J2C_EGM2008) === J2C_EGM2008
 end
 
 @testset "Copying Structure" verbose = true begin
-    for (T, j2c) in ((Float64, j2c_egm2008), (Float32, j2c_egm2008_f32))
+    for (T, j2c) in ((Float64, J2C_EGM2008), (Float32, J2C_EGM2008_F32))
         @testset "$T" begin
             jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
 

@@ -46,7 +46,7 @@ We define a function that maps the initial Cartesian state `x₀ = [r₀; v₀]`
 propagated state `[r(Δt); v(Δt)]` through the J2 propagator:
 
 ```julia
-function j2_map(x₀::AbstractVector, Δt, epoch; j2c = j2c_egm2008)
+function j2_map(x₀::AbstractVector, Δt, epoch; j2c = J2C_EGM2008)
     r₀ = SVector{3}(x₀[1], x₀[2], x₀[3])
     v₀ = SVector{3}(x₀[4], x₀[5], x₀[6])
 

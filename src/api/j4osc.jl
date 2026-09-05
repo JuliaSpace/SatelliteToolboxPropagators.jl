@@ -26,7 +26,7 @@ the array `vjd` [Julian Day].
 !!! note
 
     This algorithm version will allocate a new J4 osculating propagator with the default
-    constants `j4c_egm2008`. If another set of constants are required, use the function
+    constants `J4C_EGM2008`. If another set of constants are required, use the function
     [`Propagators.fit_mean_elements!`](@ref) instead.
 
 # Keywords
@@ -171,10 +171,10 @@ elements `orb₀`.
 # Keywords
 
 - `j4c::J4PropagatorConstants`: J4 orbit propagator constants (see
-  [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm2008`)
+  [`J4PropagatorConstants`](@ref)). (**Default** = `J4C_EGM2008`)
 """
 function Propagators.init(
-    ::Val{:J4osc}, orb₀::KeplerianElements; j4c::J4PropagatorConstants = j4c_egm2008
+    ::Val{:J4osc}, orb₀::KeplerianElements; j4c::J4PropagatorConstants = J4C_EGM2008
 )
     j4oscd = j4osc_init(orb₀; j4c = j4c)
     return OrbitPropagatorJ4Osculating(j4oscd)

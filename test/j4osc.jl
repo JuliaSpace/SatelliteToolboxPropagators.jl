@@ -71,7 +71,7 @@
 
     @testset "Constructor" begin
         orb    = KeplerianElements{MeanAnomaly}(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
-        j4d    = J4Propagator{Float64, Float64}(orb, orb, j4c_egm2008, 0, 0, 0, 0)
+        j4d    = J4Propagator{Float64, Float64}(orb, orb, J4C_EGM2008, 0, 0, 0, 0)
         j4oscd = J4OsculatingPropagator{Float64, Float64}(j4d, 0, orb)
 
         # Test some random fields.
@@ -110,7 +110,7 @@
         )
 
         # Test all the results.
-        orbp = Propagators.init(Val(:J4osc), orb; j4c = j4c_egm2008)
+        orbp = Propagators.init(Val(:J4osc), orb; j4c = J4C_EGM2008)
 
         for k in axes(results, 1)
             r, v = Propagators.propagate!(orbp, results[k, 1])
@@ -126,7 +126,7 @@
         end
 
         # Re-initialize the propagator.
-        orbp = Propagators.init(Val(:J4osc), orb; j4c = j4c_egm2008)
+        orbp = Propagators.init(Val(:J4osc), orb; j4c = J4C_EGM2008)
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float64}
@@ -163,7 +163,7 @@
         # Test in-place initialization.
         orbp = OrbitPropagatorJ4Osculating(J4OsculatingPropagator{Float64, T}())
         j4d = J4Propagator{Float64, T}()
-        j4d.j4c = j4c_egm2008
+        j4d.j4c = J4C_EGM2008
         orbp.j4oscd.j4d = j4d
         Propagators.init!(orbp, orb)
 
@@ -241,7 +241,7 @@
         )
 
         # Test all the results.
-        orbp = Propagators.init(Val(:J4osc), orb; j4c = j4c_egm2008_f32)
+        orbp = Propagators.init(Val(:J4osc), orb; j4c = J4C_EGM2008_F32)
 
         for k in axes(results, 1)
             r, v = Propagators.propagate!(orbp, results[k, 1])
@@ -257,7 +257,7 @@
         end
 
         # Re-initialize the propagator.
-        orbp = Propagators.init(Val(:J4osc), orb; j4c = j4c_egm2008_f32)
+        orbp = Propagators.init(Val(:J4osc), orb; j4c = J4C_EGM2008_F32)
 
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float32}
@@ -294,7 +294,7 @@
         # Test in-place initialization.
         orbp = OrbitPropagatorJ4Osculating(J4OsculatingPropagator{Float64, T}())
         j4d = J4Propagator{Float64, T}()
-        j4d.j4c = j4c_egm2008_f32
+        j4d.j4c = J4C_EGM2008_F32
         orbp.j4oscd.j4d = j4d
         Propagators.init!(orbp, orb)
 
@@ -311,7 +311,7 @@
 
         # Test simultaneous initialization and propagation.
         r, v, orbp = Propagators.propagate(
-            Val(:J4osc), results[end, 1], orb; j4c = j4c_egm2008_f32
+            Val(:J4osc), results[end, 1], orb; j4c = J4C_EGM2008_F32
         )
 
         orbk = Propagators.mean_elements(orbp)
@@ -327,7 +327,7 @@
         @test eltype(v) == T
 
         r, v, orbp = Propagators.propagate_to_epoch(
-            Val(:J4osc), jd₀ + results[end, 1] / 86400, orb; j4c = j4c_egm2008_f32
+            Val(:J4osc), jd₀ + results[end, 1] / 86400, orb; j4c = J4C_EGM2008_F32
         )
 
         orbk = Propagators.mean_elements(orbp)
@@ -342,7 +342,7 @@
         @test eltype(r) == T
         @test eltype(v) == T
 
-        r, v, j4oscd = j4osc(results[end, 1], orb; j4c = j4c_egm2008_f32)
+        r, v, j4oscd = j4osc(results[end, 1], orb; j4c = J4C_EGM2008_F32)
 
         @test j4oscd isa J4OsculatingPropagator{Float64, Float32}
 
@@ -630,7 +630,7 @@ end
 end
 
 @testset "Copying Structure" verbose = true begin
-    for (T, j4c) in ((Float64, j4c_egm2008), (Float32, j4c_egm2008_f32))
+    for (T, j4c) in ((Float64, J4C_EGM2008), (Float32, J4C_EGM2008_F32))
         @testset "$T" begin
             jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
 

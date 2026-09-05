@@ -59,11 +59,11 @@ elements `orb₀`.
 # Keywords
 
 - `j4c::J4PropagatorConstants`: J4 orbit propagator constants (see
-    [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm2008`)
+    [`J4PropagatorConstants`](@ref)). (**Default** = `J4C_EGM2008`)
 """
 function j4osc_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j4c::J4PropagatorConstants{T} = j4c_egm2008,
+    j4c::J4PropagatorConstants{T} = J4C_EGM2008,
 ) where {
     Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number
 }
@@ -85,7 +85,7 @@ end
 
 function j4osc_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j4c::J4PropagatorConstants{Tj4c} = j4c_egm2008,
+    j4c::J4PropagatorConstants{Tj4c} = J4C_EGM2008,
 ) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: Number, Tj4c <: Number}
     T = promote_type(Tj4c, Tkepler)
 
@@ -149,7 +149,7 @@ propagate the orbit until the time Δt [s].
 # Keywords
 
 - `j4c::J4PropagatorConstants{T}`: J4 orbit propagator constants (see
-  [`J4PropagatorConstants`](@ref)). (**Default** = `j4c_egm2008`)
+  [`J4PropagatorConstants`](@ref)). (**Default** = `J4C_EGM2008`)
 
 # Returns
 
@@ -166,7 +166,7 @@ generate the orbit parameters. Notice that the perturbation theory requires an i
 frame with true equator.
 """
 function j4osc(
-    Δt::Number, orb₀::KeplerianElements; j4c::J4PropagatorConstants = j4c_egm2008
+    Δt::Number, orb₀::KeplerianElements; j4c::J4PropagatorConstants = J4C_EGM2008
 )
     j4oscd = j4osc_init(orb₀; j4c = j4c)
     r_i, v_i = j4osc!(j4oscd, Δt)
@@ -235,7 +235,7 @@ the array `vjd` [Julian Day].
 !!! note
 
     This algorithm version will allocate a new J4 osculating propagator with the default
-    constants `j4c_egm2008`. If another set of constants are required, use the function
+    constants `J4C_EGM2008`. If another set of constants are required, use the function
     [`fit_j4osc_mean_elements!`](@ref) instead.
 
 # Keywords
@@ -323,7 +323,7 @@ function fit_j4osc_mean_elements(
     j4d = J4Propagator{Float64, Float64}()
 
     # Assign the constants, which are used in the initialization.
-    j4d.j4c = j4c_egm2008
+    j4d.j4c = J4C_EGM2008
 
     # Allocate the J4 osculating propagator structure.
     j4oscd = J4OsculatingPropagator{Float64, Float64}()
@@ -445,7 +445,7 @@ Update the epoch of the mean elements `orb` using a J4 osculating orbit propagat
 !!! note
 
     This algorithm version will allocate a new J4 osculating propagator with the default
-    constants `j4c_egm2008`. If another set of constants are required, use the function
+    constants `J4C_EGM2008`. If another set of constants are required, use the function
     [`update_j4osc_mean_elements_epoch!`](@ref) instead.
 
 # Examples
@@ -487,7 +487,7 @@ function update_j4osc_mean_elements_epoch(
     j4d = J4Propagator{Tepoch, T}()
 
     # Assign the constants, which are used in the initialization.
-    j4d.j4c = j4c_egm2008
+    j4d.j4c = J4C_EGM2008
 
     # Allocate the J4 osculating propagator structure.
     j4oscd = J4OsculatingPropagator{Tepoch, T}()

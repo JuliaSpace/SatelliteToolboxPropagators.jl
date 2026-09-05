@@ -59,11 +59,11 @@ elements `orb₀` [SI units].
 
 - `j2c::J2PropagatorConstants`: J2 orbit propagator constants (see
     [`J2PropagatorConstants`](@ref)).
-    (**Default** = `j2c_egm2008`)
+    (**Default** = `J2C_EGM2008`)
 """
 function j2osc_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j2c::J2PropagatorConstants{T} = j2c_egm2008,
+    j2c::J2PropagatorConstants{T} = J2C_EGM2008,
 ) where {
     Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: AbstractFloat, T <: Number
 }
@@ -85,7 +85,7 @@ end
 
 function j2osc_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
-    j2c::J2PropagatorConstants{Tj2c} = j2c_egm2008,
+    j2c::J2PropagatorConstants{Tj2c} = J2C_EGM2008,
 ) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, Tkepler <: Number, Tj2c <: Number}
     T = promote_type(Tj2c, Tkepler)
 
@@ -150,7 +150,7 @@ and propagate the orbit until the time Δt [s].
 
 - `j2c::J2PropagatorConstants{T}`: J2 orbit propagator constants (see
     [`J2PropagatorConstants`](@ref)).
-    (**Default** = `j2c_egm2008`)
+    (**Default** = `J2C_EGM2008`)
 
 # Returns
 
@@ -167,7 +167,7 @@ generate the orbit parameters. Notice that the perturbation theory requires an i
 frame with true equator.
 """
 function j2osc(
-    Δt::Number, orb₀::KeplerianElements; j2c::J2PropagatorConstants = j2c_egm2008
+    Δt::Number, orb₀::KeplerianElements; j2c::J2PropagatorConstants = J2C_EGM2008
 )
     j2oscd = j2osc_init(orb₀; j2c = j2c)
     r_i, v_i = j2osc!(j2oscd, Δt)
@@ -236,7 +236,7 @@ the array `vjd` [Julian Day].
 !!! note
 
     This algorithm version will allocate a new J2 osculating propagator with the default
-    constants `j2c_egm2008`. If another set of constants are required, use the function
+    constants `J2C_EGM2008`. If another set of constants are required, use the function
     [`fit_j2osc_mean_elements!`](@ref) instead.
 
 # Keywords
@@ -324,7 +324,7 @@ function fit_j2osc_mean_elements(
     j2d = J2Propagator{Float64, Float64}()
 
     # Assign the constants, which are used in the initialization.
-    j2d.j2c = j2c_egm2008
+    j2d.j2c = J2C_EGM2008
 
     # Allocate the J2 osculating propagator structure.
     j2oscd = J2OsculatingPropagator{Float64, Float64}()
@@ -446,7 +446,7 @@ Update the epoch of the mean elements `orb` using a J2 osculating orbit propagat
 !!! note
 
     This algorithm version will allocate a new J2 osculating propagator with the default
-    constants `j2c_egm2008`. If another set of constants are required, use the function
+    constants `J2C_EGM2008`. If another set of constants are required, use the function
     [`update_j2osc_mean_elements_epoch!`](@ref) instead.
 
 # Examples
@@ -488,7 +488,7 @@ function update_j2osc_mean_elements_epoch(
     j2d = J2Propagator{Tepoch, T}()
 
     # Assign the constants, which are used in the initialization.
-    j2d.j2c = j2c_egm2008
+    j2d.j2c = J2C_EGM2008
 
     # Allocate the J2 osculating propagator structure.
     j2oscd = J2OsculatingPropagator{Tepoch, T}()

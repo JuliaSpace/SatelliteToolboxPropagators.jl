@@ -27,9 +27,9 @@ elements `orb₀`.
 # Keywords
 
 - `m0::T`: Standard gravitational parameter of the central body [m³ / s²].
-    (**Default** = `tbc_m0`)
+    (**Default** = `TBC_M0`)
 """
-function Propagators.init(::Val{:TwoBody}, orb₀::KeplerianElements; m0::Number = tbc_m0)
+function Propagators.init(::Val{:TwoBody}, orb₀::KeplerianElements; m0::Number = TBC_M0)
     tbd = twobody_init(orb₀; m0 = m0)
     return OrbitPropagatorTwoBody(tbd)
 end

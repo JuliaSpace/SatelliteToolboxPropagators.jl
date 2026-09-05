@@ -26,7 +26,7 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 !!! note
 
     This algorithm version will allocate a new J2 propagator with the default constants
-    `j2c_egm2008`. If another set of constants are required, use the function
+    `J2C_EGM2008`. If another set of constants are required, use the function
     [`Propagators.fit_mean_elements!`](@ref) instead.
 
 # Keywords
@@ -167,10 +167,10 @@ Create and initialize the J2 orbit propagator structure using the mean Keplerian
 # Keywords
 
 - `j2c::J2PropagatorConstants`: J2 orbit propagator constants (see
-  [`J2PropagatorConstants`](@ref)). (**Default** = `j2c_egm2008`)
+  [`J2PropagatorConstants`](@ref)). (**Default** = `J2C_EGM2008`)
 """
 function Propagators.init(
-    ::Val{:J2}, orb₀::KeplerianElements; j2c::J2PropagatorConstants = j2c_egm2008
+    ::Val{:J2}, orb₀::KeplerianElements; j2c::J2PropagatorConstants = J2C_EGM2008
 )
     j2d = j2_init(orb₀; j2c = j2c)
     return OrbitPropagatorJ2(j2d)

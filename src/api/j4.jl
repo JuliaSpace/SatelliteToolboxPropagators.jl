@@ -26,7 +26,7 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 !!! note
 
     This algorithm version will allocate a new J4 propagator with the default constants
-    `j4c_egm2008`. If another set of constants are required, use the function
+    `J4C_EGM2008`. If another set of constants are required, use the function
     [`Propagators.fit_mean_elements!`](@ref) instead.
 
 # Keywords
@@ -168,10 +168,10 @@ Create and initialize the J4 orbit propagator structure using the mean Keplerian
 
 - `j4c::J4PropagatorConstants`: J4 orbit propagator constants (see
     [`J4PropagatorConstants`](@ref)).
-    (**Default** = `j4c_egm2008`)
+    (**Default** = `J4C_EGM2008`)
 """
 function Propagators.init(
-    ::Val{:J4}, orb₀::KeplerianElements; j4c::J4PropagatorConstants = j4c_egm2008
+    ::Val{:J4}, orb₀::KeplerianElements; j4c::J4PropagatorConstants = J4C_EGM2008
 )
     j4d = j4_init(orb₀; j4c = j4c)
     return OrbitPropagatorJ4(j4d)

@@ -41,15 +41,15 @@ Keplerian elements `orb₀`. The following keyword selects the standard gravitat
 parameter for the propagation algorithm:
 
 - `m0::T`: Standard gravitational parameter of the central body [m³/s²].
-    (**Default** = `tbc_m0`)
+    (**Default** = `TBC_M0`)
 
 This package contains some pre-built gravitational parameters of the Earth for this
 propagator:
 
 | **Two-Body Propagator Constant** | **Description**                          | **Type**  |
 |---------------------------------:|:-----------------------------------------|-----------|
-|                         `tbc_m0` | Earth's standard gravitational parameter | `Float64` |
-|                     `tbc_m0_f32` | Earth's standard gravitational parameter | `Float32` |
+|                         `TBC_M0` | Earth's standard gravitational parameter | `Float64` |
+|                     `TBC_M0_F32` | Earth's standard gravitational parameter | `Float32` |
 
 !!! note
 
