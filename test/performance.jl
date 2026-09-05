@@ -53,6 +53,89 @@ else
             ) == 0
         end
 
+        @testset "_mean_elements_jacobian (FiniteDiffJacobian)" begin
+            @test length(
+                check_allocs(
+                    (tbd, Δt, x₁, y₁) -> begin
+                        SatelliteToolboxPropagators._mean_elements_jacobian(
+                            FiniteDiffJacobian(), tbd, Δt, x₁, y₁
+                        )
+                    end,
+                    (
+                        TwoBodyPropagator{Float64, Float64},
+                        Float64,
+                        SVector{6, Float64},
+                        SVector{6, Float64},
+                    ),
+                ),
+            ) == 0
+        end
+
+        @testset "_mean_elements_jacobian (ForwardDiffJacobian)" begin
+            @test length(
+                check_allocs(
+                    (tbd, tbd_ad, Δt, x₁, y₁) -> begin
+                        SatelliteToolboxPropagators._mean_elements_jacobian(
+                            ForwardDiffJacobian(), tbd, Δt, x₁, y₁; pd_ad = tbd_ad
+                        )
+                    end,
+                    (
+                        TwoBodyPropagator{Float64, Float64},
+                        TwoBodyPropagator{Float64, _D},
+                        Float64,
+                        SVector{6, Float64},
+                        SVector{6, Float64},
+                    ),
+                ),
+            ) == 0
+        end
+
+        @testset "fit_twobody_mean_elements! (FiniteDiffJacobian)" begin
+            @test length(
+                check_allocs(
+                    (tbd, vjd, vr_i, vv_i) -> begin
+                        fit_twobody_mean_elements!(
+                            tbd,
+                            vjd,
+                            vr_i,
+                            vv_i;
+                            jacobian_method = FiniteDiffJacobian(),
+                            verbose = false,
+                        )
+                    end,
+                    (
+                        TwoBodyPropagator{Float64, Float64},
+                        Vector{Float64},
+                        Vector{SVector{3, Float64}},
+                        Vector{SVector{3, Float64}},
+                    ),
+                ),
+            ) <= 14
+        end
+
+        @testset "fit_twobody_mean_elements! (ForwardDiffJacobian)" begin
+            @test length(
+                check_allocs(
+                    (tbd, vjd, vr_i, vv_i) -> begin
+                        fit_twobody_mean_elements!(
+                            tbd,
+                            vjd,
+                            vr_i,
+                            vv_i;
+                            jacobian_method = ForwardDiffJacobian(),
+                            verbose = false,
+                        )
+                    end,
+                    (
+                        TwoBodyPropagator{Float64, Float64},
+                        Vector{Float64},
+                        Vector{SVector{3, Float64}},
+                        Vector{SVector{3, Float64}},
+                    ),
+                ),
+            ) <= 14
+        end
+
         # == J2 ============================================================================
 
         @testset "j2_init!" begin

@@ -127,10 +127,8 @@ PrecompileTools.@setup_workload begin
                 Propagators.step!(orbp, Dates.Second(1), OrbitStateVector)
                 Propagators.step!(orbp, Dates.Second(1) + Dates.Minute(1), OrbitStateVector)
 
-                if prop != :TwoBody
-                    Propagators.fit_mean_elements!(orbp, vjd, vr_i, vv_i)
-                    Propagators.fit_mean_elements(Val(prop), vjd, vr_i, vv_i)
-                end
+                Propagators.fit_mean_elements!(orbp, vjd, vr_i, vv_i)
+                Propagators.fit_mean_elements(Val(prop), vjd, vr_i, vv_i)
 
                 # == Float32 ===============================================================
 

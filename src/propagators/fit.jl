@@ -3,9 +3,9 @@
 # Generic least-square algorithm to fit a set of mean elements from osculating state
 # vectors.
 #
-# The four analytical propagators share the same algorithm. They only differ in how the
-# propagator is initialized, propagated, and differentiated, which the small set of methods
-# below provides for each of them.
+# The analytical propagators share the same algorithm. They only differ in how the
+# propagator is initialized and propagated, which the small set of methods below provides
+# for each of them.
 #
 ############################################################################################
 
@@ -16,6 +16,7 @@ const AbstractMeanElementsPropagator{Tepoch, T} = Union{
     J2OsculatingPropagator{Tepoch, T},
     J4Propagator{Tepoch, T},
     J4OsculatingPropagator{Tepoch, T},
+    TwoBodyPropagator{Tepoch, T},
 }
 
 # == Propagator-Specific Operations ========================================================
@@ -27,6 +28,7 @@ _propagator_name(::J2Propagator)           = "J2"
 _propagator_name(::J2OsculatingPropagator) = "J2 osculating"
 _propagator_name(::J4Propagator)           = "J4"
 _propagator_name(::J4OsculatingPropagator) = "J4 osculating"
+_propagator_name(::TwoBodyPropagator)      = "two-body"
 
 # The osculating propagators use the internal initialization, which skips the propagation to
 # the initial instant, because the algorithm always propagates right afterwards.
@@ -34,17 +36,20 @@ _mean_elements_init!(pd::J2Propagator, orb)           = j2_init!(pd, orb)
 _mean_elements_init!(pd::J2OsculatingPropagator, orb) = _j2osc_init!(pd, orb)
 _mean_elements_init!(pd::J4Propagator, orb)           = j4_init!(pd, orb)
 _mean_elements_init!(pd::J4OsculatingPropagator, orb) = _j4osc_init!(pd, orb)
+_mean_elements_init!(pd::TwoBodyPropagator, orb)      = twobody_init!(pd, orb)
 
 _mean_elements_propagate!(pd::J2Propagator, Δt)           = j2!(pd, Δt)
 _mean_elements_propagate!(pd::J2OsculatingPropagator, Δt) = j2osc!(pd, Δt)
 _mean_elements_propagate!(pd::J4Propagator, Δt)           = j4!(pd, Δt)
 _mean_elements_propagate!(pd::J4OsculatingPropagator, Δt) = j4osc!(pd, Δt)
+_mean_elements_propagate!(pd::TwoBodyPropagator, Δt)      = twobody!(pd, Δt)
 
 # Structure that stores the initial (`orb₀`) and current (`orbk`) mean elements.
 _mean_elements_propagator(pd::J2Propagator)           = pd
 _mean_elements_propagator(pd::J2OsculatingPropagator) = pd.j2d
 _mean_elements_propagator(pd::J4Propagator)           = pd
 _mean_elements_propagator(pd::J4OsculatingPropagator) = pd.j4d
+_mean_elements_propagator(pd::TwoBodyPropagator)      = pd
 
 # == Algorithm =============================================================================
 

@@ -1108,6 +1108,7 @@ end
         (:J2osc, (; j2c = J2C_EGM2008_F32)),
         (:J4, (; j4c = J4C_EGM2008_F32)),
         (:J4osc, (; j4c = J4C_EGM2008_F32)),
+        (:TwoBody, (; m0 = TBC_M0_F32)),
     )
         orbp = Propagators.init(Val(prop), orb; kwargs...)
         ret  = [Propagators.propagate!(orbp, t) for t in vt]
@@ -1260,6 +1261,15 @@ end
                 d = J4OsculatingPropagator{Float64, Float64}()
                 d.j4d = J4Propagator{Float64, Float64}()
                 d.j4d.j4c = J4C_EGM2008
+                d
+            end,
+        ),
+        (
+            :TwoBody,
+            fit_twobody_mean_elements!,
+            () -> begin
+                d = TwoBodyPropagator{Float64, Float64}()
+                d.μ = TBC_M0
                 d
             end,
         ),
