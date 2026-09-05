@@ -182,13 +182,10 @@ function j4_init!(
     J₂  = j4c.J2
     J₄  = j4c.J4
 
-    # Make sure the Keplerian elements use the mean anomaly.
-    ke₀ = convert(KeplerianElements{MeanAnomaly, Tepoch, T}, orb₀)
-
     # Unpack orbit elements.
-    a₀ = ke₀.semi_major_axis
-    e₀ = ke₀.eccentricity
-    i₀ = ke₀.inclination
+    a₀ = T(orb₀.semi_major_axis)
+    e₀ = T(orb₀.eccentricity)
+    i₀ = T(orb₀.inclination)
 
     # The theory implemented here is only valid for elliptical orbits. Without this check,
     # the user would get a `DomainError` from an internal square root, or silently wrong
@@ -206,6 +203,10 @@ function j4_init!(
             ),
         )
     end
+
+    # Make sure the Keplerian elements use the mean anomaly. The conversion requires a
+    # valid eccentricity, so it must happen after the checks above.
+    ke₀ = convert(KeplerianElements{MeanAnomaly, Tepoch, T}, orb₀)
 
     # Initial values and auxiliary variables.
     al₀ = a₀ / R₀           # .............................. Normalized semi-major axis [er]
