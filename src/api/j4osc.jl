@@ -4,10 +4,12 @@
 #
 ############################################################################################
 
+# Implement the `Propagators` API for the J4 osculating orbit propagator.
 Propagators.epoch(orbp::OrbitPropagatorJ4Osculating)         = orbp.j4oscd.j4d.orb₀.epoch
 Propagators.last_instant(orbp::OrbitPropagatorJ4Osculating)  = orbp.j4oscd.Δt
 Propagators.mean_elements(orbp::OrbitPropagatorJ4Osculating) = orbp.j4oscd.j4d.orbk
-Propagators.name(orbp::OrbitPropagatorJ4Osculating)          = "J4 Osculating Orbit Propagator"
+
+Propagators.name(orbp::OrbitPropagatorJ4Osculating) = "J4 Osculating Orbit Propagator"
 
 """
     Propagators.fit_mean_elements(
@@ -33,37 +35,37 @@ the array `vjd` [Julian Day].
 
 - `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
     `atol` at any iteration, the computation loop stops.
-    (**Default** = 2e-4)
+    (**Default**: 2e-4)
 - `rtol::Number`: Tolerance for the relative difference between the residuals. If the
     relative difference between the residuals in two consecutive iterations is lower than
     `rtol`, the computation loop stops.
-    (**Default** = 2e-4)
+    (**Default**: 2e-4)
 - `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
     the osculating elements in `vr_i` and `vv_i`.
-    (**Default** = nothing)
+    (**Default**: nothing)
 - `jacobian_method::AbstractJacobianMethod`: Method used to compute the Jacobian matrix. It
     can be `FiniteDiffJacobian()` for finite differences or `ForwardDiffJacobian()` for
     `ForwardDiff.jl` automatic differentiation.
-    (**Default** = `FiniteDiffJacobian()`)
+    (**Default**: `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
     finite-difference when calculating the Jacobian matrix.
-    (**Default** = 1e-3)
+    (**Default**: 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
     `jacobian_perturbation_tol`.
-    (**Default** = 1e-7)
+    (**Default**: 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
-    (**Default** = 50)
+    (**Default**: 50)
 - `mean_elements_epoch::Number`: Epoch for the fitted mean elements.
-    (**Default** = vjd[end])
+    (**Default**: vjd[end])
 - `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default** = true)
+    (**Default**: true)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
     `weight_vector` at its diagonal.
-    (**Default** = `@SVector(ones(Bool, 6))`)
+    (**Default**: `@SVector(ones(Bool, 6))`)
 
 # Returns
 
@@ -88,8 +90,8 @@ end
         vv_i::AbstractVector{Tv};
         kwargs...
     ) where {
-        Tjd<:Number,
-        Tv<:AbstractVector
+        Tjd <: Number,
+        Tv <: AbstractVector
     } -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the J4 osculating orbit propagator `orbp` using the
@@ -106,37 +108,37 @@ the array `vjd` [Julian Day].
 
 - `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
     `atol` at any iteration, the computation loop stops.
-    (**Default** = 2e-4)
+    (**Default**: 2e-4)
 - `rtol::Number`: Tolerance for the relative difference between the residuals. If the
     relative difference between the residuals in two consecutive iterations is lower than
     `rtol`, the computation loop stops.
-    (**Default** = 2e-4)
+    (**Default**: 2e-4)
 - `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
     the osculating elements in `vr_i` and `vv_i`.
-    (**Default** = nothing)
+    (**Default**: nothing)
 - `jacobian_method::AbstractJacobianMethod`: Method used to compute the Jacobian matrix. It
     can be `FiniteDiffJacobian()` for finite differences or `ForwardDiffJacobian()` for
     `ForwardDiff.jl` automatic differentiation.
-    (**Default** = `FiniteDiffJacobian()`)
+    (**Default**: `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
     finite-difference when calculating the Jacobian matrix.
-    (**Default** = 1e-3)
+    (**Default**: 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
     `jacobian_perturbation_tol`.
-    (**Default** = 1e-7)
+    (**Default**: 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
-    (**Default** = 50)
+    (**Default**: 50)
 - `mean_elements_epoch::Number`: Epoch for the fitted mean elements.
-    (**Default** = vjd[end])
+    (**Default**: vjd[end])
 - `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default** = true)
+    (**Default**: true)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
     `weight_vector` at its diagonal.
-    (**Default** = `@SVector(ones(Bool, 6))`)
+    (**Default**: `@SVector(ones(Bool, 6))`)
 
 # Returns
 
@@ -171,7 +173,8 @@ elements `orb₀`.
 # Keywords
 
 - `j4c::J4PropagatorConstants`: J4 orbit propagator constants (see
-  [`J4PropagatorConstants`](@ref)). (**Default** = `J4C_EGM2008`)
+  [`J4PropagatorConstants`](@ref)).
+    (**Default**: `J4C_EGM2008`)
 """
 function Propagators.init(
     ::Val{:J4osc}, orb₀::KeplerianElements; j4c::J4PropagatorConstants = J4C_EGM2008
@@ -196,12 +199,26 @@ function Propagators.init!(orbp::OrbitPropagatorJ4Osculating, orb₀::KeplerianE
     return nothing
 end
 
-function Propagators.propagate!(orbp::OrbitPropagatorJ4Osculating, t::Number)
-    # Auxiliary variables.
-    j4oscd = orbp.j4oscd
+"""
+    Propagators.propagate!(orbp::OrbitPropagatorJ4Osculating{Tepoch, T}, t::Number) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
 
-    # Propagate the orbit.
-    return j4osc!(j4oscd, t)
+Propagate the orbit of the J4 osculating orbit propagator `orbp` to `t` [s] after the epoch
+of the initial mean elements, updating the internal state of `orbp`.
+
+# Returns
+
+- `SVector{3, T}`: Position vector [m] represented in the inertial frame at propagation
+    instant.
+- `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
+    instant.
+
+# Remarks
+
+The output is represented in the inertial reference frame of the input elements. The
+perturbation theory requires an inertial frame with true equator.
+"""
+function Propagators.propagate!(orbp::OrbitPropagatorJ4Osculating, t::Number)
+    return j4osc!(orbp.j4oscd, t)
 end
 
 ############################################################################################

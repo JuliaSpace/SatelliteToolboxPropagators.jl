@@ -4,10 +4,24 @@
 #
 ############################################################################################
 
+# Implement the `Propagators` API for the SGP4 orbit propagator.
 Propagators.epoch(orbp::OrbitPropagatorSgp4)        = orbp.sgp4d.epoch
 Propagators.last_instant(orbp::OrbitPropagatorSgp4) = orbp.sgp4d.Δt * 60
 Propagators.name(orbp::OrbitPropagatorSgp4)         = "SGP4 Orbit Propagator"
 
+"""
+    Propagators.mean_elements(orbp::OrbitPropagatorSgp4{Tepoch, T}) where {Tepoch <: Number, T <: Number} -> KeplerianElements{MeanAnomaly, Tepoch, T}
+
+Return the mean Keplerian elements [SI units] of the SGP4 orbit propagator `orbp` at the
+last propagation instant. The initial TLE is rebuilt from the propagator and its epoch is
+updated to that instant, which fails for epochs outside the years a TLE can represent.
+
+# Extended help
+
+## Throws
+
+- `ArgumentError`: If the epoch year is outside the interval [1976, 2075].
+"""
 function Propagators.mean_elements(orbp::OrbitPropagatorSgp4)
     # We need to copy the propagator to avoid modifying it.
     sgp4d = copy(orbp.sgp4d)
@@ -92,54 +106,54 @@ This algorithm was based on **[1]**.
 
 - `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
     `atol` at any iteration, the computation loop stops.
-    (**Default** = 2e-4)
+    (**Default**: 2e-4)
 - `rtol::Number`: Tolerance for the relative difference between the residuals. If the
     relative difference between the residuals in two consecutive iterations is lower than
     `rtol`, the computation loop stops.
-    (**Default** = 2e-4)
+    (**Default**: 2e-4)
 - `estimate_bstar::Bool`: If `true`, the algorithm will try to estimate the B* parameter.
-    Otherwise, it will be set to 0 or to the value in the initial guess (see section **Initial
-    Guess**).
-    (**Default** = true)
+    Otherwise, it will be set to 0 or to the value in the initial guess (see section
+    **Initial Guess**).
+    (**Default**: true)
 - `initial_guess::Union{Nothing, AbstractVector, TLE}`: Initial guess for the TLE fitting
     process. If it is `nothing`, the algorithm will obtain an initial estimate from the
     osculating elements in `vr_teme` and `vv_teme`. For more information, see the section
     **Initial Guess**.
-    (**Default** = nothing)
+    (**Default**: nothing)
 - `jacobian_method::AbstractJacobianMethod`: Method used to compute the Jacobian matrix. It
     can be `FiniteDiffJacobian()` for finite differences or `ForwardDiffJacobian()` for
     `ForwardDiff.jl` automatic differentiation.
-    (**Default** = `FiniteDiffJacobian()`)
+    (**Default**: `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
     finite-difference when calculating the Jacobian matrix.
-    (**Default** = 1e-3)
+    (**Default**: 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
     `jacobian_perturbation_tol`.
-    (**Default** = 1e-7)
+    (**Default**: 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
-    (**Default** = 50)
+    (**Default**: 50)
 - `mean_elements_epoch::Number`: Epoch for the fitted TLE.
-    (**Default** = vjd[end])
+    (**Default**: vjd[end])
 - `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default** = true)
+    (**Default**: true)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
     `weight_vector` at its diagonal.
-    (**Default** = `@SVector(ones(Bool, 6))`)
+    (**Default**: `@SVector(ones(Bool, 6))`)
 - `classification::Char`: Satellite classification character for the output TLE.
-    (**Default** = 'U')
+    (**Default**: 'U')
 - `element_set_number::Int`: Element set number for the output TLE.
-    (**Default** = 0)
+    (**Default**: 0)
 - `international_designator::String`: International designator string for the output TLE.
-    (**Default** = "999999")
+    (**Default**: "999999")
 - `name::String`: Satellite name for the output TLE.
-    (**Default** = "UNDEFINED")
+    (**Default**: "UNDEFINED")
 - `revolution_number::Int`: Revolution number for the output TLE.
-    (**Default** = 0)
+    (**Default**: 0)
 - `satellite_number::Int`: Satellite number for the output TLE.
-    (**Default** = 9999)
+    (**Default**: 9999)
 
 # Returns
 
@@ -199,7 +213,7 @@ end
         vr_teme::AbstractVector{Tv},
         vv_teme::AbstractVector{Tv};
         kwargs...
-    ) where {Tjd<:Number, Tv<:AbstractVector} -> TLE, SMatrix{7, 7, T}
+    ) where {Tjd <: Number, Tv <: AbstractVector} -> TLE, SMatrix{7, 7, T}
 
 Fit a Two-Line Element set (`TLE`) for the SGP4 orbit propagator `orbp` using the
 osculating elements represented by a set of position vectors `vr_teme` [m] and a set of
@@ -217,54 +231,54 @@ This algorithm was based on **[1]**.
 
 - `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
     `atol` at any iteration, the computation loop stops.
-    (**Default** = 2e-4)
+    (**Default**: 2e-4)
 - `rtol::Number`: Tolerance for the relative difference between the residuals. If the
     relative difference between the residuals in two consecutive iterations is lower than
     `rtol`, the computation loop stops.
-    (**Default** = 2e-4)
+    (**Default**: 2e-4)
 - `estimate_bstar::Bool`: If `true`, the algorithm will try to estimate the B* parameter.
-    Otherwise, it will be set to 0 or to the value in the initial guess (see section **Initial
-    Guess**).
-    (**Default** = true)
+    Otherwise, it will be set to 0 or to the value in the initial guess (see section
+    **Initial Guess**).
+    (**Default**: true)
 - `initial_guess::Union{Nothing, AbstractVector, TLE}`: Initial guess for the TLE fitting
     process. If it is `nothing`, the algorithm will obtain an initial estimate from the
     osculating elements in `vr_teme` and `vv_teme`. For more information, see the section
     **Initial Guess**.
-    (**Default** = nothing)
+    (**Default**: nothing)
 - `jacobian_method::AbstractJacobianMethod`: Method used to compute the Jacobian matrix. It
     can be `FiniteDiffJacobian()` for finite differences or `ForwardDiffJacobian()` for
     `ForwardDiff.jl` automatic differentiation.
-    (**Default** = `FiniteDiffJacobian()`)
+    (**Default**: `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
     finite-difference when calculating the Jacobian matrix.
-    (**Default** = 1e-3)
+    (**Default**: 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
     `jacobian_perturbation_tol`.
-    (**Default** = 1e-7)
+    (**Default**: 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
-    (**Default** = 50)
+    (**Default**: 50)
 - `mean_elements_epoch::Number`: Epoch for the fitted TLE.
-    (**Default** = vjd[end])
+    (**Default**: vjd[end])
 - `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default** = true)
+    (**Default**: true)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
     `weight_vector` at its diagonal.
-    (**Default** = `@SVector(ones(Bool, 6))`)
+    (**Default**: `@SVector(ones(Bool, 6))`)
 - `classification::Char`: Satellite classification character for the output TLE.
-    (**Default** = 'U')
+    (**Default**: 'U')
 - `element_set_number::Int`: Element set number for the output TLE.
-    (**Default** = 0)
+    (**Default**: 0)
 - `international_designator::String`: International designator string for the output TLE.
-    (**Default** = "999999")
+    (**Default**: "999999")
 - `name::String`: Satellite name for the output TLE.
-    (**Default** = "UNDEFINED")
+    (**Default**: "UNDEFINED")
 - `revolution_number::Int`: Revolution number for the output TLE.
-    (**Default** = 0)
+    (**Default**: 0)
 - `satellite_number::Int`: Satellite number for the output TLE.
-    (**Default** = 9999)
+    (**Default**: 9999)
 
 # Returns
 
@@ -356,7 +370,7 @@ by the arguments.
 # Keywords
 
 - `sgp4c::Sgp4Constants`: SGP4 orbit propagator constants (see `Sgp4Constants`).
-    (**Default** = `sgp4c_wgs84`)
+    (**Default**: `sgp4c_wgs84`)
 """
 function Propagators.init(::Val{:SGP4}, tle::TLE; sgp4c::Sgp4Constants = sgp4c_wgs84)
     sgp4d = sgp4_init(tle; sgp4c = sgp4c)
@@ -439,14 +453,22 @@ function Propagators.init!(
     return nothing
 end
 
+"""
+    Propagators.propagate!(orbp::OrbitPropagatorSgp4{Tepoch, T}, t::Number) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
+
+Propagate the orbit of the SGP4 orbit propagator `orbp` to `t` [s] after the epoch of the
+TLE, updating the internal state of `orbp`. The SGP4 kernel works in minutes and kilometers,
+so the instant and the output are converted to SI units here.
+
+# Returns
+
+- `SVector{3, T}`: Position vector [m] represented in the TEME frame at propagation instant.
+- `SVector{3, T}`: Velocity vector [m / s] represented in the TEME frame at propagation
+    instant.
+"""
 function Propagators.propagate!(orbp::OrbitPropagatorSgp4, t::Number)
-    # Auxiliary variables.
-    sgp4d = orbp.sgp4d
-
-    # Propagate the orbit.
-    r_i, v_i = sgp4!(sgp4d, t / 60)
-
-    return 1000r_i, 1000v_i
+    r_teme, v_teme = sgp4!(orbp.sgp4d, t / 60)
+    return 1000r_teme, 1000v_teme
 end
 
 ############################################################################################

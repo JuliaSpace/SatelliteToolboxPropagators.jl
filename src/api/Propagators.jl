@@ -536,15 +536,26 @@ end
 #                                           Copy                                           #
 ############################################################################################
 
-# Define a fallback copy method if the propagator has not implemented one.
+"""
+    Base.copy(orbp::OrbitPropagator) -> OrbitPropagator
+
+Create a copy of the propagator `orbp` that can be propagated independently. This fallback
+uses `deepcopy`; the propagators defined in this package overload it with a faster version.
+"""
 Base.copy(orbp::OrbitPropagator) = deepcopy(orbp)
 
 ############################################################################################
 #                                    Iterator Interface                                    #
 ############################################################################################
 
-# These functions treat a propagator as a collection with a single element, allowing
-# broadcast when using the orbit propagators.
+"""
+    Base.iterate(orbp::OrbitPropagator[, state]) -> Union{Nothing, Tuple{OrbitPropagator, Nothing}}
+    Base.length(orbp::OrbitPropagator) -> Int
+    Base.eltype(orbp::OrbitPropagator) -> Type
+
+Treat the propagator `orbp` as a collection with a single element, allowing broadcast over
+the propagation functions, e.g. `Propagators.propagate!.(orbp, 1:10)`.
+"""
 iterate(orbp::OrbitPropagator) = (orbp, nothing)
 iterate(orbp::OrbitPropagator, ::Nothing) = nothing
 length(orbp::OrbitPropagator) = 1
@@ -554,6 +565,14 @@ eltype(orbp::T) where {T <: OrbitPropagator} = T
 #                                           Show                                           #
 ############################################################################################
 
+"""
+    Base.show(io::IO, orbp::OrbitPropagator) -> Nothing
+    Base.show(io::IO, mime::MIME"text/plain", orbp::OrbitPropagator) -> Nothing
+
+Print the propagator `orbp` to `io`. The compact form shows the propagator name, the epoch,
+and the last propagation instant in one line, whereas the `text/plain` form shows them in
+one line each, with the labels in bold if `io` supports colors.
+"""
 function show(io::IO, orbp::T) where {T <: OrbitPropagator}
     prop_epoch = epoch(orbp) |> julian2datetime
     Δt         = last_instant(orbp)
@@ -692,7 +711,8 @@ _to_julian_day(epoch::DateTime) = datetime2julian(epoch)
     _to_seconds(t::Number) -> Number
     _to_seconds(t::Union{Dates.Period, Dates.CompoundPeriod}) -> Float64
 
-Convert `t`, which is either a number [s] or a period defined using **Dates.jl**, to seconds.
+Convert `t`, which is either a number [s] or a period defined using **Dates.jl**, to
+seconds.
 
 `Dates.toms` is type unstable for compound periods (see
 https://github.com/JuliaLang/julia/pull/54995), so the conversion is implemented here.
@@ -707,9 +727,10 @@ end
 """
     _to_state_vectors(to_epoch, vt::AbstractVector, vr_i::AbstractVector, vv_i::AbstractVector) -> Vector{OrbitStateVector}
 
-Pack the position vectors `vr_i` [m] and the velocity vectors `vv_i` [m / s] into orbit state
-vectors whose epochs [Julian Day] are obtained by applying the function `to_epoch` to the
-elements of `vt`. The vectors `vr_i` and `vv_i` are 1-based, whereas `vt` can have any axes.
+Pack the position vectors `vr_i` [m] and the velocity vectors `vv_i` [m / s] into orbit
+state vectors whose epochs [Julian Day] are obtained by applying the function `to_epoch` to
+the elements of `vt`. The vectors `vr_i` and `vv_i` are 1-based, whereas `vt` can have any
+axes.
 """
 function _to_state_vectors(
     to_epoch, vt::AbstractVector, vr_i::AbstractVector, vv_i::AbstractVector

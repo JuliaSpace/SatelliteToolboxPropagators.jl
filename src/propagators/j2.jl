@@ -22,25 +22,17 @@ export j2_init, j2_init!, j2, j2!
 export fit_j2_mean_elements, fit_j2_mean_elements!
 export update_j2_mean_elements_epoch, update_j2_mean_elements_epoch!
 
-############################################################################################
-#                                           TODO                                           #
-############################################################################################
+# TODO: Analyze the reference frame representation of the inputs for this algorithm.
 #
-# 1. Analyze the reference frame representation of the inputs for this algorithm.
-#
-#   The SGP4 algorithm expects that the input parameters are represented in the TEME (true
-#   equator, mean equinox) reference frame. This J2 orbit propagator model requires that the
-#   input parameters are consistent with the gravitational perturbation theory in which the
-#   `J2` coefficient was computed. Looking at [1, p. 642], it appears that the perturbations
-#   are considering a frame in which the Z-axis is aligned with the CIP (Celestial
-#   Intermediate Pole, or the Earth rotation axis). Hence, the J2 parameter is defined based
-#   on the PEF. Since no rotations or adaptations are programmed, then the input parameters
-#   for this propagator should be represented in any reference frame with a true Equator,
-#   because of the symmetry.
-#
-#   This needs to be further analyzed and confirmed.
-#
-############################################################################################
+# The SGP4 algorithm expects that the input parameters are represented in the TEME (true
+# equator, mean equinox) reference frame. This J2 orbit propagator model requires that the
+# input parameters are consistent with the gravitational perturbation theory in which the
+# `J2` coefficient was computed. Looking at [1, p. 642], it appears that the perturbations
+# are considering a frame in which the Z-axis is aligned with the CIP (Celestial
+# Intermediate Pole, or the Earth rotation axis). Hence, the J2 parameter is defined based
+# on the PEF. Since no rotations or adaptations are programmed, then the input parameters
+# for this propagator should be represented in any reference frame with a true Equator,
+# because of the symmetry. This needs to be further analyzed and confirmed.
 
 ############################################################################################
 #                                        Constants                                         #
@@ -106,7 +98,7 @@ Create and initialize the J2 orbit propagator structure using the mean Keplerian
 
 - `j2c::J2PropagatorConstants`: J2 orbit propagator constants (see
     [`J2PropagatorConstants`](@ref)).
-    (**Default** = `J2C_EGM2008`)
+    (**Default**: `J2C_EGM2008`)
 """
 function j2_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler};
@@ -177,7 +169,7 @@ function j2_init!(
     n₀  = μm / √(al₀^3)      # ............................. Unperturbed mean motion [rad/s]
     p₀  = al₀ * (1 - e₀²)    # ...................................... Semi-latus rectum [er]
     p₀² = p₀^2               # ............................. Semi-latus rectum squared [er²]
-    M₀  = mean_anomaly(ke₀)  # ................................... Initial mean anomaly [rad]
+    M₀  = mean_anomaly(ke₀)  # .................................. Initial mean anomaly [rad]
 
     sin_i₀, cos_i₀ = sincos(T(i₀))
     sin_i₀² = sin_i₀^2
@@ -223,7 +215,7 @@ propagate the orbit until the time Δt [s].
 
 - `j2c::J2PropagatorConstants`: J2 orbit propagator constants (see
     [`J2PropagatorConstants`](@ref)).
-    (**Default** = `J2C_EGM2008`)
+    (**Default**: `J2C_EGM2008`)
 
 # Returns
 
@@ -278,48 +270,8 @@ function j2!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch <: Number, T
     return r_i_k, v_i_k
 end
 
-# Propagate the mean elements of `j2d` to the instant `t` [s] measured from the epoch of the
-# initial elements, update the propagator structure, and return the mean elements. The
-# osculating propagator uses this function directly to avoid computing a state vector from
-# the mean elements that it would discard.
-function _j2_mean_elements!(
-    j2d::J2Propagator{Tepoch, T}, t::Number
-) where {Tepoch <: Number, T <: Number}
-    # Unpack the variables.
-    orb₀  = j2d.orb₀
-    ∂Ω    = j2d.∂Ω
-    ∂ω    = j2d.∂ω
-    n̄     = j2d.n̄
-    epoch = orb₀.epoch
-    a₀    = orb₀.semi_major_axis
-    e₀    = orb₀.eccentricity
-    i₀    = orb₀.inclination
-    Ω₀    = orb₀.raan
-    ω₀    = orb₀.argument_of_periapsis
-    M₀    = mean_anomaly(orb₀)
-
-    # Time from epoch to propagate the orbit.
-    Δt = T(t)
-
-    # Propagate the orbital elements.
-    Ω_k = mod(Ω₀ + ∂Ω * Δt, T(2π))
-    ω_k = mod(ω₀ + ∂ω * Δt, T(2π))
-    M_k = mod(M₀ + n̄ * Δt, T(2π))
-
-    # Assemble the current mean elements.
-    orbk = KeplerianElements{MeanAnomaly}(
-        epoch + Tepoch(t) / 86400, a₀, e₀, i₀, Ω_k, ω_k, M_k
-    )
-
-    # Update the J2 orbit propagator structure.
-    j2d.Δt   = Δt
-    j2d.orbk = orbk
-
-    return orbk
-end
-
 """
-    fit_j2_mean_elements(vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
+    fit_j2_mean_elements(vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd <: Number, Tv <: AbstractVector} -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
 
 Fit a set of mean Keplerian elements for the J2 orbit propagator using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
@@ -336,38 +288,38 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 
 - `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
     `atol` at any iteration, the computation loop stops.
-    (**Default** = 2e-4)
+    (**Default**: 2e-4)
 - `rtol::Number`: Tolerance for the relative difference between the residuals. If the
     relative difference between the residuals in two consecutive iterations is lower than
     `rtol`, the computation loop stops.
-    (**Default** = 2e-4)
+    (**Default**: 2e-4)
 - `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
     the osculating elements in `vr_i` and `vv_i`.
-    (**Default** = nothing)
+    (**Default**: nothing)
 - `jacobian_method::Union{FiniteDiffJacobian, ForwardDiffJacobian}`: Method used to compute
     the Jacobian matrix. Use `FiniteDiffJacobian()` for finite differences or
     `ForwardDiffJacobian()` for `ForwardDiff.jl` automatic differentiation.
-    (**Default** = `FiniteDiffJacobian()`)
+    (**Default**: `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
     finite-difference when calculating the Jacobian matrix. Only used with
     `FiniteDiffJacobian()`.
-    (**Default** = 1e-3)
+    (**Default**: 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
     `jacobian_perturbation_tol`. Only used with `FiniteDiffJacobian()`.
-    (**Default** = 1e-7)
+    (**Default**: 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
-    (**Default** = 50)
+    (**Default**: 50)
 - `mean_elements_epoch::Number`: Epoch for the fitted mean elements.
-    (**Default** = vjd[end])
+    (**Default**: vjd[end])
 - `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default** = true)
+    (**Default**: true)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
     `weight_vector` at its diagonal.
-    (**Default** = `@SVector(ones(Bool, 6))`)
+    (**Default**: `@SVector(ones(Bool, 6))`)
 
 # Returns
 
@@ -436,7 +388,7 @@ function fit_j2_mean_elements(
 end
 
 """
-    fit_j2_mean_elements!(j2d::J2Propagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {T<:Number, Tepoch<:Number, Tjd<:Number, Tv<:AbstractVector} -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
+    fit_j2_mean_elements!(j2d::J2Propagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {T <: Number, Tepoch <: Number, Tjd <: Number, Tv <: AbstractVector} -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the J2 orbit propagator `j2d` using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
@@ -452,38 +404,38 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 
 - `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
     `atol` at any iteration, the computation loop stops.
-    (**Default** = 2e-4)
+    (**Default**: 2e-4)
 - `rtol::Number`: Tolerance for the relative difference between the residuals. If the
     relative difference between the residuals in two consecutive iterations is lower than
     `rtol`, the computation loop stops.
-    (**Default** = 2e-4)
+    (**Default**: 2e-4)
 - `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
     the osculating elements in `vr_i` and `vv_i`.
-    (**Default** = nothing)
+    (**Default**: nothing)
 - `jacobian_method::Union{FiniteDiffJacobian, ForwardDiffJacobian}`: Method used to compute
     the Jacobian matrix. Use `FiniteDiffJacobian()` for finite differences or
     `ForwardDiffJacobian()` for `ForwardDiff.jl` automatic differentiation.
-    (**Default** = `FiniteDiffJacobian()`)
+    (**Default**: `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
     finite-difference when calculating the Jacobian matrix. Only used with
     `FiniteDiffJacobian()`.
-    (**Default** = 1e-3)
+    (**Default**: 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
     `jacobian_perturbation_tol`. Only used with `FiniteDiffJacobian()`.
-    (**Default** = 1e-7)
+    (**Default**: 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
-    (**Default** = 50)
+    (**Default**: 50)
 - `mean_elements_epoch::Number`: Epoch for the fitted mean elements.
-    (**Default** = vjd[end])
+    (**Default**: vjd[end])
 - `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default** = true)
+    (**Default**: true)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
     `weight_vector` at its diagonal.
-    (**Default** = `@SVector(ones(Bool, 6))`)
+    (**Default**: `@SVector(ones(Bool, 6))`)
 
 # Returns
 
@@ -684,4 +636,48 @@ function _similar_propagator(
     new_j2d = J2Propagator{Tepoch, T}()
     new_j2d.j2c = convert(J2PropagatorConstants{T}, j2d.j2c)
     return new_j2d
+end
+
+"""
+    _j2_mean_elements!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch <: Number, T <: Number} -> KeplerianElements{MeanAnomaly, Tepoch, T}
+
+Propagate the mean elements of `j2d` to the instant `t` [s] measured from the epoch of the
+initial elements, update the propagator structure, and return the mean elements [SI units].
+The osculating propagator uses this function directly to avoid computing a state vector from
+the mean elements that it would discard.
+"""
+function _j2_mean_elements!(
+    j2d::J2Propagator{Tepoch, T}, t::Number
+) where {Tepoch <: Number, T <: Number}
+    # Unpack the variables.
+    orb₀  = j2d.orb₀
+    ∂Ω    = j2d.∂Ω
+    ∂ω    = j2d.∂ω
+    n̄     = j2d.n̄
+    epoch = orb₀.epoch
+    a₀    = orb₀.semi_major_axis
+    e₀    = orb₀.eccentricity
+    i₀    = orb₀.inclination
+    Ω₀    = orb₀.raan
+    ω₀    = orb₀.argument_of_periapsis
+    M₀    = mean_anomaly(orb₀)
+
+    # Time from epoch to propagate the orbit.
+    Δt = T(t)
+
+    # Propagate the orbital elements.
+    Ω_k = mod(Ω₀ + ∂Ω * Δt, T(2π))
+    ω_k = mod(ω₀ + ∂ω * Δt, T(2π))
+    M_k = mod(M₀ + n̄ * Δt, T(2π))
+
+    # Assemble the current mean elements.
+    orbk = KeplerianElements{MeanAnomaly}(
+        epoch + Tepoch(t) / 86400, a₀, e₀, i₀, Ω_k, ω_k, M_k
+    )
+
+    # Update the J2 orbit propagator structure.
+    j2d.Δt   = Δt
+    j2d.orbk = orbk
+
+    return orbk
 end

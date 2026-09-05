@@ -43,7 +43,7 @@ Create and initialize the two-body propagator structure using the mean Keplerian
 # Keywords
 
 - `m0::T`: Standard gravitational parameter of the central body [m³ / s²].
-    (**Default** = `TBC_M0`)
+    (**Default**: `TBC_M0`)
 """
 function twobody_init(
     orb₀::KeplerianElements{Tanomaly, Tepoch, Tkepler}; m0::Tm0 = TBC_M0
@@ -124,7 +124,7 @@ the orbit until the time Δt [s].
 # Keywords
 
 - `m0::T`: Standard gravitational parameter of the central body [m³ / s²].
-    (**Default** = `TBC_M0`)
+    (**Default**: `TBC_M0`)
 
 # Returns
 

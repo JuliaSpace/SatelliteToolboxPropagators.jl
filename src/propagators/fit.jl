@@ -9,6 +9,10 @@
 #
 ############################################################################################
 
+############################################################################################
+#                                    Private Functions                                     #
+############################################################################################
+
 # Union of the propagator structures that support fitting a set of mean elements from
 # osculating state vectors using `_fit_mean_elements!`.
 const AbstractMeanElementsPropagator{Tepoch, T} = Union{
@@ -24,28 +28,49 @@ const AbstractMeanElementsPropagator{Tepoch, T} = Union{
 # The generic algorithm only needs to know how to name, initialize, and propagate each
 # structure, and which structure stores the mean elements. Everything else is shared.
 
-_propagator_name(::J2Propagator)           = "J2"
+"""
+    _propagator_name(pd::AbstractMeanElementsPropagator) -> String
+
+Return the name of the propagator `pd` used in the messages of the fitting algorithm.
+"""
+_propagator_name(::J2Propagator) = "J2"
 _propagator_name(::J2OsculatingPropagator) = "J2 osculating"
 _propagator_name(::J4Propagator)           = "J4"
 _propagator_name(::J4OsculatingPropagator) = "J4 osculating"
 _propagator_name(::TwoBodyPropagator)      = "two-body"
 
-# The osculating propagators use the internal initialization, which skips the propagation to
-# the initial instant, because the algorithm always propagates right afterwards.
-_mean_elements_init!(pd::J2Propagator, orb)           = j2_init!(pd, orb)
+"""
+    _mean_elements_init!(pd::AbstractMeanElementsPropagator, orb::KeplerianElements) -> Nothing
+
+Initialize the propagator `pd` with the mean elements `orb` [SI units]. The osculating
+propagators use the internal initialization, which skips the propagation to the initial
+instant, because the algorithm always propagates right afterwards.
+"""
+_mean_elements_init!(pd::J2Propagator, orb) = j2_init!(pd, orb)
 _mean_elements_init!(pd::J2OsculatingPropagator, orb) = _j2osc_init!(pd, orb)
 _mean_elements_init!(pd::J4Propagator, orb)           = j4_init!(pd, orb)
 _mean_elements_init!(pd::J4OsculatingPropagator, orb) = _j4osc_init!(pd, orb)
 _mean_elements_init!(pd::TwoBodyPropagator, orb)      = twobody_init!(pd, orb)
 
-_mean_elements_propagate!(pd::J2Propagator, Δt)           = j2!(pd, Δt)
+"""
+    _mean_elements_propagate!(pd::AbstractMeanElementsPropagator{Tepoch, T}, Δt::Number) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
+
+Propagate the orbit using `pd` to `Δt` [s] after the epoch of its initial mean elements,
+returning the position [m] and the velocity [m / s] vectors in the inertial frame.
+"""
+_mean_elements_propagate!(pd::J2Propagator, Δt) = j2!(pd, Δt)
 _mean_elements_propagate!(pd::J2OsculatingPropagator, Δt) = j2osc!(pd, Δt)
 _mean_elements_propagate!(pd::J4Propagator, Δt)           = j4!(pd, Δt)
 _mean_elements_propagate!(pd::J4OsculatingPropagator, Δt) = j4osc!(pd, Δt)
 _mean_elements_propagate!(pd::TwoBodyPropagator, Δt)      = twobody!(pd, Δt)
 
-# Structure that stores the initial (`orb₀`) and current (`orbk`) mean elements.
-_mean_elements_propagator(pd::J2Propagator)           = pd
+"""
+    _mean_elements_propagator(pd::AbstractMeanElementsPropagator) -> Union{J2Propagator, J4Propagator, TwoBodyPropagator}
+
+Return the structure inside `pd` that stores the initial (`orb₀`) and the current (`orbk`)
+mean elements, which is `pd` itself for the propagators of mean elements.
+"""
+_mean_elements_propagator(pd::J2Propagator) = pd
 _mean_elements_propagator(pd::J2OsculatingPropagator) = pd.j2d
 _mean_elements_propagator(pd::J4Propagator)           = pd
 _mean_elements_propagator(pd::J4OsculatingPropagator) = pd.j4d
@@ -53,6 +78,58 @@ _mean_elements_propagator(pd::TwoBodyPropagator)      = pd
 
 # == Algorithm =============================================================================
 
+"""
+    _fit_mean_elements!(pd::AbstractMeanElementsPropagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tepoch <: Number, T <: Number, Tjd <: Number, Tv <: AbstractVector} -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
+
+Fit a set of mean Keplerian elements for the propagator `pd` using the osculating elements
+represented by a set of position vectors `vr_i` [m] and a set of velocity vectors `vv_i`
+[m / s] represented in an inertial reference frame at instants in the array `vjd` [Julian
+Day]. The algorithm is an iterative weighted least-square that propagates the current
+estimate of the mean state vector to every measurement instant and corrects it using the
+Jacobian of the propagation. `pd` is left initialized with the fitted elements. The fitting
+fails if the residual diverges.
+
+# Keywords
+
+- `atol::Number`: Tolerance for the residual absolute value that stops the iterations.
+    (**Default**: 2e-4)
+- `rtol::Number`: Tolerance for the relative residual variation that stops the iterations.
+    (**Default**: 2e-4)
+- `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements.
+    If it is `nothing`, the closest measurement to `mean_elements_epoch` is used.
+    (**Default**: `nothing`)
+- `jacobian_method::AbstractJacobianMethod`: Method used to compute the Jacobian matrix.
+    (**Default**: `FiniteDiffJacobian()`)
+- `jacobian_perturbation::Number`: Initial relative state perturbation of the
+    finite-difference Jacobian.
+    (**Default**: 1e-3)
+- `jacobian_perturbation_tol::Number`: Minimum absolute perturbation of the
+    finite-difference Jacobian.
+    (**Default**: 1e-7)
+- `max_iterations::Int`: Maximum number of iterations.
+    (**Default**: 50)
+- `mean_elements_epoch::Number`: Epoch of the fitted mean elements [Julian Day].
+    (**Default**: `vjd[end]`)
+- `verbose::Bool`: If `true`, the algorithm prints its progress to `stdout`.
+    (**Default**: `true`)
+- `weight_vector::AbstractVector`: Diagonal of the weight matrix of the least-square
+    algorithm, with six elements.
+    (**Default**: `@SVector(ones(Bool, 6))`)
+
+# Returns
+
+- `KeplerianElements{MeanAnomaly, Tepoch, T}`: Fitted mean Keplerian elements [SI units].
+- `SMatrix{6, 6, T}`: Final covariance matrix of the least-square algorithm.
+
+# Extended help
+
+## Throws
+
+- `ArgumentError`: If `vjd`, `vr_i`, and `vv_i` do not have the same length, or if
+    `weight_vector` does not have six elements.
+- `ErrorException`: If the residual increases for three consecutive iterations and exceeds
+    5e11, indicating that the iterations diverged.
+"""
 function _fit_mean_elements!(
     pd::AbstractMeanElementsPropagator{Tepoch, T},
     vjd::AbstractVector{Tjd},
@@ -164,7 +241,10 @@ function _fit_mean_elements!(
     # measurement.
     pd_fd = jacobian_method isa FiniteDiffJacobian ? _create_fd_propagator(pd) : nothing
 
-    # Loop until the maximum allowed iteration.
+    # Loop until the maximum allowed iteration. The measurement loop only accesses the input
+    # vectors with indices derived from `num_measurements`, whose consistency was checked
+    # above, and fixed indices of static arrays. Hence, we can skip the bounds checking and
+    # avoid copies when slicing the static arrays.
     @inbounds @views for it in 1:max_iterations
         x₁ = x₂
 
@@ -288,7 +368,7 @@ function _fit_mean_elements!(
 
             # If the RMSE increased by three iterations and its value is higher than 5e11,
             # we abort because the iterations are diverging.
-            ((Δd ≥ 3) && (σ_i > 5e11)) && error("The iterations diverged!")
+            ((Δd ≥ 3) && (σ_i > 5e11)) && error("The iterations diverged.")
 
             # Check if the condition to stop has been reached.
             ((abs(Δσ) < rtol) || (σ_i < atol) || (it ≥ max_iterations)) && break
@@ -323,9 +403,7 @@ function _fit_mean_elements!(
     return orb, P
 end
 
-############################################################################################
-#                                    Private Functions                                     #
-############################################################################################
+# == Helpers ===============================================================================
 
 """
     _fit_print_action(msg::AbstractString) -> Nothing
@@ -341,9 +419,9 @@ end
 """
     _fit_print_progress(msg::AbstractString) -> Nothing
 
-Print to `stdout` the progress line `msg` of the fitting algorithm, prefixed by a highlighted
-`PROGRESS:` tag. The previous line is erased first, so consecutive calls update the same
-terminal line. The decorations are only emitted if `stdout` supports colors.
+Print to `stdout` the progress line `msg` of the fitting algorithm, prefixed by a
+highlighted `PROGRESS:` tag. The previous line is erased first, so consecutive calls update
+the same terminal line. The decorations are only emitted if `stdout` supports colors.
 """
 function _fit_print_progress(msg::AbstractString)
     print("\x1b[A\x1b[2K\r", styled"{bold:PROGRESS:} ", msg, "\n")
@@ -439,8 +517,8 @@ automatic differentiation with **ForwardDiff.jl**, which propagates dual numbers
     differences. Only used with `FiniteDiffJacobian`.
     (**Default**: `T(1e-3)`)
 - `perturbation_tol::Number`: Tolerance to accept the perturbation. If the computed
-    perturbation is lower than `perturbation_tol`, we increase it until its absolute value is
-    higher than `perturbation_tol`. Only used with `FiniteDiffJacobian`.
+    perturbation is lower than `perturbation_tol`, we increase it until its absolute value
+    is higher than `perturbation_tol`. Only used with `FiniteDiffJacobian`.
     (**Default**: `T(1e-7)`)
 - `pd_ad::Union{Nothing, AbstractMeanElementsPropagator}`: Propagator with the dual element
     type used by the ForwardDiff method, as created by `_create_ad_propagator`. If it is

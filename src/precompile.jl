@@ -33,8 +33,12 @@ PrecompileTools.@setup_workload begin
 
     vjd = [2.46002818657856e6, 2.460028190050782e6]
 
+    # The fitting functions print their progress, which we silence here.
     redirect_stdout(devnull) do
         PrecompileTools.@compile_workload begin
+            # Exercise, for every propagator and for both `Float64` and `Float32`, the
+            # initialization, the propagation with every time representation and sink, the
+            # epoch-based propagation, the stepping, and the mean elements fitting.
             for (prop, f32_kwargs) in (
                 (:J2, (; j2c = J2C_EGM2008_F32)),
                 (:J2osc, (; j2c = J2C_EGM2008_F32)),

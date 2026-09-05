@@ -4,6 +4,7 @@
 #
 ############################################################################################
 
+# Implement the `Propagators` API for the two-body orbit propagator.
 Propagators.epoch(orbp::OrbitPropagatorTwoBody)         = orbp.tbd.orb₀.epoch
 Propagators.last_instant(orbp::OrbitPropagatorTwoBody)  = orbp.tbd.Δt
 Propagators.mean_elements(orbp::OrbitPropagatorTwoBody) = orbp.tbd.orbk
@@ -158,7 +159,7 @@ elements `orb₀`.
 # Keywords
 
 - `m0::T`: Standard gravitational parameter of the central body [m³ / s²].
-    (**Default** = `TBC_M0`)
+    (**Default**: `TBC_M0`)
 """
 function Propagators.init(::Val{:TwoBody}, orb₀::KeplerianElements; m0::Number = TBC_M0)
     tbd = twobody_init(orb₀; m0 = m0)
@@ -185,12 +186,25 @@ function Propagators.init!(orbp::OrbitPropagatorTwoBody, orb₀::KeplerianElemen
     return nothing
 end
 
-function Propagators.propagate!(orbp::OrbitPropagatorTwoBody, t::Number)
-    # Auxiliary variables.
-    tbd = orbp.tbd
+"""
+    Propagators.propagate!(orbp::OrbitPropagatorTwoBody{Tepoch, T}, t::Number) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
 
-    # Propagate the orbit.
-    return twobody!(tbd, t)
+Propagate the orbit of the two-body orbit propagator `orbp` to `t` [s] after the epoch of
+the initial mean elements, updating the internal state of `orbp`.
+
+# Returns
+
+- `SVector{3, T}`: Position vector [m] represented in the inertial frame at propagation
+    instant.
+- `SVector{3, T}`: Velocity vector [m / s] represented in the inertial frame at propagation
+    instant.
+
+# Remarks
+
+The output is represented in the inertial reference frame of the input elements.
+"""
+function Propagators.propagate!(orbp::OrbitPropagatorTwoBody, t::Number)
+    return twobody!(orbp.tbd, t)
 end
 
 ############################################################################################
