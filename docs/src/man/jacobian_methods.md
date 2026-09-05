@@ -5,8 +5,8 @@ CurrentModule = SatelliteToolboxPropagators
 ```
 
 All mean-element fitting functions (`fit_j2_mean_elements`, `fit_j2osc_mean_elements`,
-`fit_j4_mean_elements`, `fit_j4osc_mean_elements`, and the SGP4 counterpart
-`fit_sgp4_tle`) use an iterative least-squares algorithm that requires Jacobian evaluation
+`fit_j4_mean_elements`, `fit_j4osc_mean_elements`, `fit_twobody_mean_elements`, and the SGP4
+counterpart `fit_sgp4_tle`) use an iterative least-squares algorithm that requires Jacobian evaluation
 at every iteration. Two methods are available, selectable via the `jacobian_method` keyword:
 
 | Method | Type | Description |

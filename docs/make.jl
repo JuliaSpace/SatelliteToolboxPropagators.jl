@@ -15,6 +15,7 @@ makedocs(;
         "Home" => "index.md",
         "Quick Start" => "man/quick_start.md",
         "Usage" => "man/usage.md",
+        "API" => "man/API.md",
         "Propagators" => [
             "J2" => "man/propagators/j2.md",
             "J2 Osculating" => "man/propagators/j2osc.md",

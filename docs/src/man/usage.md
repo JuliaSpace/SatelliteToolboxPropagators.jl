@@ -473,8 +473,8 @@ Propagators.name(orbp)
 mean_elements(orbp::OrbitPropagator)
 ```
 
-It returns the mean elements using the structure `KeplerianElements` of the latest
-propagation performed by `orbp`. Notice that this is an optional funciton in the
+It returns the mean elements using the structure `KeplerianElements{MeanAnomaly}` of the
+latest propagation performed by `orbp`. Notice that this is an optional function in the
 propagators' API. If a propagator does not support it, this function returns `nothing`.
 
 ```@repl usage

@@ -30,7 +30,7 @@ which creates a SGP4/SDP4 propagator structure [`OrbitPropagatorSgp4`](@ref) wit
 The following keyword selects the gravitational constants for the propagation algorithm:
 
 - `sgp4c::Sgp4Constants`: SGP4 orbit propagator constants (see `Sgp4Constants`).
-    (**Default** = `sgp4c_wgs84`)
+    (**Default**: `sgp4c_wgs84`)
 
 The package [**SatelliteToolboxSgp4.jl**] contains some pre-build constants for this
 propagator:
@@ -112,50 +112,50 @@ The following keywords are available to configure the fitting process:
 
 - `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
     `atol` at any iteration, the computation loop stops.
-    (**Default** = 2e-4)
+    (**Default**: 2e-4)
 - `rtol::Number`: Tolerance for the relative difference between the residuals. If the
     relative difference between the residuals in two consecutive iterations is lower than
     `rtol`, the computation loop stops.
-    (**Default** = 2e-4)
+    (**Default**: 2e-4)
 - `estimate_bstar::Bool`: If `true`, the algorithm will try to estimate the B* parameter.
     Otherwise, it will be set to 0 or to the value in the initial guess (see section **Initial
     Guess**).
-    (**Default** = true)
+    (**Default**: true)
 - `initial_guess::Union{Nothing, AbstractVector, TLE}`: Initial guess for the TLE fitting
     process. If it is `nothing`, the algorithm will obtain an initial estimate from the
     osculating elements in `vr_teme` and `vv_teme`. For more information, see the section
     **Initial Guess**.
-    (**Default** = nothing)
+    (**Default**: nothing)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
     finite-difference when calculating the Jacobian matrix.
-    (**Default** = 1e-3)
+    (**Default**: 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
     `jacobian_perturbation_tol`.
-    (**Default** = 1e-7)
+    (**Default**: 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
-    (**Default** = 50)
+    (**Default**: 50)
 - `mean_elements_epoch::Number`: Epoch for the fitted TLE.
-    (**Default** = vjd[end])
+    (**Default**: vjd[end])
 - `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default** = true)
+    (**Default**: true)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
     `weight_vector` at its diagonal.
-    (**Default** = `@SVector(ones(Bool, 6))`)
+    (**Default**: `@SVector(ones(Bool, 6))`)
 - `classification::Char`: Satellite classification character for the output TLE.
-    (**Default** = 'U')
+    (**Default**: 'U')
 - `element_set_number::Int`: Element set number for the output TLE.
-    (**Default** = 0)
+    (**Default**: 0)
 - `international_designator::String`: International designator string for the output TLE.
-    (**Default** = "999999")
+    (**Default**: "999999")
 - `name::String`: Satellite name for the output TLE.
-    (**Default** = "UNDEFINED")
+    (**Default**: "UNDEFINED")
 - `revolution_number::Int`: Revolution number for the output TLE.
-    (**Default** = 0)
+    (**Default**: 0)
 - `satellite_number::Int`: Satellite number for the output TLE.
-    (**Default** = 9999)
+    (**Default**: 9999)
 
 ```@repl sgp4
 vr_teme = [

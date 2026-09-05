@@ -4,7 +4,7 @@
 
 - This package provides analytical and SGP4/SDP4 orbit propagators for the SatelliteToolbox.jl ecosystem and supports Julia 1.10 or newer within Julia 1.x.
 - `src/SatelliteToolboxPropagators.jl` is the module entrypoint. It loads the generic `Propagators` API, shared types, propagator-specific API methods, numerical kernels, and finally precompile workloads; preserve this dependency order when adding code.
-- `src/api/Propagators.jl` defines the common `OrbitPropagator` interface. Files under `src/api/` connect concrete propagators to that interface, while files under `src/propagators/` contain the J2, J2-osculating, J4, J4-osculating, and two-body kernels. SGP4 delegates its kernel to `SatelliteToolboxSgp4` and therefore has no local file under `src/propagators/`.
+- `src/api/Propagators.jl` defines the common `OrbitPropagator` interface. Files under `src/api/` connect concrete propagators to that interface, while files under `src/propagators/` contain the J2, J2-osculating, J4, J4-osculating, and two-body kernels, the J2 short-period corrections shared by the osculating propagators (`osculating.jl`), and the least-square algorithm shared by every mean elements fitting function (`fit.jl`). SGP4 delegates its kernel to `SatelliteToolboxSgp4` and therefore has no local file under `src/propagators/`.
 - `test/runtests.jl` includes feature tests from `test/j2.jl`, `test/j2osc.jl`, `test/j4.jl`, `test/j4osc.jl`, `test/sgp4.jl`, `test/twobody.jl`, and `test/api.jl`, then runs the quality and allocation checks in `test/performance.jl` on stable Julia releases.
 - `docs/` is a separate Documenter environment. User-facing guides live under `docs/src/man/`, and API references live in `docs/src/lib/library.md`.
 - Root and environment-specific manifest files are ignored by `.gitignore`; do not commit generated `Manifest.toml` files.
@@ -35,6 +35,7 @@
 - Follow BlueStyle and `.JuliaFormatter.toml`; its options are the formatting source of truth.
 - Preserve the established four-space indentation, explicit `return` statements, trailing commas in multiline calls, aligned assignments where helpful, and section separators used throughout `src/` and `test/`.
 - Use descriptive domain notation already established in the codebase, including symbols such as `Δt`, `μ`, `Ω`, and `ω`, when it improves consistency with orbital mechanics formulas.
+- Exported constants use `SCREAMING_SNAKE_CASE`, e.g. `J2C_EGM2008`, `J4C_JGM03_F32`, and `TBC_M0`.
 - Keep implementations generic over numeric and epoch types. Avoid introducing `Float64` conversions that would break `Float32`, `ForwardDiff.Dual`, or other `Number` subtypes unless an API explicitly requires them.
 - Add or update docstrings for public API changes. State reference frames, timescales, units, mutation, keywords, and return shapes explicitly.
 - Keep exported API methods in the relevant `src/api/` file and numerical details in the matching `src/propagators/` file rather than bypassing the `Propagators` interface.
@@ -45,6 +46,8 @@
 - Distinguish propagation from stepping: `Propagators.propagate!` evaluates an offset from the initial epoch, while `Propagators.step!` advances relative to the current propagation instant.
 - Propagators are mutable. Vector propagation copies state for parallel tasks and leaves the supplied propagator at the last requested instant; preserve this deterministic final state when changing threading code.
 - Preserve the sink API: tuple sinks return position and velocity separately, while `OrbitStateVector` sinks include the corresponding epoch.
+- Every mean elements output (`Propagators.mean_elements`, the fitting functions, and the epoch updates) returns `KeplerianElements{MeanAnomaly}`; the osculating propagators store their osculating elements as `KeplerianElements{TrueAnomaly}`.
+- Adding a propagator to the shared fitting algorithm only requires the dispatch methods at the top of `src/propagators/fit.jl` and a `_similar_propagator` method.
 - Keep `Val` dispatch tags and concrete wrapper types consistent across initialization, fitting, propagation, copying, display, tests, docs, and precompile workloads.
 - Treat allocation limits in `test/performance.jl` as part of expected behavior for hot propagation and Jacobian paths.
 

@@ -1,3 +1,5 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+SatelliteToolboxBase = "9e17983a-0463-41a7-9a16-1682db6d8b66"
 SatelliteToolboxPropagators = "c2b69894-ea78-4e2b-9ba6-cedbbc3d14d7"
+SatelliteToolboxSgp4 = "ba14ac17-bfc9-4710-a76f-b32930ef2339"
