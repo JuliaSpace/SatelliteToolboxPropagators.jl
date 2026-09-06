@@ -49,8 +49,8 @@ Version 2.0.0
   `J2OsculatingPropagator`, `J4Propagator`, `J4OsculatingPropagator`, and
   `TwoBodyPropagator` with the tree layout of **SatelliteToolboxBase.jl** v2.1, which
   follows the orbit data messages: the compact form shows the type and the epoch, and the
-  rich form shows the epoch and the last propagation instant followed by the sections with
-  the initial mean elements, the secular rates, and the constants. The `OrbitPropagator`
+  rich form shows the sections with the initial mean elements and their epoch, the secular
+  rates, the constants, and the last propagation instant. The `OrbitPropagator`
   wrappers print their type and name followed by the body of the wrapped structure, and an
   uninitialized propagator prints its status instead of undefined values.
 - ![Enhancement][badge-enhancement] Replace **Crayons.jl** with **StyledStrings**, which

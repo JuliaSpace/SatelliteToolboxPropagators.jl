@@ -758,15 +758,15 @@ function show(io::IO, ::MIME"text/plain", orbp::OrbitPropagator)
         epoch_str = SatelliteToolboxBase.epoch_string(epoch(orbp))
         Δt_str    = SatelliteToolboxBase.format_value(last_instant(orbp))
 
-        fields = SatelliteToolboxBase.PrintedField[
-            ("Epoch",            epoch_str, ""),
-            ("Last Propagation", Δt_str,    "s"),
+        fields   = SatelliteToolboxBase.PrintedField[]
+        sections = SatelliteToolboxBase.PrintedSection[
+            "Propagation" => [("Epoch", epoch_str, ""), ("Last Instant", Δt_str, "s")],
         ]
     else
-        fields = SatelliteToolboxBase.PrintedField[("Status", "not initialized", "")]
+        fields   = SatelliteToolboxBase.PrintedField[("Status", "not initialized", "")]
+        sections = SatelliteToolboxBase.PrintedSection[]
     end
 
-    sections = SatelliteToolboxBase.PrintedSection[]
     SatelliteToolboxBase.print_tree(io, header, fields, sections)
 
     return nothing

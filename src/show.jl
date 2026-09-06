@@ -3,9 +3,9 @@
 # Functions to print the structures of the orbit propagators implemented in this package.
 #
 # The representations follow the layout of SatelliteToolboxBase.jl: the compact form prints
-# the type with its parameters and the epoch, whereas the rich form is a tree with the epoch
-# and the last propagation instant at the top level, followed by the sections with the mean
-# elements, the secular rates, and the constants. The `OrbitPropagator` wrappers of the API
+# the type with its parameters and the epoch, whereas the rich form is a tree with the
+# sections holding the initial mean elements and their epoch, the secular rates, the
+# constants, and the last propagation instant. The `OrbitPropagator` wrappers of the API
 # print the same tree under their own header in `src/api/Propagators.jl`.
 #
 ############################################################################################
@@ -46,12 +46,10 @@ function SatelliteToolboxBase.print_tree_body(io::IO, pd::PropagatorData)
         return nothing
     end
 
-    fields = SatelliteToolboxBase.PrintedField[
-        ("Epoch",            SatelliteToolboxBase.epoch_string(_initial_epoch(pd)), ""),
-        ("Last Propagation", SatelliteToolboxBase.format_value(pd.Δt),              "s"),
-    ]
+    sections = _sections(pd)
+    push!(sections, "Propagation" => _propagation_fields(pd.Δt, "s"))
 
-    SatelliteToolboxBase.print_tree_body(io, fields, _sections(pd))
+    SatelliteToolboxBase.print_tree_body(io, SatelliteToolboxBase.PrintedField[], sections)
 
     return nothing
 end
@@ -107,6 +105,21 @@ _initial_epoch(pd::J4OsculatingPropagator) = _initial_epoch(pd.j4d)
 _initial_epoch(pd::TwoBodyPropagator)      = pd.orb₀.epoch
 
 """
+    _propagation_fields(
+        Δt::Number,
+        unit::String
+    ) -> Vector{SatelliteToolboxBase.PrintedField}
+
+Return the fields of the section that prints the last propagation instant `Δt`, measured
+from the epoch of the initial mean elements in the `unit` given as a string.
+"""
+function _propagation_fields(Δt::Number, unit::String)
+    return SatelliteToolboxBase.PrintedField[
+        ("Last Instant", SatelliteToolboxBase.format_value(Δt), unit),
+    ]
+end
+
+"""
     _is_initialized(pd::PropagatorData) -> Bool
 
 Return whether the propagator structure `pd` has been initialized. The empty constructors
@@ -119,14 +132,15 @@ _is_initialized(pd::PropagatorData) = !isnan(pd.Δt)
         orb₀::KeplerianElements{MeanAnomaly}
     ) -> Vector{SatelliteToolboxBase.PrintedField}
 
-Return the fields that print the initial mean elements `orb₀` in the rich representation
-of a propagator structure. The semi-major axis is printed in kilometers and the angles in
-degrees.
+Return the fields that print the initial mean elements `orb₀` and their epoch in the rich
+representation of a propagator structure. The semi-major axis is printed in kilometers and
+the angles in degrees.
 """
 function _mean_elements_fields(orb₀::KeplerianElements{MeanAnomaly})
     format_value = SatelliteToolboxBase.format_value
 
     return SatelliteToolboxBase.PrintedField[
+        ("Epoch",             SatelliteToolboxBase.epoch_string(orb₀.epoch),     ""),
         ("Semi-Major Axis",   format_value(orb₀.semi_major_axis / 1000),         "km"),
         ("Eccentricity",      format_value(orb₀.eccentricity),                   ""),
         ("Inclination",       format_value(rad2deg(orb₀.inclination)),           "°"),
@@ -166,9 +180,10 @@ end
     _sections(pd::PropagatorData) -> Vector{SatelliteToolboxBase.PrintedSection}
 
 Return the sections of the rich representation of the initialized propagator structure
-`pd`: the initial mean elements, the secular rates, and the constants. The osculating
-propagators print the sections of the propagator they wrap, since the short-period
-corrections do not add any parameter.
+`pd`: the initial mean elements with their epoch, the secular rates, and the constants. The
+last propagation instant is appended by the caller. The osculating propagators print the
+sections of the propagator they wrap, since the short-period corrections do not add any
+parameter.
 """
 function _sections(pd::J2Propagator)
     return SatelliteToolboxBase.PrintedSection[

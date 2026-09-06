@@ -38,6 +38,7 @@ const SHOW_TLE = tle"""
 # Bodies of the rich representations after propagating the reference scenario by 100 s.
 const SHOW_MEAN_ELEMENTS = (
     "  ├─ Mean Elements",
+    "  │    Epoch             : 2.45995e6 (2023-01-01T00:00:00)",
     "  │    Semi-Major Axis   : 8000.0 km",
     "  │    Eccentricity      : 0.015",
     "  │    Inclination       : 28.5°",
@@ -46,59 +47,60 @@ const SHOW_MEAN_ELEMENTS = (
     "  │    Mean Anomaly      : 43.79419642°",
 )
 
+const SHOW_PROPAGATION = (
+    "  └─ Propagation",
+    "       Last Instant : 100.0 s",
+)
+
 const SHOW_J2_BODY = join(
     (
-        "  Epoch            : 2.45995e6 (2023-01-01T00:00:00)",
-        "  Last Propagation : 100.0 s",
         SHOW_MEAN_ELEMENTS...,
         "  ├─ Secular Rates",
         "  │    Mean Motion            : 12.14123799 rev/day",
         "  │    RAAN Rate              : -3.966769151 °/day",
         "  │    Arg. of Periapsis Rate : 6.458281745 °/day",
-        "  └─ Constants",
-        "       R₀ : 6378.137 km",
-        "       μm : 0.001239447462 rad/s",
-        "       J₂ : 0.001082626174",
+        "  ├─ Constants",
+        "  │    R₀ : 6378.137 km",
+        "  │    μm : 0.001239447462 rad/s",
+        "  │    J₂ : 0.001082626174",
+        SHOW_PROPAGATION...,
     ),
     '\n',
 )
 
 const SHOW_J4_BODY = join(
     (
-        "  Epoch            : 2.45995e6 (2023-01-01T00:00:00)",
-        "  Last Propagation : 100.0 s",
         SHOW_MEAN_ELEMENTS...,
         "  ├─ Secular Rates",
         "  │    Mean Motion            : 12.14124728 rev/day",
         "  │    RAAN Rate              : -3.971642723 °/day",
         "  │    Arg. of Periapsis Rate : 6.466058362 °/day",
-        "  └─ Constants",
-        "       R₀ : 6378.137 km",
-        "       μm : 0.001239447462 rad/s",
-        "       J₂ : 0.001082626174",
-        "       J₄ : -1.6198976e-6",
+        "  ├─ Constants",
+        "  │    R₀ : 6378.137 km",
+        "  │    μm : 0.001239447462 rad/s",
+        "  │    J₂ : 0.001082626174",
+        "  │    J₄ : -1.6198976e-6",
+        SHOW_PROPAGATION...,
     ),
     '\n',
 )
 
 const SHOW_TWOBODY_BODY = join(
     (
-        "  Epoch            : 2.45995e6 (2023-01-01T00:00:00)",
-        "  Last Propagation : 100.0 s",
         SHOW_MEAN_ELEMENTS...,
         "  ├─ Secular Rates",
         "  │    Mean Motion : 12.13298837 rev/day",
-        "  └─ Constants",
-        "       μ : 3.986004415e14 m³/s²",
+        "  ├─ Constants",
+        "  │    μ : 3.986004415e14 m³/s²",
+        SHOW_PROPAGATION...,
     ),
     '\n',
 )
 
 const SHOW_SGP4_BODY = join(
     (
-        "  Epoch            : 2.45391e6 (2006-06-26T18:52:04.080)",
-        "  Last Propagation : 1.666666667 min",
         "  ├─ Mean Elements",
+        "  │    Epoch             : 2.45391e6 (2006-06-26T18:52:04.080)",
         "  │    Semi-Major Axis   : 7151.615424 km",
         "  │    Mean Motion       : 14.3547808 rev/day",
         "  │    Eccentricity      : 8.84e-5",
@@ -107,12 +109,14 @@ const SHOW_SGP4_BODY = join(
         "  │    Arg. of Periapsis : 88.1964°",
         "  │    Mean Anomaly      : 271.9322°",
         "  │    B*                : 3.594e-5 1/er",
-        "  └─ Constants",
-        "       R₀  : 6378.137 km",
-        "       XKE : 0.07436685317 er^(3/2)/min",
-        "       J₂  : 0.001082629989",
-        "       J₃  : -2.53215306e-6",
-        "       J₄  : -1.61098761e-6",
+        "  ├─ Constants",
+        "  │    R₀  : 6378.137 km",
+        "  │    XKE : 0.07436685317 er^(3/2)/min",
+        "  │    J₂  : 0.001082629989",
+        "  │    J₃  : -2.53215306e-6",
+        "  │    J₄  : -1.61098761e-6",
+        "  └─ Propagation",
+        "       Last Instant : 1.666666667 min",
     ),
     '\n',
 )
@@ -157,8 +161,8 @@ const SHOW_SGP4_BODY = join(
         result = sprint(show, MIME("text/plain"), pd)
         @test startswith(result, "J4Propagator{Float64, Float32}:\n")
         @test occursin("  │    Semi-Major Axis   : 8000.0 km\n", result)
-        @test occursin("  Last Propagation : 0.0 s\n", result)
-        @test occursin("       R₀ : 6378.14 km\n", result)
+        @test occursin("  │    R₀ : 6378.14 km\n", result)
+        @test endswith(result, "  └─ Propagation\n       Last Instant : 0.0 s")
     end
 
     @testset "Uninitialized" begin
@@ -311,8 +315,9 @@ end
         expected = join(
             (
                 "$header:",
-                "  Epoch            : 2.45995e6 (2023-01-01T00:00:00)",
-                "  Last Propagation : 10.0 s",
+                "  └─ Propagation",
+                "       Epoch        : 2.45995e6 (2023-01-01T00:00:00)",
+                "       Last Instant : 10.0 s",
             ),
             '\n',
         )

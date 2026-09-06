@@ -79,10 +79,10 @@ assigned before initializing a structure created with the empty constructor.
 
 `show(io, pd)` prints the compact form: the type with its parameters and the epoch of the
 initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"), pd)`
-prints a tree with the epoch and the last propagation instant, followed by the sections
-with the initial mean elements, the secular rates, and the constants, one field per line
-with its unit, with the labels in bold and the units dimmed if `io` supports color. The body
-can be printed under another header with `SatelliteToolboxBase.print_tree_body`. An
+prints a tree with the sections holding the initial mean elements and their epoch, the
+secular rates, the constants, and the last propagation instant, one field per line with its
+unit, with the labels in bold and the units dimmed if `io` supports color. The body can be
+printed under another header with `SatelliteToolboxBase.print_tree_body`. An
 uninitialized structure prints the status `not initialized` instead.
 """
 mutable struct J2Propagator{Tepoch <: Number, T <: Number}
@@ -133,10 +133,10 @@ which must be assigned before initializing a structure created with the empty co
 
 `show(io, pd)` prints the compact form: the type with its parameters and the epoch of the
 initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"), pd)`
-prints a tree with the epoch and the last propagation instant, followed by the sections
-with the initial mean elements, the secular rates, and the constants, one field per line
-with its unit, with the labels in bold and the units dimmed if `io` supports color. The body
-can be printed under another header with `SatelliteToolboxBase.print_tree_body`. An
+prints a tree with the sections holding the initial mean elements and their epoch, the
+secular rates, the constants, and the last propagation instant, one field per line with its
+unit, with the labels in bold and the units dimmed if `io` supports color. The body can be
+printed under another header with `SatelliteToolboxBase.print_tree_body`. An
 uninitialized structure prints the status `not initialized` instead.
 """
 mutable struct J2OsculatingPropagator{Tepoch <: Number, T <: Number}
@@ -221,10 +221,10 @@ assigned before initializing a structure created with the empty constructor.
 
 `show(io, pd)` prints the compact form: the type with its parameters and the epoch of the
 initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"), pd)`
-prints a tree with the epoch and the last propagation instant, followed by the sections
-with the initial mean elements, the secular rates, and the constants, one field per line
-with its unit, with the labels in bold and the units dimmed if `io` supports color. The body
-can be printed under another header with `SatelliteToolboxBase.print_tree_body`. An
+prints a tree with the sections holding the initial mean elements and their epoch, the
+secular rates, the constants, and the last propagation instant, one field per line with its
+unit, with the labels in bold and the units dimmed if `io` supports color. The body can be
+printed under another header with `SatelliteToolboxBase.print_tree_body`. An
 uninitialized structure prints the status `not initialized` instead.
 """
 mutable struct J4Propagator{Tepoch <: Number, T <: Number}
@@ -275,10 +275,10 @@ which must be assigned before initializing a structure created with the empty co
 
 `show(io, pd)` prints the compact form: the type with its parameters and the epoch of the
 initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"), pd)`
-prints a tree with the epoch and the last propagation instant, followed by the sections
-with the initial mean elements, the secular rates, and the constants, one field per line
-with its unit, with the labels in bold and the units dimmed if `io` supports color. The body
-can be printed under another header with `SatelliteToolboxBase.print_tree_body`. An
+prints a tree with the sections holding the initial mean elements and their epoch, the
+secular rates, the constants, and the last propagation instant, one field per line with its
+unit, with the labels in bold and the units dimmed if `io` supports color. The body can be
+printed under another header with `SatelliteToolboxBase.print_tree_body`. An
 uninitialized structure prints the status `not initialized` instead.
 """
 mutable struct J4OsculatingPropagator{Tepoch <: Number, T <: Number}
@@ -324,10 +324,10 @@ which must be assigned before initializing a structure created with the empty co
 
 `show(io, pd)` prints the compact form: the type with its parameters and the epoch of the
 initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"), pd)`
-prints a tree with the epoch and the last propagation instant, followed by the sections
-with the initial mean elements, the mean motion, and the constants, one field per line with
-its unit, with the labels in bold and the units dimmed if `io` supports color. The body
-can be printed under another header with `SatelliteToolboxBase.print_tree_body`. An
+prints a tree with the sections holding the initial mean elements and their epoch, the
+mean motion, the constants, and the last propagation instant, one field per line with its
+unit, with the labels in bold and the units dimmed if `io` supports color. The body can be
+printed under another header with `SatelliteToolboxBase.print_tree_body`. An
 uninitialized structure prints the status `not initialized` instead.
 """
 mutable struct TwoBodyPropagator{Tepoch <: Number, T <: Number}
