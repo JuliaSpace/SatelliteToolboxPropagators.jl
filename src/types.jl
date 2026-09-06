@@ -71,6 +71,17 @@ assigned before initializing a structure created with the empty constructor.
 - `∂Ω::T`: RAAN time derivative [rad / s].
 - `∂ω::T`: Argument of perigee time derivative [rad / s].
 - `n̄::T`: Perturbed mean motion [rad / s].
+
+# Extended help
+
+## Printing
+
+`show(io, pd)` prints the compact form: the type with its parameters and the epoch of the
+initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"), pd)`
+prints the propagator constants, the initial mean elements, the secular rates, and the last
+propagation instant, one per line with its unit, aligned at the decimal point, with the
+labels in bold if `io` supports color. The structures created with the empty constructor
+hold undefined values until they are initialized.
 """
 mutable struct J2Propagator{Tepoch <: Number, T <: Number}
     orb₀::KeplerianElements{MeanAnomaly, Tepoch, T}
@@ -108,6 +119,17 @@ which must be assigned before initializing a structure created with the empty co
 - `Δt::T`: Timespan from the initial elements' epoch [s].
 - `orbk::KeplerianElements{TrueAnomaly, Tepoch, T}`: Current osculating orbit elements [SI
     units].
+
+# Extended help
+
+## Printing
+
+`show(io, pd)` prints the compact form: the type with its parameters and the epoch of the
+initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"), pd)`
+prints the propagator constants, the initial mean elements, the secular rates, and the last
+propagation instant, one per line with its unit, aligned at the decimal point, with the
+labels in bold if `io` supports color. An uninitialized structure prints the status
+`not initialized` instead.
 """
 mutable struct J2OsculatingPropagator{Tepoch <: Number, T <: Number}
     j2d::J2Propagator{Tepoch, T}
@@ -179,6 +201,17 @@ assigned before initializing a structure created with the empty constructor.
 - `∂Ω::T`: RAAN time derivative [rad / s].
 - `∂ω::T`: Argument of perigee time derivative [rad / s].
 - `n̄::T`: Perturbed mean motion [rad / s].
+
+# Extended help
+
+## Printing
+
+`show(io, pd)` prints the compact form: the type with its parameters and the epoch of the
+initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"), pd)`
+prints the propagator constants, the initial mean elements, the secular rates, and the last
+propagation instant, one per line with its unit, aligned at the decimal point, with the
+labels in bold if `io` supports color. The structures created with the empty constructor
+hold undefined values until they are initialized.
 """
 mutable struct J4Propagator{Tepoch <: Number, T <: Number}
     orb₀::KeplerianElements{MeanAnomaly, Tepoch, T}
@@ -216,6 +249,17 @@ which must be assigned before initializing a structure created with the empty co
 - `Δt::T`: Timespan from the initial elements' epoch [s].
 - `orbk::KeplerianElements{TrueAnomaly, Tepoch, T}`: Current osculating orbit elements [SI
     units].
+
+# Extended help
+
+## Printing
+
+`show(io, pd)` prints the compact form: the type with its parameters and the epoch of the
+initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"), pd)`
+prints the propagator constants, the initial mean elements, the secular rates, and the last
+propagation instant, one per line with its unit, aligned at the decimal point, with the
+labels in bold if `io` supports color. An uninitialized structure prints the status
+`not initialized` instead.
 """
 mutable struct J4OsculatingPropagator{Tepoch <: Number, T <: Number}
     j4d::J4Propagator{Tepoch, T}
@@ -248,6 +292,17 @@ which must be assigned before initializing a structure created with the empty co
 - `μ::T`: Standard gravitational parameter of the central body [m³ / s²].
 - `Δt::T`: Timespan from the initial elements' epoch [s].
 - `n₀::T`: Mean motion [rad / s].
+
+# Extended help
+
+## Printing
+
+`show(io, pd)` prints the compact form: the type with its parameters and the epoch of the
+initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"), pd)`
+prints the propagator constants, the initial mean elements, the mean motion, and the last
+propagation instant, one per line with its unit, aligned at the decimal point, with the
+labels in bold if `io` supports color. The structures created with the empty constructor
+hold undefined values until they are initialized.
 """
 mutable struct TwoBodyPropagator{Tepoch <: Number, T <: Number}
     orb₀::KeplerianElements{MeanAnomaly, Tepoch, T}
@@ -281,6 +336,15 @@ J2 orbit propagator for the `Propagators` API.
 
 - `j2d::J2Propagator{Tepoch, T}`: Structure that stores the J2 orbit propagator data (see
     [`J2Propagator`](@ref)).
+
+# Extended help
+
+## Printing
+
+`show(io, orbp)` prints the compact form: the type with its parameters, the propagator
+name, and the epoch as a Julian Day and as a date. `show(io, MIME("text/plain"), orbp)`
+prints the same header followed by the rich representation of `j2d`, indented by two
+spaces.
 """
 struct OrbitPropagatorJ2{Tepoch <: Number, T <: Number} <: OrbitPropagator{Tepoch, T}
     j2d::J2Propagator{Tepoch, T}
@@ -300,6 +364,15 @@ J2 osculating orbit propagator for the `Propagators` API.
 
 - `j2oscd::J2OsculatingPropagator{Tepoch, T}`: Structure that stores the J2 osculating orbit
     propagator data (see [`J2OsculatingPropagator`](@ref)).
+
+# Extended help
+
+## Printing
+
+`show(io, orbp)` prints the compact form: the type with its parameters, the propagator
+name, and the epoch as a Julian Day and as a date. `show(io, MIME("text/plain"), orbp)`
+prints the same header followed by the rich representation of `j2oscd`, indented by two
+spaces.
 """
 struct OrbitPropagatorJ2Osculating{Tepoch <: Number, T <: Number} <:
        OrbitPropagator{Tepoch, T}
@@ -317,6 +390,15 @@ J4 orbit propagator for the `Propagators` API.
 
 - `j4d::J4Propagator{Tepoch, T}`: Structure that stores the J4 orbit propagator data (see
     [`J4Propagator`](@ref)).
+
+# Extended help
+
+## Printing
+
+`show(io, orbp)` prints the compact form: the type with its parameters, the propagator
+name, and the epoch as a Julian Day and as a date. `show(io, MIME("text/plain"), orbp)`
+prints the same header followed by the rich representation of `j4d`, indented by two
+spaces.
 """
 struct OrbitPropagatorJ4{Tepoch <: Number, T <: Number} <: OrbitPropagator{Tepoch, T}
     j4d::J4Propagator{Tepoch, T}
@@ -336,6 +418,15 @@ J4 osculating orbit propagator for the `Propagators` API.
 
 - `j4oscd::J4OsculatingPropagator{Tepoch, T}`: Structure that stores the J4 osculating orbit
     propagator data (see [`J4OsculatingPropagator`](@ref)).
+
+# Extended help
+
+## Printing
+
+`show(io, orbp)` prints the compact form: the type with its parameters, the propagator
+name, and the epoch as a Julian Day and as a date. `show(io, MIME("text/plain"), orbp)`
+prints the same header followed by the rich representation of `j4oscd`, indented by two
+spaces.
 """
 struct OrbitPropagatorJ4Osculating{Tepoch <: Number, T <: Number} <:
        OrbitPropagator{Tepoch, T}
@@ -353,6 +444,15 @@ SGP4 orbit propagator for the `Propagators` API.
 
 - `sgp4d::Sgp4Propagator{Tepoch, T}`: Structure that stores the SGP4 orbit propagator data
     (see `Sgp4Propagator` in **SatelliteToolboxSgp4.jl**).
+
+# Extended help
+
+## Printing
+
+`show(io, orbp)` prints the compact form: the type with its parameters, the propagator
+name, and the epoch as a Julian Day and as a date. `show(io, MIME("text/plain"), orbp)`
+prints the same header followed by the rich representation of `sgp4d`, indented by two
+spaces.
 """
 struct OrbitPropagatorSgp4{Tepoch <: Number, T <: Number} <: OrbitPropagator{Tepoch, T}
     sgp4d::Sgp4Propagator{Tepoch, T}
@@ -372,6 +472,15 @@ Two-body orbit propagator for the `Propagators` API.
 
 - `tbd::TwoBodyPropagator{Tepoch, T}`: Structure that stores the two-body orbit propagator
     data (see [`TwoBodyPropagator`](@ref)).
+
+# Extended help
+
+## Printing
+
+`show(io, orbp)` prints the compact form: the type with its parameters, the propagator
+name, and the epoch as a Julian Day and as a date. `show(io, MIME("text/plain"), orbp)`
+prints the same header followed by the rich representation of `tbd`, indented by two
+spaces.
 """
 struct OrbitPropagatorTwoBody{Tepoch <: Number, T <: Number} <: OrbitPropagator{Tepoch, T}
     tbd::TwoBodyPropagator{Tepoch, T}

@@ -5,9 +5,11 @@
 ############################################################################################
 
 # Implement the `Propagators` API for the SGP4 orbit propagator.
-Propagators.epoch(orbp::OrbitPropagatorSgp4)        = orbp.sgp4d.epoch
-Propagators.last_instant(orbp::OrbitPropagatorSgp4) = orbp.sgp4d.Δt * 60
-Propagators.name(orbp::OrbitPropagatorSgp4)         = "SGP4 Orbit Propagator"
+Propagators.epoch(orbp::OrbitPropagatorSgp4)           = orbp.sgp4d.epoch
+Propagators.is_initialized(orbp::OrbitPropagatorSgp4)  = isdefined(orbp.sgp4d, :algorithm)
+Propagators.last_instant(orbp::OrbitPropagatorSgp4)    = orbp.sgp4d.Δt * 60
+Propagators.name(orbp::OrbitPropagatorSgp4)            = "SGP4 Orbit Propagator"
+Propagators.propagator_data(orbp::OrbitPropagatorSgp4) = orbp.sgp4d
 
 """
     Propagators.mean_elements(

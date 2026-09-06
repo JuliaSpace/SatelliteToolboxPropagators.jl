@@ -1,9 +1,9 @@
 module Propagators
 
 using Dates
-using StyledStrings
 
 import Base: copy, eltype, length, iterate, show
+import SatelliteToolboxBase
 import SatelliteToolboxBase: @maybe_threads, get_partition, OrbitStateVector
 
 export OrbitPropagator
@@ -185,6 +185,16 @@ Return the last propagation instant [s] measured from the epoch.
 function last_instant end
 
 """
+    is_initialized(orbp::OrbitPropagator) -> Bool
+
+Return whether the orbit propagator `orbp` has been initialized and can be propagated. This
+is an optional function in the API, used to print a propagator created without initial
+elements without accessing its undefined fields. It returns `true` if the propagator does
+not overload it.
+"""
+is_initialized(orbp::OrbitPropagator) = true
+
+"""
     mean_elements(orbp::OrbitPropagator) -> Union{Nothing, KeplerianElements{MeanAnomaly}}
 
 Return the mean elements using the structure `KeplerianElements{MeanAnomaly}` of the latest
@@ -200,6 +210,17 @@ Return the name of the orbit propagator `orbp`. If this function is not defined,
 structure name is used: `typeof(orbp) |> string`.
 """
 name(orbp::OrbitPropagator) = typeof(orbp) |> string
+
+"""
+    propagator_data(orbp::OrbitPropagator) -> Any
+
+Return the structure that stores the data of the propagation theory wrapped by the orbit
+propagator `orbp`. This is an optional function in the API, used to print the rich
+representation of that structure after the header of `orbp`. It returns `nothing` if the
+propagator does not overload it, in which case only the epoch and the last propagation
+instant are printed.
+"""
+propagator_data(orbp::OrbitPropagator) = nothing
 
 """
     propagate(
@@ -708,24 +729,55 @@ eltype(orbp::T) where {T <: OrbitPropagator} = T
 #                                           Show                                           #
 ############################################################################################
 
-function show(io::IO, orbp::T) where {T <: OrbitPropagator}
-    prop_epoch = epoch(orbp) |> julian2datetime
-    Δt         = last_instant(orbp)
-    print(io, name(orbp), " (Epoch = ", prop_epoch, ", Δt = ", Δt, " s)")
+function show(io::IO, orbp::OrbitPropagator)
+    header = _header(orbp)
+
+    if !is_initialized(orbp)
+        print(io, header, " (not initialized)")
+        return nothing
+    end
+
+    SatelliteToolboxBase.print_compact(io, header, epoch(orbp))
+
     return nothing
 end
 
-function show(io::IO, mime::MIME"text/plain", orbp::T) where {T <: OrbitPropagator}
-    prop_name       = name(orbp)
-    prop_epoch      = epoch(orbp)
-    prop_epoch_dt   = prop_epoch |> julian2datetime
-    last_instant_dt = prop_epoch + last_instant(orbp) / 86400 |> julian2datetime
+function show(io::IO, mime::MIME"text/plain", orbp::OrbitPropagator)
+    header = _header(orbp)
+    data   = propagator_data(orbp)
 
-    # `StyledStrings` only emits the escape sequences if `io` supports colors.
-    println(io, string(T), ":")
-    println(io, styled"{bold:   Propagator name :} ", prop_name)
-    println(io, styled"{bold:  Propagator epoch :} ", prop_epoch_dt)
-    print(io, styled"{bold:  Last propagation :} ", last_instant_dt)
+    # If the propagator does not provide its data structure, we can only print the
+    # information obtained through the API.
+    if isnothing(data)
+        if !is_initialized(orbp)
+            println(io, header, ":")
+            SatelliteToolboxBase.print_field(io, " Status : ", "not initialized")
+            return nothing
+        end
+
+        SatelliteToolboxBase.print_elements(
+            io,
+            header,
+            epoch(orbp),
+            ("Last propagation",),
+            (SatelliteToolboxBase.compact_string(io, last_instant(orbp)),),
+            ("s",),
+        )
+
+        return nothing
+    end
+
+    # Otherwise, we print the rich representation of the data structure indented by two
+    # spaces after the header. The context of `io` is forwarded so that the colors are
+    # rendered only if `io` supports them.
+    println(io, header, ":")
+
+    lines = split(sprint(show, mime, data; context = io), '\n')
+
+    for k in eachindex(lines)
+        print(io, "  ", lines[k])
+        k != lastindex(lines) && println(io)
+    end
 
     return nothing
 end
@@ -733,6 +785,30 @@ end
 ############################################################################################
 #                                    Private Functions                                     #
 ############################################################################################
+
+"""
+    _header(orbp::OrbitPropagator) -> String
+
+Return the header of the printed representations of `orbp`: its type with the parameters,
+followed by the propagator name in parentheses if the propagator defines one.
+"""
+function _header(orbp::OrbitPropagator)
+    type_name = _type_name(orbp)
+    prop_name = name(orbp)
+    prop_name == type_name && return type_name
+    return string(type_name, " (", prop_name, ")")
+end
+
+"""
+    _type_name(x) -> String
+
+Return the name of the type of `x` with its parameters, as used in the headers of the
+printed representations.
+"""
+function _type_name(x)
+    T = typeof(x)
+    return string(nameof(T), "{", join(T.parameters, ", "), "}")
+end
 
 """
     _append_propagator(result, orbp::OrbitPropagator) -> Tuple

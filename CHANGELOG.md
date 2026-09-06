@@ -4,7 +4,7 @@ SatelliteToolboxPropagator.jl Changelog
 Version 2.0.0
 -------------
 
-- ![BREAKING][badge-breaking] Require **SatelliteToolboxBase.jl** v2. The propagators store
+- ![BREAKING][badge-breaking] Require **SatelliteToolboxBase.jl** v2.1. The propagators store
   their mean elements as `KeplerianElements{MeanAnomaly}`, and the osculating propagators
   store the osculating elements as `KeplerianElements{TrueAnomaly}`. The fields `orb₀` and
   `orbk` of the propagator structures changed their types accordingly.
@@ -38,6 +38,18 @@ Version 2.0.0
   `update_twobody_mean_elements_epoch`, `update_twobody_mean_elements_epoch!`, and the
   methods of `Propagators.fit_mean_elements` and `Propagators.fit_mean_elements!` for
   `Val(:TwoBody)`.
+- ![Feature][badge-feature] Add the optional API functions `Propagators.propagator_data`,
+  which returns the structure of the propagation theory wrapped by an `OrbitPropagator`,
+  and `Propagators.is_initialized`, which tells whether a propagator created without
+  initial elements has been initialized.
+- ![Enhancement][badge-enhancement] Print the propagator structures `J2Propagator`,
+  `J2OsculatingPropagator`, `J4Propagator`, `J4OsculatingPropagator`, and
+  `TwoBodyPropagator` with the layout of the orbit representations of
+  **SatelliteToolboxBase.jl** v2.1: the compact form shows the type and the epoch, and the
+  rich form shows the constants, the initial mean elements, the secular rates, and the last
+  propagation instant, aligned at the decimal point. The `OrbitPropagator` wrappers print
+  their type and name followed by the rich representation of the wrapped structure, and an
+  uninitialized propagator prints its status instead of undefined values.
 - ![Enhancement][badge-enhancement] Replace **Crayons.jl** with **StyledStrings**, which
   only emits the terminal decorations when the output supports colors.
 - ![Enhancement][badge-enhancement] Share the finite-difference and the ForwardDiff

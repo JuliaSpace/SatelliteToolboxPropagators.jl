@@ -5,10 +5,12 @@
 ############################################################################################
 
 # Implement the `Propagators` API for the J2 orbit propagator.
-Propagators.epoch(orbp::OrbitPropagatorJ2)         = orbp.j2d.orb₀.epoch
-Propagators.last_instant(orbp::OrbitPropagatorJ2)  = orbp.j2d.Δt
-Propagators.mean_elements(orbp::OrbitPropagatorJ2) = orbp.j2d.orbk
-Propagators.name(orbp::OrbitPropagatorJ2)          = "J2 Orbit Propagator"
+Propagators.epoch(orbp::OrbitPropagatorJ2)           = orbp.j2d.orb₀.epoch
+Propagators.is_initialized(orbp::OrbitPropagatorJ2)  = _is_initialized(orbp.j2d)
+Propagators.last_instant(orbp::OrbitPropagatorJ2)    = orbp.j2d.Δt
+Propagators.mean_elements(orbp::OrbitPropagatorJ2)   = orbp.j2d.orbk
+Propagators.name(orbp::OrbitPropagatorJ2)            = "J2 Orbit Propagator"
+Propagators.propagator_data(orbp::OrbitPropagatorJ2) = orbp.j2d
 
 """
     Propagators.fit_mean_elements(

@@ -32,6 +32,10 @@ end
     include("./api.jl")
 end
 
+@testset "Show" verbose = true begin
+    include("./show.jl")
+end
+
 # The quality and performance tools follow the Julia releases closely. Hence, we only run
 # them on the stable releases.
 if isempty(VERSION.prerelease)

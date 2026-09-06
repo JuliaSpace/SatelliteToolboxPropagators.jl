@@ -50,6 +50,8 @@ include("./propagators/j4osc.jl")
 include("./propagators/twobody.jl")
 include("./propagators/fit.jl")
 
+include("./show.jl")
+
 include("./precompile.jl")
 
 end # module SatelliteToolboxPropagators

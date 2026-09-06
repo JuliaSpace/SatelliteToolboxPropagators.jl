@@ -192,6 +192,30 @@ Propagators.name(orbp)
 to return its name. The system uses this information to display the object using the
 function `show`. If the function is not provided, the structure name is used by default.
 
+### Printing (Optional)
+
+The function `show` prints the propagator using the type with its parameters, the name, and
+the epoch. The rich representation, `show(io, MIME("text/plain"), orbp)`, also prints the
+structure returned by the function:
+
+```julia
+Propagators.propagator_data(orbp)
+```
+
+which is expected to have its own rich representation, e.g. built with the printing helpers
+of **SatelliteToolboxBase.jl**. If the function is not provided, it returns `nothing` and
+only the epoch and the last propagation instant are printed.
+
+The function:
+
+```julia
+Propagators.is_initialized(orbp)
+```
+
+should return `false` when the propagator was created without initial elements and cannot
+be propagated yet, so that `show` prints the status instead of accessing undefined fields.
+If the function is not provided, it returns `true`.
+
 ### Fitting Mean Elements (Optional)
 
 The propagator can implement the following functions to fit a set of osculating state

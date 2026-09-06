@@ -5,10 +5,12 @@
 ############################################################################################
 
 # Implement the `Propagators` API for the two-body orbit propagator.
-Propagators.epoch(orbp::OrbitPropagatorTwoBody)         = orbp.tbd.orb₀.epoch
-Propagators.last_instant(orbp::OrbitPropagatorTwoBody)  = orbp.tbd.Δt
-Propagators.mean_elements(orbp::OrbitPropagatorTwoBody) = orbp.tbd.orbk
-Propagators.name(orbp::OrbitPropagatorTwoBody)          = "Two-Body Orbit Propagator"
+Propagators.epoch(orbp::OrbitPropagatorTwoBody)           = orbp.tbd.orb₀.epoch
+Propagators.is_initialized(orbp::OrbitPropagatorTwoBody)  = _is_initialized(orbp.tbd)
+Propagators.last_instant(orbp::OrbitPropagatorTwoBody)    = orbp.tbd.Δt
+Propagators.mean_elements(orbp::OrbitPropagatorTwoBody)   = orbp.tbd.orbk
+Propagators.name(orbp::OrbitPropagatorTwoBody)            = "Two-Body Orbit Propagator"
+Propagators.propagator_data(orbp::OrbitPropagatorTwoBody) = orbp.tbd
 
 """
     Propagators.fit_mean_elements(
