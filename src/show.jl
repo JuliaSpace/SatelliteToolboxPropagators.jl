@@ -48,7 +48,7 @@ function SatelliteToolboxBase.print_tree_body(io::IO, pd::PropagatorData)
 
     fields = SatelliteToolboxBase.PrintedField[
         ("Epoch",            SatelliteToolboxBase.epoch_string(_initial_epoch(pd)), ""),
-        ("Last Propagation", SatelliteToolboxBase.format_value(pd.Δt),             "s"),
+        ("Last Propagation", SatelliteToolboxBase.format_value(pd.Δt),              "s"),
     ]
 
     SatelliteToolboxBase.print_tree_body(io, fields, _sections(pd))
@@ -134,12 +134,12 @@ function _mean_elements_fields(orb₀::KeplerianElements{MeanAnomaly})
     format_value = SatelliteToolboxBase.format_value
 
     return SatelliteToolboxBase.PrintedField[
-        ("Semi-Major Axis",    format_value(orb₀.semi_major_axis / 1000),         "km"),
-        ("Eccentricity",       format_value(orb₀.eccentricity),                   ""),
-        ("Inclination",        format_value(rad2deg(orb₀.inclination)),           "°"),
-        ("RA of Asc. Node",    format_value(rad2deg(orb₀.raan)),                  "°"),
-        ("Arg. of Pericenter", format_value(rad2deg(orb₀.argument_of_periapsis)), "°"),
-        ("Mean Anomaly",       format_value(rad2deg(orb₀.anomaly)),               "°"),
+        ("Semi-Major Axis",   format_value(orb₀.semi_major_axis / 1000),         "km"),
+        ("Eccentricity",      format_value(orb₀.eccentricity),                   ""),
+        ("Inclination",       format_value(rad2deg(orb₀.inclination)),           "°"),
+        ("RA of Asc. Node",   format_value(rad2deg(orb₀.raan)),                  "°"),
+        ("Arg. of Periapsis", format_value(rad2deg(orb₀.argument_of_periapsis)), "°"),
+        ("Mean Anomaly",      format_value(rad2deg(orb₀.anomaly)),               "°"),
     ]
 end
 
@@ -163,9 +163,9 @@ function _secular_rates_fields(n̄::Number, ∂Ω::Number, ∂ω::Number)
     format_value = SatelliteToolboxBase.format_value
 
     return SatelliteToolboxBase.PrintedField[
-        ("Mean Motion",             format_value(86400 * n̄ / 2π),      "rev/day"),
-        ("RAAN Rate",               format_value(86400 * rad2deg(∂Ω)), "°/day"),
-        ("Arg. of Pericenter Rate", format_value(86400 * rad2deg(∂ω)), "°/day"),
+        ("Mean Motion",            format_value(86400 * n̄ / 2π),     "rev/day"),
+        ("RAAN Rate",              format_value(86400 * rad2deg(∂Ω)), "°/day"),
+        ("Arg. of Periapsis Rate", format_value(86400 * rad2deg(∂ω)), "°/day"),
     ]
 end
 

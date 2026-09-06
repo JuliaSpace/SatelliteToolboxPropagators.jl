@@ -38,12 +38,12 @@ const SHOW_TLE = tle"""
 # Bodies of the rich representations after propagating the reference scenario by 100 s.
 const SHOW_MEAN_ELEMENTS = (
     "  ├─ Mean Elements",
-    "  │    Semi-Major Axis    : 8000.0 km",
-    "  │    Eccentricity       : 0.015",
-    "  │    Inclination        : 28.5°",
-    "  │    RA of Asc. Node    : 100.0°",
-    "  │    Arg. of Pericenter : 200.0°",
-    "  │    Mean Anomaly       : 43.79419642°",
+    "  │    Semi-Major Axis   : 8000.0 km",
+    "  │    Eccentricity      : 0.015",
+    "  │    Inclination       : 28.5°",
+    "  │    RA of Asc. Node   : 100.0°",
+    "  │    Arg. of Periapsis : 200.0°",
+    "  │    Mean Anomaly      : 43.79419642°",
 )
 
 const SHOW_J2_BODY = join(
@@ -52,9 +52,9 @@ const SHOW_J2_BODY = join(
         "  Last Propagation : 100.0 s",
         SHOW_MEAN_ELEMENTS...,
         "  ├─ Secular Rates",
-        "  │    Mean Motion             : 12.14123799 rev/day",
-        "  │    RAAN Rate               : -3.966769151 °/day",
-        "  │    Arg. of Pericenter Rate : 6.458281745 °/day",
+        "  │    Mean Motion            : 12.14123799 rev/day",
+        "  │    RAAN Rate              : -3.966769151 °/day",
+        "  │    Arg. of Periapsis Rate : 6.458281745 °/day",
         "  └─ Constants",
         "       R₀ : 6378.137 km",
         "       μm : 0.001239447462 rad/s",
@@ -69,9 +69,9 @@ const SHOW_J4_BODY = join(
         "  Last Propagation : 100.0 s",
         SHOW_MEAN_ELEMENTS...,
         "  ├─ Secular Rates",
-        "  │    Mean Motion             : 12.14124728 rev/day",
-        "  │    RAAN Rate               : -3.971642723 °/day",
-        "  │    Arg. of Pericenter Rate : 6.466058362 °/day",
+        "  │    Mean Motion            : 12.14124728 rev/day",
+        "  │    RAAN Rate              : -3.971642723 °/day",
+        "  │    Arg. of Periapsis Rate : 6.466058362 °/day",
         "  └─ Constants",
         "       R₀ : 6378.137 km",
         "       μm : 0.001239447462 rad/s",
@@ -99,14 +99,14 @@ const SHOW_SGP4_BODY = join(
         "  Epoch            : 2.45391e6 (2006-06-26T18:52:04.080)",
         "  Last Propagation : 1.666666667 min",
         "  ├─ Mean Elements",
-        "  │    Semi-Major Axis    : 7151.615424 km",
-        "  │    Mean Motion        : 14.3547808 rev/day",
-        "  │    Eccentricity       : 8.84e-5",
-        "  │    Inclination        : 98.4283°",
-        "  │    RA of Asc. Node    : 247.6961°",
-        "  │    Arg. of Pericenter : 88.1964°",
-        "  │    Mean Anomaly       : 271.9322°",
-        "  │    B*                 : 3.594e-5 1/er",
+        "  │    Semi-Major Axis   : 7151.615424 km",
+        "  │    Mean Motion       : 14.3547808 rev/day",
+        "  │    Eccentricity      : 8.84e-5",
+        "  │    Inclination       : 98.4283°",
+        "  │    RA of Asc. Node   : 247.6961°",
+        "  │    Arg. of Periapsis : 88.1964°",
+        "  │    Mean Anomaly      : 271.9322°",
+        "  │    B*                : 3.594e-5 1/er",
         "  └─ Constants",
         "       R₀  : 6378.137 km",
         "       XKE : 0.07436685317 er^(3/2)/min",
@@ -156,7 +156,7 @@ const SHOW_SGP4_BODY = join(
 
         result = sprint(show, MIME("text/plain"), pd)
         @test startswith(result, "J4Propagator{Float64, Float32}:\n")
-        @test occursin("  │    Semi-Major Axis    : 8000.0 km\n", result)
+        @test occursin("  │    Semi-Major Axis   : 8000.0 km\n", result)
         @test occursin("  Last Propagation : 0.0 s\n", result)
         @test occursin("       R₀ : 6378.14 km\n", result)
     end
