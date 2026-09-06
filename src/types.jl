@@ -80,8 +80,8 @@ assigned before initializing a structure created with the empty constructor.
 initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"), pd)`
 prints the propagator constants, the initial mean elements, the secular rates, and the last
 propagation instant, one per line with its unit, aligned at the decimal point, with the
-labels in bold if `io` supports color. The structures created with the empty constructor
-hold undefined values until they are initialized.
+labels in bold and the units dimmed if `io` supports color. The structures created with the
+empty constructor hold undefined values until they are initialized.
 """
 mutable struct J2Propagator{Tepoch <: Number, T <: Number}
     orb₀::KeplerianElements{MeanAnomaly, Tepoch, T}
@@ -128,8 +128,8 @@ which must be assigned before initializing a structure created with the empty co
 initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"), pd)`
 prints the propagator constants, the initial mean elements, the secular rates, and the last
 propagation instant, one per line with its unit, aligned at the decimal point, with the
-labels in bold if `io` supports color. An uninitialized structure prints the status
-`not initialized` instead.
+labels in bold and the units dimmed if `io` supports color. An uninitialized structure
+prints the status `not initialized` instead.
 """
 mutable struct J2OsculatingPropagator{Tepoch <: Number, T <: Number}
     j2d::J2Propagator{Tepoch, T}
@@ -210,8 +210,8 @@ assigned before initializing a structure created with the empty constructor.
 initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"), pd)`
 prints the propagator constants, the initial mean elements, the secular rates, and the last
 propagation instant, one per line with its unit, aligned at the decimal point, with the
-labels in bold if `io` supports color. The structures created with the empty constructor
-hold undefined values until they are initialized.
+labels in bold and the units dimmed if `io` supports color. The structures created with the
+empty constructor hold undefined values until they are initialized.
 """
 mutable struct J4Propagator{Tepoch <: Number, T <: Number}
     orb₀::KeplerianElements{MeanAnomaly, Tepoch, T}
@@ -258,8 +258,8 @@ which must be assigned before initializing a structure created with the empty co
 initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"), pd)`
 prints the propagator constants, the initial mean elements, the secular rates, and the last
 propagation instant, one per line with its unit, aligned at the decimal point, with the
-labels in bold if `io` supports color. An uninitialized structure prints the status
-`not initialized` instead.
+labels in bold and the units dimmed if `io` supports color. An uninitialized structure
+prints the status `not initialized` instead.
 """
 mutable struct J4OsculatingPropagator{Tepoch <: Number, T <: Number}
     j4d::J4Propagator{Tepoch, T}
@@ -301,8 +301,8 @@ which must be assigned before initializing a structure created with the empty co
 initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"), pd)`
 prints the propagator constants, the initial mean elements, the mean motion, and the last
 propagation instant, one per line with its unit, aligned at the decimal point, with the
-labels in bold if `io` supports color. The structures created with the empty constructor
-hold undefined values until they are initialized.
+labels in bold and the units dimmed if `io` supports color. The structures created with the
+empty constructor hold undefined values until they are initialized.
 """
 mutable struct TwoBodyPropagator{Tepoch <: Number, T <: Number}
     orb₀::KeplerianElements{MeanAnomaly, Tepoch, T}
