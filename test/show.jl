@@ -35,90 +35,87 @@ const SHOW_TLE = tle"""
     2 28057  98.4283 247.6961 0000884  88.1964 271.9322 14.35478080140550
     """
 
-const SHOW_J2_ROWS = join(
+# Bodies of the rich representations after propagating the reference scenario by 100 s.
+const SHOW_MEAN_ELEMENTS = (
+    "  ├─ Mean Elements",
+    "  │    Semi-Major Axis    : 8000.0 km",
+    "  │    Eccentricity       : 0.015",
+    "  │    Inclination        : 28.5°",
+    "  │    RA of Asc. Node    : 100.0°",
+    "  │    Arg. of Pericenter : 200.0°",
+    "  │    Mean Anomaly       : 43.79419642°",
+)
+
+const SHOW_J2_BODY = join(
     (
-        "                    R₀ : 6378.14       km",
-        "                    μm :    0.00123945 rad / s",
-        "                    J₂ :    0.00108263",
-        "       Semi-major axis : 8000.00000000 km",
-        "          Eccentricity :    0.01500000",
-        "           Inclination :   28.50000000 °",
-        "                  RAAN :  100.00000000 °",
-        "       Arg. of perigee :  200.00000000 °",
-        "          Mean anomaly :   43.79419642 °",
-        "           Mean motion :   12.14123799 rev / day",
-        "             RAAN rate :   -3.96676915 ° / day",
-        "  Arg. of perigee rate :    6.45828175 ° / day",
-        "      Last propagation :  100.0        s",
+        "  Epoch            : 2.45995e6 (2023-01-01T00:00:00)",
+        "  Last Propagation : 100.0 s",
+        SHOW_MEAN_ELEMENTS...,
+        "  ├─ Secular Rates",
+        "  │    Mean Motion             : 12.14123799 rev/day",
+        "  │    RAAN Rate               : -3.966769151 °/day",
+        "  │    Arg. of Pericenter Rate : 6.458281745 °/day",
+        "  └─ Constants",
+        "       R₀ : 6378.137 km",
+        "       μm : 0.001239447462 rad/s",
+        "       J₂ : 0.001082626174",
     ),
     '\n',
 )
 
-const SHOW_J4_ROWS = join(
+const SHOW_J4_BODY = join(
     (
-        "                    R₀ : 6378.14       km",
-        "                    μm :    0.00123945 rad / s",
-        "                    J₂ :    0.00108263",
-        "                    J₄ :   -1.6199e-6",
-        "       Semi-major axis : 8000.00000000 km",
-        "          Eccentricity :    0.01500000",
-        "           Inclination :   28.50000000 °",
-        "                  RAAN :  100.00000000 °",
-        "       Arg. of perigee :  200.00000000 °",
-        "          Mean anomaly :   43.79419642 °",
-        "           Mean motion :   12.14124728 rev / day",
-        "             RAAN rate :   -3.97164272 ° / day",
-        "  Arg. of perigee rate :    6.46605836 ° / day",
-        "      Last propagation :  100.0        s",
+        "  Epoch            : 2.45995e6 (2023-01-01T00:00:00)",
+        "  Last Propagation : 100.0 s",
+        SHOW_MEAN_ELEMENTS...,
+        "  ├─ Secular Rates",
+        "  │    Mean Motion             : 12.14124728 rev/day",
+        "  │    RAAN Rate               : -3.971642723 °/day",
+        "  │    Arg. of Pericenter Rate : 6.466058362 °/day",
+        "  └─ Constants",
+        "       R₀ : 6378.137 km",
+        "       μm : 0.001239447462 rad/s",
+        "       J₂ : 0.001082626174",
+        "       J₄ : -1.6198976e-6",
     ),
     '\n',
 )
 
-const SHOW_TWOBODY_ROWS = join(
+const SHOW_TWOBODY_BODY = join(
     (
-        "                 μ :    3.986e14   m³ / s²",
-        "   Semi-major axis : 8000.00000000 km",
-        "      Eccentricity :    0.01500000",
-        "       Inclination :   28.50000000 °",
-        "              RAAN :  100.00000000 °",
-        "   Arg. of perigee :  200.00000000 °",
-        "      Mean anomaly :   43.79419642 °",
-        "       Mean motion :   12.13298837 rev / day",
-        "  Last propagation :  100.0        s",
+        "  Epoch            : 2.45995e6 (2023-01-01T00:00:00)",
+        "  Last Propagation : 100.0 s",
+        SHOW_MEAN_ELEMENTS...,
+        "  ├─ Secular Rates",
+        "  │    Mean Motion : 12.13298837 rev/day",
+        "  └─ Constants",
+        "       μ : 3.986004415e14 m³/s²",
     ),
     '\n',
 )
 
-const SHOW_SGP4_ROWS = join(
+const SHOW_SGP4_BODY = join(
     (
-        "             Epoch :    2.45391e6 (2006-06-26T18:52:04.080)",
-        "                R₀ : 6378.14       km",
-        "               XKE :    0.0743669  er^(3/2) / min",
-        "                J₂ :    0.00108263",
-        "                J₃ :   -2.53215e-6",
-        "                J₄ :   -1.61099e-6",
-        "   Semi-major axis : 7151.61542423 km",
-        "      Eccentricity :    0.00008840",
-        "       Inclination :   98.42830000 °",
-        "              RAAN :  247.69610000 °",
-        "   Arg. of perigee :   88.19640000 °",
-        "      Mean anomaly :  271.93220000 °",
-        "       Mean motion :   14.35478080 rev / day",
-        "                B* :    3.594e-5   1 / er",
-        "  Last propagation :    1.66667    min",
+        "  Epoch            : 2.45391e6 (2006-06-26T18:52:04.080)",
+        "  Last Propagation : 1.666666667 min",
+        "  ├─ Mean Elements",
+        "  │    Semi-Major Axis    : 7151.615424 km",
+        "  │    Mean Motion        : 14.3547808 rev/day",
+        "  │    Eccentricity       : 8.84e-5",
+        "  │    Inclination        : 98.4283°",
+        "  │    RA of Asc. Node    : 247.6961°",
+        "  │    Arg. of Pericenter : 88.1964°",
+        "  │    Mean Anomaly       : 271.9322°",
+        "  │    B*                 : 3.594e-5 1/er",
+        "  └─ Constants",
+        "       R₀  : 6378.137 km",
+        "       XKE : 0.07436685317 er^(3/2)/min",
+        "       J₂  : 0.001082629989",
+        "       J₃  : -2.53215306e-6",
+        "       J₄  : -1.61098761e-6",
     ),
     '\n',
 )
-
-# The Keplerian propagators print the epoch with the same width of the other rows.
-const SHOW_EPOCH_ROW = "Epoch :    2.45995e6 (2023-01-01T00:00:00)"
-
-"""
-    indent(str::String) -> String
-
-Indent every line of `str` by two spaces, as the API wrappers print the wrapped structure.
-"""
-indent(str::String) = join("  " .* split(str, '\n'), '\n')
 
 ############################################################################################
 #                                   Propagator Structures                                  #
@@ -126,14 +123,14 @@ indent(str::String) = join("  " .* split(str, '\n'), '\n')
 
 @testset "Propagator Structures" verbose = true begin
     scenarios = (
-        (:J2,      "J2Propagator{Float64, Float64}",           SHOW_J2_ROWS),
-        (:J2osc,   "J2OsculatingPropagator{Float64, Float64}", SHOW_J2_ROWS),
-        (:J4,      "J4Propagator{Float64, Float64}",           SHOW_J4_ROWS),
-        (:J4osc,   "J4OsculatingPropagator{Float64, Float64}", SHOW_J4_ROWS),
-        (:TwoBody, "TwoBodyPropagator{Float64, Float64}",      SHOW_TWOBODY_ROWS),
+        (:J2,      "J2Propagator{Float64, Float64}",           SHOW_J2_BODY),
+        (:J2osc,   "J2OsculatingPropagator{Float64, Float64}", SHOW_J2_BODY),
+        (:J4,      "J4Propagator{Float64, Float64}",           SHOW_J4_BODY),
+        (:J4osc,   "J4OsculatingPropagator{Float64, Float64}", SHOW_J4_BODY),
+        (:TwoBody, "TwoBodyPropagator{Float64, Float64}",      SHOW_TWOBODY_BODY),
     )
 
-    for (tag, name, rows) in scenarios
+    for (tag, name, body) in scenarios
         @testset "$name" begin
             orbp = Propagators.init(Val(tag), SHOW_ORB)
             Propagators.propagate!(orbp, 100)
@@ -142,12 +139,11 @@ indent(str::String) = join("  " .* split(str, '\n'), '\n')
             expected = "$name: Epoch = 2.45995e6 (2023-01-01T00:00:00)"
             @test sprint(show, pd) == expected
 
-            # The epoch label is right-aligned with the widest label of the rows.
-            label_width = maximum(length, strip.(first.(split.(split(rows, '\n'), " : "))))
-            epoch_row   = lpad("", label_width - length("Epoch") + 2) * SHOW_EPOCH_ROW
-
-            expected = "$name:\n" * epoch_row * "\n" * rows
+            expected = "$name:\n" * body
             @test sprint(show, MIME("text/plain"), pd) == expected
+
+            # The body can be printed under another header.
+            @test sprint(SatelliteToolboxBase.print_tree_body, pd) == body
         end
     end
 
@@ -160,8 +156,9 @@ indent(str::String) = join("  " .* split(str, '\n'), '\n')
 
         result = sprint(show, MIME("text/plain"), pd)
         @test startswith(result, "J4Propagator{Float64, Float32}:\n")
-        @test occursin("Semi-major axis : 8000.00000000 km", result)
-        @test occursin("Last propagation :    0.0        s", result)
+        @test occursin("  │    Semi-Major Axis    : 8000.0 km\n", result)
+        @test occursin("  Last Propagation : 0.0 s\n", result)
+        @test occursin("       R₀ : 6378.14 km\n", result)
     end
 
     @testset "Uninitialized" begin
@@ -184,8 +181,8 @@ indent(str::String) = join("  " .* split(str, '\n'), '\n')
         colored = sprint(show, MIME("text/plain"), pd; context = :color => true)
 
         @test !occursin("\e[", plain)
-        @test occursin("\e[1m", colored)
-        @test occursin("\e[1m                 Epoch : \e[22m", colored)
+        @test startswith(colored, "\e[1mJ2Propagator{Float64, Float64}:\e[22m\n")
+        @test occursin("\e[90mkm\e[39m", colored)
         @test replace(colored, r"\e\[[0-9;]*m" => "") == plain
     end
 end
@@ -196,44 +193,47 @@ end
 
 @testset "Orbit Propagators" verbose = true begin
     scenarios = (
-        (:J2,      "OrbitPropagatorJ2{Float64, Float64} (J2 Orbit Propagator)"),
-        (:J2osc,   "OrbitPropagatorJ2Osculating{Float64, Float64} (J2 Osculating Orbit Propagator)"),
-        (:J4,      "OrbitPropagatorJ4{Float64, Float64} (J4 Orbit Propagator)"),
-        (:J4osc,   "OrbitPropagatorJ4Osculating{Float64, Float64} (J4 Osculating Orbit Propagator)"),
-        (:TwoBody, "OrbitPropagatorTwoBody{Float64, Float64} (Two-Body Orbit Propagator)"),
+        (
+            :J2,
+            "OrbitPropagatorJ2{Float64, Float64} (J2 Orbit Propagator)",
+            SHOW_J2_BODY,
+        ),
+        (
+            :J2osc,
+            "OrbitPropagatorJ2Osculating{Float64, Float64} (J2 Osculating Orbit Propagator)",
+            SHOW_J2_BODY,
+        ),
+        (
+            :J4,
+            "OrbitPropagatorJ4{Float64, Float64} (J4 Orbit Propagator)",
+            SHOW_J4_BODY,
+        ),
+        (
+            :J4osc,
+            "OrbitPropagatorJ4Osculating{Float64, Float64} (J4 Osculating Orbit Propagator)",
+            SHOW_J4_BODY,
+        ),
+        (
+            :TwoBody,
+            "OrbitPropagatorTwoBody{Float64, Float64} (Two-Body Orbit Propagator)",
+            SHOW_TWOBODY_BODY,
+        ),
     )
 
-    for (tag, header) in scenarios
+    for (tag, header, body) in scenarios
         @testset "$header" begin
             orbp = Propagators.init(Val(tag), SHOW_ORB)
             Propagators.propagate!(orbp, 100)
-            pd = Propagators.propagator_data(orbp)
 
             @test Propagators.is_initialized(orbp)
 
             expected = "$header: Epoch = 2.45995e6 (2023-01-01T00:00:00)"
             @test sprint(show, orbp) == expected
 
-            # The wrapper prints its header followed by the rich form of the structure.
-            expected = "$header:\n" * indent(sprint(show, MIME("text/plain"), pd))
+            # The wrapper prints its header followed by the body of the structure.
+            expected = "$header:\n" * body
             @test sprint(show, MIME("text/plain"), orbp) == expected
         end
-    end
-
-    @testset "OrbitPropagatorJ2{Float64, Float64} (Exact Output)" begin
-        orbp = Propagators.init(Val(:J2), SHOW_ORB)
-        Propagators.propagate!(orbp, 100)
-
-        expected = join(
-            (
-                "OrbitPropagatorJ2{Float64, Float64} (J2 Orbit Propagator):",
-                "  J2Propagator{Float64, Float64}:",
-                "                   Epoch :    2.45995e6 (2023-01-01T00:00:00)",
-                indent(SHOW_J2_ROWS),
-            ),
-            '\n',
-        )
-        @test sprint(show, MIME("text/plain"), orbp) == expected
     end
 
     @testset "OrbitPropagatorSgp4{Float64, Float64}" begin
@@ -247,14 +247,7 @@ end
         expected = "$header: Epoch = 2.45391e6 (2006-06-26T18:52:04.080)"
         @test sprint(show, orbp) == expected
 
-        expected = join(
-            (
-                "$header:",
-                "  Sgp4Propagator{Float64, Float64} (SGP4):",
-                indent(SHOW_SGP4_ROWS),
-            ),
-            '\n',
-        )
+        expected = "$header:\n" * SHOW_SGP4_BODY
         @test sprint(show, MIME("text/plain"), orbp) == expected
     end
 
@@ -263,25 +256,22 @@ end
             (
                 OrbitPropagatorJ2Osculating(J2OsculatingPropagator{Float64, Float64}()),
                 "OrbitPropagatorJ2Osculating{Float64, Float64} (J2 Osculating Orbit Propagator)",
-                "J2OsculatingPropagator{Float64, Float64}",
             ),
             (
                 OrbitPropagatorJ4Osculating(J4OsculatingPropagator{Float64, Float64}()),
                 "OrbitPropagatorJ4Osculating{Float64, Float64} (J4 Osculating Orbit Propagator)",
-                "J4OsculatingPropagator{Float64, Float64}",
             ),
             (
                 OrbitPropagatorSgp4(Sgp4Propagator{Float64}(SGP4C_WGS84)),
                 "OrbitPropagatorSgp4{Float64, Float64} (SGP4 Orbit Propagator)",
-                "Sgp4Propagator{Float64, Float64}",
             ),
         )
 
-        for (orbp, header, name) in scenarios
+        for (orbp, header) in scenarios
             @test !Propagators.is_initialized(orbp)
             @test sprint(show, orbp) == "$header (not initialized)"
 
-            expected = "$header:\n  $name:\n    Status : not initialized"
+            expected = "$header:\n  Status : not initialized"
             @test sprint(show, MIME("text/plain"), orbp) == expected
         end
     end
@@ -299,9 +289,9 @@ end
 
         expected = join(
             (
-                "DummyShowPropagator{Float64, Float64}:",
-                "             Epoch :  2.45995e6 (2023-01-01T00:00:00)",
-                "  Last propagation : 10.0 s",
+                "$header:",
+                "  Epoch            : 2.45995e6 (2023-01-01T00:00:00)",
+                "  Last Propagation : 10.0 s",
             ),
             '\n',
         )

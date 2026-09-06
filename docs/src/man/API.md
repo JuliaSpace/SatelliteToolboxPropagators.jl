@@ -195,16 +195,18 @@ function `show`. If the function is not provided, the structure name is used by 
 ### Printing (Optional)
 
 The function `show` prints the propagator using the type with its parameters, the name, and
-the epoch. The rich representation, `show(io, MIME("text/plain"), orbp)`, also prints the
-structure returned by the function:
+the epoch. The rich representation, `show(io, MIME("text/plain"), orbp)`, prints the same
+header followed by the body of the rich representation of the structure returned by the
+function:
 
 ```julia
 Propagators.propagator_data(orbp)
 ```
 
-which is expected to have its own rich representation, e.g. built with the printing helpers
-of **SatelliteToolboxBase.jl**. If the function is not provided, it returns `nothing` and
-only the epoch and the last propagation instant are printed.
+which is printed with `SatelliteToolboxBase.print_tree_body`. Hence, that structure must
+overload this function, building its fields and sections with the printing helpers of
+**SatelliteToolboxBase.jl**. If `Propagators.propagator_data` is not provided, it returns
+`nothing` and only the epoch and the last propagation instant are printed.
 
 The function:
 
@@ -213,8 +215,8 @@ Propagators.is_initialized(orbp)
 ```
 
 should return `false` when the propagator was created without initial elements and cannot
-be propagated yet, so that `show` prints the status instead of accessing undefined fields.
-If the function is not provided, it returns `true`.
+be propagated yet, so that the compact representation prints the status instead of
+accessing undefined fields. If the function is not provided, it returns `true`.
 
 ### Fitting Mean Elements (Optional)
 

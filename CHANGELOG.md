@@ -44,11 +44,11 @@ Version 2.0.0
   initial elements has been initialized.
 - ![Enhancement][badge-enhancement] Print the propagator structures `J2Propagator`,
   `J2OsculatingPropagator`, `J4Propagator`, `J4OsculatingPropagator`, and
-  `TwoBodyPropagator` with the layout of the orbit representations of
-  **SatelliteToolboxBase.jl** v2.1: the compact form shows the type and the epoch, and the
-  rich form shows the constants, the initial mean elements, the secular rates, and the last
-  propagation instant, aligned at the decimal point. The `OrbitPropagator` wrappers print
-  their type and name followed by the rich representation of the wrapped structure, and an
+  `TwoBodyPropagator` with the tree layout of **SatelliteToolboxBase.jl** v2.1, which
+  follows the orbit data messages: the compact form shows the type and the epoch, and the
+  rich form shows the epoch and the last propagation instant followed by the sections with
+  the initial mean elements, the secular rates, and the constants. The `OrbitPropagator`
+  wrappers print their type and name followed by the body of the wrapped structure, and an
   uninitialized propagator prints its status instead of undefined values.
 - ![Enhancement][badge-enhancement] Replace **Crayons.jl** with **StyledStrings**, which
   only emits the terminal decorations when the output supports colors.

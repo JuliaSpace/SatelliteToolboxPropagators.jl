@@ -380,13 +380,13 @@ PROGRESS:          4               4.3413           0.00540076              4341
 
 julia> orb
 KeplerianElements{MeanAnomaly, Float64, Float64}:
-              Epoch :    2.46003e6 (2023-03-24T18:08:40.388)
-    Semi-major axis : 7131.63       km
-       Eccentricity :    0.00114299
-        Inclination :   98.4366     °
-               RAAN :  162.177      °
-  Arg. of Periapsis :  101.286      °
-       Mean Anomaly :  258.817      °
+  Epoch              : 2.46003e6 (2023-03-24T18:08:40.388)
+  Semi-Major Axis    : 7131.634013 km
+  Eccentricity       : 0.001142993013
+  Inclination        : 98.43659393°
+  RA of Asc. Node    : 162.1773906°
+  Arg. of Pericenter : 101.2857729°
+  Mean Anomaly       : 258.8172342°
 ```
 """
 function fit_j2_mean_elements(
@@ -510,13 +510,13 @@ PROGRESS:          4               4.3413           0.00540076              4341
 
 julia> orb
 KeplerianElements{MeanAnomaly, Float64, Float64}:
-              Epoch :    2.46003e6 (2023-03-24T18:08:40.388)
-    Semi-major axis : 7131.63       km
-       Eccentricity :    0.00114299
-        Inclination :   98.4366     °
-               RAAN :  162.177      °
-  Arg. of Periapsis :  101.286      °
-       Mean Anomaly :  258.817      °
+  Epoch              : 2.46003e6 (2023-03-24T18:08:40.388)
+  Semi-Major Axis    : 7131.634013 km
+  Eccentricity       : 0.001142993013
+  Inclination        : 98.43659393°
+  RA of Asc. Node    : 162.1773906°
+  Arg. of Pericenter : 101.2857729°
+  Mean Anomaly       : 258.8172342°
 ```
 """
 function fit_j2_mean_elements!(
@@ -557,23 +557,23 @@ julia> orb = KeplerianElements(
            45     |> deg2rad
        )
 KeplerianElements{TrueAnomaly, Float64, Float64}:
-              Epoch :    2.45995e6 (2023-01-01T00:00:00)
-    Semi-major axis : 7190.98     km
-       Eccentricity :    0.001111
-        Inclination :   98.405    °
-               RAAN :   90.0      °
-  Arg. of Periapsis :  200.0      °
-       True Anomaly :   45.0      °
+  Epoch              : 2.45995e6 (2023-01-01T00:00:00)
+  Semi-Major Axis    : 7190.982 km
+  Eccentricity       : 0.001111
+  Inclination        : 98.405°
+  RA of Asc. Node    : 90.0°
+  Arg. of Pericenter : 200.0°
+  True Anomaly       : 45.0°
 
 julia> update_j2_mean_elements_epoch(orb, DateTime("2023-01-02"))
 KeplerianElements{MeanAnomaly, Float64, Float64}:
-              Epoch :    2.45995e6 (2023-01-02T00:00:00)
-    Semi-major axis : 7190.98     km
-       Eccentricity :    0.001111
-        Inclination :   98.405    °
-               RAAN :   90.9565   °
-  Arg. of Periapsis :  197.078    °
-       Mean Anomaly :  127.189    °
+  Epoch              : 2.45995e6 (2023-01-02T00:00:00)
+  Semi-Major Axis    : 7190.982 km
+  Eccentricity       : 0.001111
+  Inclination        : 98.405°
+  RA of Asc. Node    : 90.95653689°
+  Arg. of Pericenter : 197.0775252°
+  Mean Anomaly       : 127.189209°
 ```
 """
 function update_j2_mean_elements_epoch(
@@ -616,13 +616,13 @@ julia> orb = KeplerianElements(
            45     |> deg2rad
        )
 KeplerianElements{TrueAnomaly, Float64, Float64}:
-              Epoch :    2.45995e6 (2023-01-01T00:00:00)
-    Semi-major axis : 7190.98     km
-       Eccentricity :    0.001111
-        Inclination :   98.405    °
-               RAAN :   90.0      °
-  Arg. of Periapsis :  200.0      °
-       True Anomaly :   45.0      °
+  Epoch              : 2.45995e6 (2023-01-01T00:00:00)
+  Semi-Major Axis    : 7190.982 km
+  Eccentricity       : 0.001111
+  Inclination        : 98.405°
+  RA of Asc. Node    : 90.0°
+  Arg. of Pericenter : 200.0°
+  True Anomaly       : 45.0°
 
 # Allocate a new J2 orbit propagator using the created Keplerian elements. Notice that any
 # set of Keplerian elements can be used here.
@@ -630,13 +630,13 @@ julia> j2d = j2_init(orb);
 
 julia> update_j2_mean_elements_epoch!(j2d, orb, DateTime("2023-01-02"))
 KeplerianElements{MeanAnomaly, Float64, Float64}:
-              Epoch :    2.45995e6 (2023-01-02T00:00:00)
-    Semi-major axis : 7190.98     km
-       Eccentricity :    0.001111
-        Inclination :   98.405    °
-               RAAN :   90.9565   °
-  Arg. of Periapsis :  197.078    °
-       Mean Anomaly :  127.189    °
+  Epoch              : 2.45995e6 (2023-01-02T00:00:00)
+  Semi-Major Axis    : 7190.982 km
+  Eccentricity       : 0.001111
+  Inclination        : 98.405°
+  RA of Asc. Node    : 90.95653689°
+  Arg. of Pericenter : 197.0775252°
+  Mean Anomaly       : 127.189209°
 ```
 """
 function update_j2_mean_elements_epoch!(

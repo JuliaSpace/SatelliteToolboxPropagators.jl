@@ -742,42 +742,32 @@ function show(io::IO, orbp::OrbitPropagator)
     return nothing
 end
 
-function show(io::IO, mime::MIME"text/plain", orbp::OrbitPropagator)
+function show(io::IO, ::MIME"text/plain", orbp::OrbitPropagator)
     header = _header(orbp)
     data   = propagator_data(orbp)
 
-    # If the propagator does not provide its data structure, we can only print the
-    # information obtained through the API.
-    if isnothing(data)
-        if !is_initialized(orbp)
-            println(io, header, ":")
-            SatelliteToolboxBase.print_field(io, "  Status : ", "not initialized")
-            return nothing
-        end
-
-        SatelliteToolboxBase.print_elements(
-            io,
-            header,
-            epoch(orbp),
-            ("Last propagation",),
-            (SatelliteToolboxBase.compact_string(io, last_instant(orbp)),),
-            ("s",),
-        )
-
+    # If the propagator provides its data structure, we print its body under the header of
+    # the wrapper.
+    if !isnothing(data)
+        SatelliteToolboxBase.print_tree(io, header, data)
         return nothing
     end
 
-    # Otherwise, we print the rich representation of the data structure indented by two
-    # spaces after the header. The context of `io` is forwarded so that the colors are
-    # rendered only if `io` supports them.
-    println(io, header, ":")
+    # Otherwise, we can only print the information obtained through the API.
+    if is_initialized(orbp)
+        epoch_str = SatelliteToolboxBase.epoch_string(epoch(orbp))
+        Δt_str    = SatelliteToolboxBase.format_value(last_instant(orbp))
 
-    lines = split(sprint(show, mime, data; context = io), '\n')
-
-    for k in eachindex(lines)
-        print(io, "  ", lines[k])
-        k != lastindex(lines) && println(io)
+        fields = SatelliteToolboxBase.PrintedField[
+            ("Epoch",            epoch_str, ""),
+            ("Last Propagation", Δt_str,    "s"),
+        ]
+    else
+        fields = SatelliteToolboxBase.PrintedField[("Status", "not initialized", "")]
     end
+
+    sections = SatelliteToolboxBase.PrintedSection[]
+    SatelliteToolboxBase.print_tree(io, header, fields, sections)
 
     return nothing
 end
