@@ -37,69 +37,69 @@ const SHOW_TLE = tle"""
 
 const SHOW_J2_ROWS = join(
     (
-        "                   R₀ : 6378.14       km",
-        "                   μm :    0.00123945 rad / s",
-        "                   J₂ :    0.00108263",
-        "      Semi-major axis : 8000.00000000 km",
-        "         Eccentricity :    0.01500000",
-        "          Inclination :   28.50000000 °",
-        "                 RAAN :  100.00000000 °",
-        "      Arg. of perigee :  200.00000000 °",
-        "         Mean anomaly :   43.79419642 °",
-        "          Mean motion :   12.14123799 rev / day",
-        "            RAAN rate :   -3.96676915 ° / day",
-        " Arg. of perigee rate :    6.45828175 ° / day",
-        "     Last propagation :  100.0        s",
+        "                    R₀ : 6378.14       km",
+        "                    μm :    0.00123945 rad / s",
+        "                    J₂ :    0.00108263",
+        "       Semi-major axis : 8000.00000000 km",
+        "          Eccentricity :    0.01500000",
+        "           Inclination :   28.50000000 °",
+        "                  RAAN :  100.00000000 °",
+        "       Arg. of perigee :  200.00000000 °",
+        "          Mean anomaly :   43.79419642 °",
+        "           Mean motion :   12.14123799 rev / day",
+        "             RAAN rate :   -3.96676915 ° / day",
+        "  Arg. of perigee rate :    6.45828175 ° / day",
+        "      Last propagation :  100.0        s",
     ),
     '\n',
 )
 
 const SHOW_J4_ROWS = join(
     (
-        "                   R₀ : 6378.14       km",
-        "                   μm :    0.00123945 rad / s",
-        "                   J₂ :    0.00108263",
-        "                   J₄ :   -1.6199e-6",
-        "      Semi-major axis : 8000.00000000 km",
-        "         Eccentricity :    0.01500000",
-        "          Inclination :   28.50000000 °",
-        "                 RAAN :  100.00000000 °",
-        "      Arg. of perigee :  200.00000000 °",
-        "         Mean anomaly :   43.79419642 °",
-        "          Mean motion :   12.14124728 rev / day",
-        "            RAAN rate :   -3.97164272 ° / day",
-        " Arg. of perigee rate :    6.46605836 ° / day",
-        "     Last propagation :  100.0        s",
+        "                    R₀ : 6378.14       km",
+        "                    μm :    0.00123945 rad / s",
+        "                    J₂ :    0.00108263",
+        "                    J₄ :   -1.6199e-6",
+        "       Semi-major axis : 8000.00000000 km",
+        "          Eccentricity :    0.01500000",
+        "           Inclination :   28.50000000 °",
+        "                  RAAN :  100.00000000 °",
+        "       Arg. of perigee :  200.00000000 °",
+        "          Mean anomaly :   43.79419642 °",
+        "           Mean motion :   12.14124728 rev / day",
+        "             RAAN rate :   -3.97164272 ° / day",
+        "  Arg. of perigee rate :    6.46605836 ° / day",
+        "      Last propagation :  100.0        s",
     ),
     '\n',
 )
 
 const SHOW_TWOBODY_ROWS = join(
     (
-        "                μ :    3.986e14   m³ / s²",
-        "  Semi-major axis : 8000.00000000 km",
-        "     Eccentricity :    0.01500000",
-        "      Inclination :   28.50000000 °",
-        "             RAAN :  100.00000000 °",
-        "  Arg. of perigee :  200.00000000 °",
-        "     Mean anomaly :   43.79419642 °",
-        "      Mean motion :   12.13298837 rev / day",
-        " Last propagation :  100.0        s",
+        "                 μ :    3.986e14   m³ / s²",
+        "   Semi-major axis : 8000.00000000 km",
+        "      Eccentricity :    0.01500000",
+        "       Inclination :   28.50000000 °",
+        "              RAAN :  100.00000000 °",
+        "   Arg. of perigee :  200.00000000 °",
+        "      Mean anomaly :   43.79419642 °",
+        "       Mean motion :   12.13298837 rev / day",
+        "  Last propagation :  100.0        s",
     ),
     '\n',
 )
 
 const SHOW_SGP4_ROWS = join(
     (
-        "            Epoch :   2.45391e6 (2006-06-26T18:52:04.080)",
-        "      Mean motion :  14.35478080 rev / day",
-        "     Eccentricity :   0.00008840",
-        "      Inclination :  98.42830000 °",
-        "             RAAN : 247.69610000 °",
-        "  Arg. of perigee :  88.19640000 °",
-        "     Mean anomaly : 271.93220000 °",
-        "               B* :   3.594e-5   1 / er",
-        " Last propagation :   1.66667    min",
+        "             Epoch :   2.45391e6 (2006-06-26T18:52:04.080)",
+        "       Mean motion :  14.35478080 rev / day",
+        "      Eccentricity :   0.00008840",
+        "       Inclination :  98.42830000 °",
+        "              RAAN : 247.69610000 °",
+        "   Arg. of perigee :  88.19640000 °",
+        "      Mean anomaly : 271.93220000 °",
+        "                B* :   3.594e-5   1 / er",
+        "  Last propagation :   1.66667    min",
     ),
     '\n',
 )
@@ -138,7 +138,7 @@ indent(str::String) = join("  " .* split(str, '\n'), '\n')
 
             # The epoch label is right-aligned with the widest label of the rows.
             label_width = maximum(length, strip.(first.(split.(split(rows, '\n'), " : "))))
-            epoch_row   = lpad("", label_width - length("Epoch") + 1) * SHOW_EPOCH_ROW
+            epoch_row   = lpad("", label_width - length("Epoch") + 2) * SHOW_EPOCH_ROW
 
             expected = "$name:\n" * epoch_row * "\n" * rows
             @test sprint(show, MIME("text/plain"), pd) == expected
@@ -165,7 +165,7 @@ indent(str::String) = join("  " .* split(str, '\n'), '\n')
         )
             name = string(nameof(typeof(pd)), "{", join(typeof(pd).parameters, ", "), "}")
             @test sprint(show, pd) == "$name (not initialized)"
-            expected = "$name:\n Status : not initialized"
+            expected = "$name:\n  Status : not initialized"
             @test sprint(show, MIME("text/plain"), pd) == expected
         end
     end
@@ -179,7 +179,7 @@ indent(str::String) = join("  " .* split(str, '\n'), '\n')
 
         @test !occursin("\e[", plain)
         @test occursin("\e[1m", colored)
-        @test occursin("\e[1m                Epoch : \e[22m", colored)
+        @test occursin("\e[1m                 Epoch : \e[22m", colored)
         @test replace(colored, r"\e\[[0-9;]*m" => "") == plain
     end
 end
@@ -222,7 +222,7 @@ end
             (
                 "OrbitPropagatorJ2{Float64, Float64} (J2 Orbit Propagator):",
                 "  J2Propagator{Float64, Float64}:",
-                "                  Epoch :    2.45995e6 (2023-01-01T00:00:00)",
+                "                   Epoch :    2.45995e6 (2023-01-01T00:00:00)",
                 indent(SHOW_J2_ROWS),
             ),
             '\n',
@@ -275,7 +275,7 @@ end
             @test !Propagators.is_initialized(orbp)
             @test sprint(show, orbp) == "$header (not initialized)"
 
-            expected = "$header:\n  $name:\n   Status : not initialized"
+            expected = "$header:\n  $name:\n    Status : not initialized"
             @test sprint(show, MIME("text/plain"), orbp) == expected
         end
     end
@@ -294,8 +294,8 @@ end
         expected = join(
             (
                 "DummyShowPropagator{Float64, Float64}:",
-                "            Epoch :  2.45995e6 (2023-01-01T00:00:00)",
-                " Last propagation : 10.0 s",
+                "             Epoch :  2.45995e6 (2023-01-01T00:00:00)",
+                "  Last propagation : 10.0 s",
             ),
             '\n',
         )

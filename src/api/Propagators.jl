@@ -751,7 +751,7 @@ function show(io::IO, mime::MIME"text/plain", orbp::OrbitPropagator)
     if isnothing(data)
         if !is_initialized(orbp)
             println(io, header, ":")
-            SatelliteToolboxBase.print_field(io, " Status : ", "not initialized")
+            SatelliteToolboxBase.print_field(io, "  Status : ", "not initialized")
             return nothing
         end
 

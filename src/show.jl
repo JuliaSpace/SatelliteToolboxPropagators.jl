@@ -35,7 +35,7 @@ function Base.show(io::IO, ::MIME"text/plain", pd::PropagatorData)
 
     if !_is_initialized(pd)
         println(io, name, ":")
-        SatelliteToolboxBase.print_field(io, " Status : ", "not initialized")
+        SatelliteToolboxBase.print_field(io, "  Status : ", "not initialized")
         return nothing
     end
 
