@@ -213,20 +213,6 @@ function j4_init!(
     k₂₂ = n₀ * J₂² / p₀⁴
     k₄  = n₀ * J₄ / p₀⁴
 
-    # TODO: Check J₄ perturbation term sign in RAAN time-derivative.
-    #
-    # We needed to flip the J₄ perturbation term sign from the value in [1] and [2] to
-    # obtain values that match those of STK. However, this modification does not seem right
-    # if we observe the RAAN secular perturbation term in SGP4 orbit propagator [3, p. 16].
-    # Reference [4] also provides the equation with the sign as in [2]. Furthermore, the
-    # current version, which does not match STK's, provides lower errors when comparing to a
-    # numerical propagator.
-    #
-    # For more information, see:
-    #
-    #   https://github.com/JuliaSpace/SatelliteToolbox.jl/issues/91
-    #
-
     ∂Ω =
         -(3//2) * k̄₂ * cos_i₀ +
         (3//32) * k̄₂₂ * cos_i₀ * (-36 - 4e₀² + 48β + (40 - 5e₀² - 72β) * sin_i₀²) +
