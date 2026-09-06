@@ -32,22 +32,21 @@ end
     include("./api.jl")
 end
 
+# The quality and performance tools follow the Julia releases closely. Hence, we only run
+# them on the stable releases.
 if isempty(VERSION.prerelease)
-    using Pkg
-
-    Pkg.add("JET")
-    Pkg.add("AllocCheck")
-    Pkg.add("Aqua")
-
-    using JET
-    using AllocCheck
     using Aqua
-
+    using AllocCheck
     using ForwardDiff
+    using JET
+
+    @testset "Quality Tests" verbose = true begin
+        include("./quality.jl")
+    end
 
     @testset "Performance Tests" verbose = true begin
         include("./performance.jl")
     end
 else
-    @warn "Performance checks and extensions not guaranteed to work on julia-nightly, skipping tests"
+    @warn "The quality and performance tests are skipped on the Julia prereleases."
 end
