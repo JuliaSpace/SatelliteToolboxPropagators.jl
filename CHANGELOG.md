@@ -38,6 +38,9 @@ Version 2.0.0
   `_mean_elements_jacobian`.
 - ![Info][badge-info] The propagator design description moved from `src/API.md` to the
   documentation, which now builds it as the page "API".
+- ![Info][badge-info] Declare Aqua, JET, and AllocCheck as test dependencies instead of
+  adding them to the test environment at run time. The quality checks moved to
+  `test/quality.jl` and run on every stable Julia release.
 
 Version 1.2.0
 -------------
