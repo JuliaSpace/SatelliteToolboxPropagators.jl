@@ -2,8 +2,8 @@ name = "SatelliteToolboxPropagators"
 uuid = "c2b69894-ea78-4e2b-9ba6-cedbbc3d14d7"
 license = "MIT"
 desc = "Orbit propagators for the SatelliteToolbox.jl ecosystem."
-authors = ["Ronan Arraes Jardim Chagas <ronisbr@gmail.com>"]
 version = "1.2.0"
+authors = ["Ronan Arraes Jardim Chagas <ronisbr@gmail.com>"]
 
 [deps]
 Crayons = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
@@ -27,7 +27,7 @@ Pkg = "1"
 PrecompileTools = "1"
 Printf = "1.10"
 Reexport = "1"
-SatelliteToolboxBase = "1.2"
+SatelliteToolboxBase = "1.2, 2"
 SatelliteToolboxSgp4 = "2"
 SatelliteToolboxTle = "1"
 StaticArrays = "1"
