@@ -21,13 +21,13 @@ epoch of the input elements and `T` is the type used for the internal variables.
 abstract type OrbitPropagator{Tepoch <: Number, T <: Number} end
 
 # Types accepted as a propagation instant measured from the epoch: a number [s] or a period.
-const _Instant = Union{Number, Dates.Period, Dates.CompoundPeriod}
+const PropagationInstant = Union{Number, Dates.Period, Dates.CompoundPeriod}
 
 # Types accepted as an epoch: a Julian Day [UTC] or a `DateTime` [UTC].
-const _Epoch = Union{Number, DateTime}
+const PropagationEpoch = Union{Number, DateTime}
 
 # Types accepted as the output sink of the propagation functions.
-const _Sink = Union{Type{Tuple}, Type{OrbitStateVector}}
+const PropagationSink = Union{Type{Tuple}, Type{OrbitStateVector}}
 
 ############################################################################################
 #                                     Public Functions                                     #
@@ -209,11 +209,13 @@ If `sink` is `OrbitStateVector`:
     propagation instant.
 - [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized propagator.
 """
-function propagate(prop::Val, t::_Instant, args...; kwargs...)
+function propagate(prop::Val, t::PropagationInstant, args...; kwargs...)
     return propagate(Tuple, prop, t, args...; kwargs...)
 end
 
-function propagate(sink::_Sink, prop::Val, t::_Instant, args...; kwargs...)
+function propagate(
+    sink::PropagationSink, prop::Val, t::PropagationInstant, args...; kwargs...
+)
     orbp = init(prop, args...; kwargs...)
     return _append_propagator(propagate!(orbp, t, sink), orbp)
 end
@@ -274,7 +276,7 @@ function propagate(prop::Val, vt::AbstractVector, args...; kwargs...)
 end
 
 function propagate(
-    sink::_Sink,
+    sink::PropagationSink,
     prop::Val,
     vt::AbstractVector,
     args...;
@@ -322,9 +324,11 @@ function propagate!(orbp::OrbitPropagator, p::Union{Dates.Period, Dates.Compound
     return propagate!(orbp, _to_seconds(p))
 end
 
-propagate!(orbp::OrbitPropagator, t::_Instant, ::Type{Tuple}) = propagate!(orbp, t)
+function propagate!(orbp::OrbitPropagator, t::PropagationInstant, ::Type{Tuple})
+    return propagate!(orbp, t)
+end
 
-function propagate!(orbp::OrbitPropagator, t::_Instant, ::Type{OrbitStateVector})
+function propagate!(orbp::OrbitPropagator, t::PropagationInstant, ::Type{OrbitStateVector})
     Δt = _to_seconds(t)
     r_i, v_i = propagate!(orbp, Δt)
     return OrbitStateVector(epoch(orbp) + Δt / 86400, r_i, v_i)
@@ -435,11 +439,13 @@ If `sink` is `OrbitStateVector`:
     propagation instant.
 - [`OrbitPropagator{Tepoch, T}`](@ref): Structure with the initialized propagator.
 """
-function propagate_to_epoch(prop::Val, epoch::_Epoch, args...; kwargs...)
+function propagate_to_epoch(prop::Val, epoch::PropagationEpoch, args...; kwargs...)
     return propagate_to_epoch(Tuple, prop, epoch, args...; kwargs...)
 end
 
-function propagate_to_epoch(sink::_Sink, prop::Val, epoch::_Epoch, args...; kwargs...)
+function propagate_to_epoch(
+    sink::PropagationSink, prop::Val, epoch::PropagationEpoch, args...; kwargs...
+)
     orbp = init(prop, args...; kwargs...)
     return _append_propagator(propagate_to_epoch!(orbp, epoch, sink), orbp)
 end
@@ -500,7 +506,7 @@ function propagate_to_epoch(prop::Val, vepoch::AbstractVector, args...; kwargs..
 end
 
 function propagate_to_epoch(
-    sink::_Sink,
+    sink::PropagationSink,
     prop::Val,
     vepoch::AbstractVector,
     args...;
@@ -543,7 +549,9 @@ If `sink` is `OrbitStateVector`:
 - `OrbitStateVector{Tepoch, T}`: Structure with the orbit state vector [SI] at the
     propagation instant.
 """
-function propagate_to_epoch!(orbp::OrbitPropagator, epoch::_Epoch, sink::_Sink = Tuple)
+function propagate_to_epoch!(
+    orbp::OrbitPropagator, epoch::PropagationEpoch, sink::PropagationSink = Tuple
+)
     return propagate!(orbp, _epoch_to_seconds(orbp, epoch), sink)
 end
 
@@ -642,7 +650,7 @@ If `sink` is `OrbitStateVector`:
 - `OrbitStateVector{Tepoch, T}`: Structure with the orbit state vector [SI] at the
     propagation instant.
 """
-function step!(orbp::OrbitPropagator, Δt::_Instant, sink::_Sink = Tuple)
+function step!(orbp::OrbitPropagator, Δt::PropagationInstant, sink::PropagationSink = Tuple)
     return propagate!(orbp, last_instant(orbp) + _to_seconds(Δt), sink)
 end
 
@@ -708,7 +716,7 @@ _append_propagator(result, orbp::OrbitPropagator) = (result, orbp)
 Convert `epoch`, which is either a Julian Day [UTC] or a `DateTime` [UTC], to the elapsed
 time [s] from the initial elements' epoch of `orbp`.
 """
-function _epoch_to_seconds(orbp::OrbitPropagator, epoch_::_Epoch)
+function _epoch_to_seconds(orbp::OrbitPropagator, epoch_::PropagationEpoch)
     return 86400 * (_to_julian_day(epoch_) - epoch(orbp))
 end
 

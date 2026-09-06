@@ -379,7 +379,7 @@ end
 #                                        Julia API                                         #
 ############################################################################################
 
-const _PropagatorData{Tepoch, T} = Union{
+const PropagatorData{Tepoch, T} = Union{
     J2Propagator{Tepoch, T},
     J2OsculatingPropagator{Tepoch, T},
     J4Propagator{Tepoch, T},
@@ -387,7 +387,7 @@ const _PropagatorData{Tepoch, T} = Union{
     TwoBodyPropagator{Tepoch, T},
 }
 
-function Base.copy(pd::P) where {P <: _PropagatorData}
+function Base.copy(pd::P) where {P <: PropagatorData}
     return P(ntuple(i -> _copy_field(getfield(pd, i)), Val(fieldcount(P)))...)
 end
 
@@ -402,7 +402,7 @@ Return the value stored in a propagator field when copying the structure. Nested
 structures are copied, whereas every other field is immutable and is returned as is.
 """
 _copy_field(x) = x
-_copy_field(pd::_PropagatorData) = copy(pd)
+_copy_field(pd::PropagatorData) = copy(pd)
 
 """
     _propagator_eltype(
