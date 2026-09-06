@@ -14,7 +14,12 @@
 ############################################################################################
 
 """
-    _osculating_elements(mean_orbk::KeplerianElements{MeanAnomaly, Tepoch, T}, R₀::Number, μm::Number, J₂::Number) where {Tepoch <: Number, T <: Number} -> KeplerianElements{TrueAnomaly, Tepoch, T}
+    _osculating_elements(
+        mean_orbk::KeplerianElements{MeanAnomaly, Tepoch, T},
+        R₀::Number,
+        μm::Number,
+        J₂::Number
+    ) where {Tepoch <: Number, T <: Number} -> KeplerianElements{TrueAnomaly, Tepoch, T}
 
 Compute the osculating Keplerian elements [SI units] at the epoch of the mean elements
 `mean_orbk` [SI units] by adding the short-period perturbations of the J2 gravitational term

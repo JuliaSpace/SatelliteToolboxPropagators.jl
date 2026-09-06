@@ -81,7 +81,11 @@ function j4osc_init!(j4oscd::J4OsculatingPropagator, orb₀::KeplerianElements)
 end
 
 """
-    j4osc(Δt::Number, orb₀::KeplerianElements; kwargs...) -> SVector{3, T}, SVector{3, T}, J4OsculatingPropagator
+    j4osc(
+        Δt::Number,
+        orb₀::KeplerianElements;
+        kwargs...
+    ) -> SVector{3, T}, SVector{3, T}, J4OsculatingPropagator
 
 Initialize the J4 osculating propagator structure using the input elements `orb₀` and
 propagate the orbit until the time Δt [s].
@@ -120,7 +124,10 @@ function j4osc(
 end
 
 """
-    j4osc!(j4oscd::J4OsculatingPropagator{Tepoch, T}, t::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    j4osc!(
+        j4oscd::J4OsculatingPropagator{Tepoch, T},
+        t::Number
+    ) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
 
 Propagate the orbit defined in `j4oscd` (see [`J4OsculatingPropagator`](@ref)) to `t` [s]
 after the epoch of the input mean elements in `j4oscd`.
@@ -169,7 +176,15 @@ function j4osc!(
 end
 
 """
-    fit_j4osc_mean_elements(vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd <: Number, Tv <: AbstractVector} -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
+    fit_j4osc_mean_elements(
+        vjd::AbstractVector{Tjd},
+        vr_i::AbstractVector{Tv},
+        vv_i::AbstractVector{Tv};
+        kwargs...
+    ) where {
+        Tjd <: Number,
+        Tv <: AbstractVector
+    } -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
 
 Fit a set of mean Keplerian elements for the J4 osculating orbit propagator using the
 osculating elements represented by a set of position vectors `vr_i` [m] and a set of
@@ -278,7 +293,18 @@ function fit_j4osc_mean_elements(
 end
 
 """
-    fit_j4osc_mean_elements!(j4oscd::J4OsculatingPropagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {T <: Number, Tepoch <: Number, Tjd <: Number, Tv <: AbstractVector} -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
+    fit_j4osc_mean_elements!(
+        j4oscd::J4OsculatingPropagator{Tepoch, T},
+        vjd::AbstractVector{Tjd},
+        vr_i::AbstractVector{Tv},
+        vv_i::AbstractVector{Tv};
+        kwargs...
+    ) where {
+        T <: Number,
+        Tepoch <: Number,
+        Tjd <: Number,
+        Tv <: AbstractVector
+    } -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the J4 osculating orbit propagator `j4oscd` using
 the osculating elements represented by a set of position vectors `vr_i` [m] and a set of
@@ -383,7 +409,10 @@ function fit_j4osc_mean_elements!(
 end
 
 """
-    update_j4osc_mean_elements_epoch(orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KeplerianElements
+    update_j4osc_mean_elements_epoch(
+        orb::KeplerianElements,
+        new_epoch::Union{Number, DateTime}
+    ) -> KeplerianElements
 
 Update the epoch of the mean elements `orb` using a J4 osculating orbit propagator to
 `new_epoch`, which can be represented by a Julian Day or a `DateTime`.
@@ -443,7 +472,11 @@ function update_j4osc_mean_elements_epoch(
 end
 
 """
-    update_j4osc_mean_elements_epoch!(j4oscd::J4OsculatingPropagator, orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KeplerianElements
+    update_j4osc_mean_elements_epoch!(
+        j4oscd::J4OsculatingPropagator,
+        orb::KeplerianElements,
+        new_epoch::Union{Number, DateTime}
+    ) -> KeplerianElements
 
 Update the epoch of the mean elements `orb` using the propagator `j4oscd` to `new_epoch`,
 which can be represented by a Julian Day or a `DateTime`.
@@ -513,7 +546,10 @@ end
 ############################################################################################
 
 """
-    _similar_propagator(j4oscd::J4OsculatingPropagator{Tepoch}, ::Type{T}) where {Tepoch <: Number, T <: Number} -> J4OsculatingPropagator{Tepoch, T}
+    _similar_propagator(
+        j4oscd::J4OsculatingPropagator{Tepoch},
+        ::Type{T}
+    ) where {Tepoch <: Number, T <: Number} -> J4OsculatingPropagator{Tepoch, T}
 
 Create an uninitialized J4 osculating propagator with the same constants as `j4oscd`
 converted to the element type `T`.
@@ -523,6 +559,7 @@ function _similar_propagator(
 ) where {Tepoch <: Number, T <: Number}
     new_j4oscd = J4OsculatingPropagator{Tepoch, T}()
     new_j4oscd.j4d = _similar_propagator(j4oscd.j4d, T)
+
     return new_j4oscd
 end
 

@@ -111,7 +111,11 @@ function twobody_init!(
 end
 
 """
-    twobody(Δt::Number, orb₀::KeplerianElements; kwargs...) -> SVector{3, T}, SVector{3, T}, TwoBodyPropagator
+    twobody(
+        Δt::Number,
+        orb₀::KeplerianElements;
+        kwargs...
+    ) -> SVector{3, T}, SVector{3, T}, TwoBodyPropagator
 
 Initialize the two-body propagator structure using the input elements `orb₀` and propagate
 the orbit until the time Δt [s].
@@ -146,7 +150,10 @@ function twobody(Δt::Number, orb₀::KeplerianElements; m0::T = TBC_M0) where {
 end
 
 """
-    twobody!(tbd::TwoBodyPropagator{Tepoch, T}, t::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    twobody!(
+        tbd::TwoBodyPropagator{Tepoch, T},
+        t::Number
+    ) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
 
 Propagate the orbit defined in `tbd` (see [`TwoBodyPropagator`](@ref)) to `t` [s] after the
 epoch of the input mean elements in `tbd`.
@@ -204,7 +211,15 @@ function twobody!(
 end
 
 """
-    fit_twobody_mean_elements(vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd <: Number, Tv <: AbstractVector} -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
+    fit_twobody_mean_elements(
+        vjd::AbstractVector{Tjd},
+        vr_i::AbstractVector{Tv},
+        vv_i::AbstractVector{Tv};
+        kwargs...
+    ) where {
+        Tjd <: Number,
+        Tv <: AbstractVector
+    } -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
 
 Fit a set of mean Keplerian elements for the two-body orbit propagator using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
@@ -309,7 +324,18 @@ function fit_twobody_mean_elements(
 end
 
 """
-    fit_twobody_mean_elements!(tbd::TwoBodyPropagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tepoch <: Number, T <: Number, Tjd <: Number, Tv <: AbstractVector} -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
+    fit_twobody_mean_elements!(
+        tbd::TwoBodyPropagator{Tepoch, T},
+        vjd::AbstractVector{Tjd},
+        vr_i::AbstractVector{Tv},
+        vv_i::AbstractVector{Tv};
+        kwargs...
+    ) where {
+        Tepoch <: Number,
+        T <: Number,
+        Tjd <: Number,
+        Tv <: AbstractVector
+    } -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the two-body orbit propagator `tbd` using the
 osculating elements represented by a set of position vectors `vr_i` [m] and a set of
@@ -414,7 +440,10 @@ function fit_twobody_mean_elements!(
 end
 
 """
-    update_twobody_mean_elements_epoch(orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KeplerianElements{MeanAnomaly}
+    update_twobody_mean_elements_epoch(
+        orb::KeplerianElements,
+        new_epoch::Union{Number, DateTime}
+    ) -> KeplerianElements{MeanAnomaly}
 
 Update the epoch of the mean elements `orb` using a two-body orbit propagator to
 `new_epoch`, which can be represented by a Julian Day or a `DateTime`.
@@ -470,7 +499,11 @@ function update_twobody_mean_elements_epoch(
 end
 
 """
-    update_twobody_mean_elements_epoch!(tbd::TwoBodyPropagator, orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KeplerianElements{MeanAnomaly}
+    update_twobody_mean_elements_epoch!(
+        tbd::TwoBodyPropagator,
+        orb::KeplerianElements,
+        new_epoch::Union{Number, DateTime}
+    ) -> KeplerianElements{MeanAnomaly}
 
 Update the epoch of the mean elements `orb` using the propagator `tbd` to `new_epoch`, which
 can be represented by a Julian Day or a `DateTime`.
@@ -534,7 +567,10 @@ end
 ############################################################################################
 
 """
-    _similar_propagator(tbd::TwoBodyPropagator{Tepoch}, ::Type{T}) where {Tepoch <: Number, T <: Number} -> TwoBodyPropagator{Tepoch, T}
+    _similar_propagator(
+        tbd::TwoBodyPropagator{Tepoch},
+        ::Type{T}
+    ) where {Tepoch <: Number, T <: Number} -> TwoBodyPropagator{Tepoch, T}
 
 Create an uninitialized two-body propagator with the same gravitational parameter as `tbd`
 converted to the element type `T`.
@@ -544,5 +580,6 @@ function _similar_propagator(
 ) where {Tepoch <: Number, T <: Number}
     new_tbd = TwoBodyPropagator{Tepoch, T}()
     new_tbd.μ = T(tbd.μ)
+
     return new_tbd
 end

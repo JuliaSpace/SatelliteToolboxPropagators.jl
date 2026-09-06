@@ -240,7 +240,11 @@ function j4_init!(
 end
 
 """
-    j4(Δt::Number, orb₀::KeplerianElements; kwargs...) -> SVector{3, T}, SVector{3, T}, J4Propagator
+    j4(
+        Δt::Number,
+        orb₀::KeplerianElements;
+        kwargs...
+    ) -> SVector{3, T}, SVector{3, T}, J4Propagator
 
 Initialize the J4 propagator structure using the input elements `orb₀` and propagate the
 orbit until the time Δt [s].
@@ -277,7 +281,10 @@ function j4(Δt::Number, orb₀::KeplerianElements; j4c::J4PropagatorConstants =
 end
 
 """
-    j4!(j4d::J4Propagator{Tepoch, T}, t::Number) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
+    j4!(
+        j4d::J4Propagator{Tepoch, T},
+        t::Number
+    ) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
 
 Propagate the orbit defined in `j4d` (see [`J4Propagator`](@ref)) to `t` [s] after the
 epoch of the input mean elements in `j4d`.
@@ -310,7 +317,15 @@ function j4!(j4d::J4Propagator{Tepoch, T}, t::Number) where {Tepoch <: Number, T
 end
 
 """
-    fit_j4_mean_elements(vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd <: Number, Tv <: AbstractVector} -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
+    fit_j4_mean_elements(
+        vjd::AbstractVector{Tjd},
+        vr_i::AbstractVector{Tv},
+        vv_i::AbstractVector{Tv};
+        kwargs...
+    ) where {
+        Tjd <: Number,
+        Tv <: AbstractVector
+    } -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
 
 Fit a set of mean Keplerian elements for the J4 orbit propagator using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
@@ -427,7 +442,18 @@ function fit_j4_mean_elements(
 end
 
 """
-    fit_j4_mean_elements!(j4d::J4Propagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {T <: Number, Tepoch <: Number, Tjd <: Number, Tv <: AbstractVector} -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
+    fit_j4_mean_elements!(
+        j4d::J4Propagator{Tepoch, T},
+        vjd::AbstractVector{Tjd},
+        vr_i::AbstractVector{Tv},
+        vv_i::AbstractVector{Tv};
+        kwargs...
+    ) where {
+        T <: Number,
+        Tepoch <: Number,
+        Tjd <: Number,
+        Tv <: AbstractVector
+    } -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the J4 orbit propagator `j4d` using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
@@ -600,7 +626,11 @@ function update_j4_mean_elements_epoch(
 end
 
 """
-    update_j4_mean_elements_epoch!(j4d::J4Propagator, orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KeplerianElements
+    update_j4_mean_elements_epoch!(
+        j4d::J4Propagator,
+        orb::KeplerianElements,
+        new_epoch::Union{Number, DateTime}
+    ) -> KeplerianElements
 
 Update the epoch of the mean elements `orb` using the propagator `j4d` to `new_epoch`, which
 can be represented by a Julian Day or a `DateTime`.
@@ -664,7 +694,10 @@ end
 ############################################################################################
 
 """
-    _similar_propagator(j4d::J4Propagator{Tepoch}, ::Type{T}) where {Tepoch <: Number, T <: Number} -> J4Propagator{Tepoch, T}
+    _similar_propagator(
+        j4d::J4Propagator{Tepoch},
+        ::Type{T}
+    ) where {Tepoch <: Number, T <: Number} -> J4Propagator{Tepoch, T}
 
 Create an uninitialized J4 propagator with the same constants as `j4d` converted to the
 element type `T`.
@@ -674,11 +707,15 @@ function _similar_propagator(
 ) where {Tepoch <: Number, T <: Number}
     new_j4d = J4Propagator{Tepoch, T}()
     new_j4d.j4c = convert(J4PropagatorConstants{T}, j4d.j4c)
+
     return new_j4d
 end
 
 """
-    _j4_mean_elements!(j4d::J4Propagator{Tepoch, T}, t::Number) where {Tepoch <: Number, T <: Number} -> KeplerianElements{MeanAnomaly, Tepoch, T}
+    _j4_mean_elements!(
+        j4d::J4Propagator{Tepoch, T},
+        t::Number
+    ) where {Tepoch <: Number, T <: Number} -> KeplerianElements{MeanAnomaly, Tepoch, T}
 
 Propagate the mean elements of `j4d` to the instant `t` [s] measured from the epoch of the
 initial elements, update the propagator structure, and return the mean elements [SI units].

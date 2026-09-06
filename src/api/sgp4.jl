@@ -10,7 +10,9 @@ Propagators.last_instant(orbp::OrbitPropagatorSgp4) = orbp.sgp4d.Δt * 60
 Propagators.name(orbp::OrbitPropagatorSgp4)         = "SGP4 Orbit Propagator"
 
 """
-    Propagators.mean_elements(orbp::OrbitPropagatorSgp4{Tepoch, T}) where {Tepoch <: Number, T <: Number} -> KeplerianElements{MeanAnomaly, Tepoch, T}
+    Propagators.mean_elements(
+        orbp::OrbitPropagatorSgp4{Tepoch, T}
+    ) where {Tepoch <: Number, T <: Number} -> KeplerianElements{MeanAnomaly, Tepoch, T}
 
 Return the mean Keplerian elements [SI units] of the SGP4 orbit propagator `orbp` at the
 last propagation instant. The initial TLE is rebuilt from the propagator and its epoch is
@@ -454,7 +456,10 @@ function Propagators.init!(
 end
 
 """
-    Propagators.propagate!(orbp::OrbitPropagatorSgp4{Tepoch, T}, t::Number) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
+    Propagators.propagate!(
+        orbp::OrbitPropagatorSgp4{Tepoch, T},
+        t::Number
+    ) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
 
 Propagate the orbit of the SGP4 orbit propagator `orbp` to `t` [s] after the epoch of the
 TLE, updating the internal state of `orbp`. The SGP4 kernel works in minutes and kilometers,

@@ -169,7 +169,6 @@ function j2_init!(
     n₀  = μm / √(al₀^3)      # ............................. Unperturbed mean motion [rad/s]
     p₀  = al₀ * (1 - e₀²)    # ...................................... Semi-latus rectum [er]
     p₀² = p₀^2               # ............................. Semi-latus rectum squared [er²]
-    M₀  = mean_anomaly(ke₀)  # .................................. Initial mean anomaly [rad]
 
     sin_i₀, cos_i₀ = sincos(T(i₀))
     sin_i₀² = sin_i₀^2
@@ -201,7 +200,11 @@ function j2_init!(
 end
 
 """
-    j2(Δt::Number, orb₀::KeplerianElements; kwargs...) -> SVector{3, T}, SVector{3, T}, J2Propagator
+    j2(
+        Δt::Number,
+        orb₀::KeplerianElements;
+        kwargs...
+    ) -> SVector{3, T}, SVector{3, T}, J2Propagator
 
 Initialize the J2 propagator structure using the input elements `orb₀` [SI units] and
 propagate the orbit until the time Δt [s].
@@ -238,7 +241,10 @@ function j2(Δt::Number, orb₀::KeplerianElements; j2c::J2PropagatorConstants =
 end
 
 """
-    j2!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+    j2!(
+        j2d::J2Propagator{Tepoch, T},
+        t::Number
+    ) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
 
 Propagate the orbit defined in `j2d` (see [`J2Propagator`](@ref)) to `t` [s] after the
 epoch of the input mean elements in `j2d`.
@@ -271,7 +277,15 @@ function j2!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch <: Number, T
 end
 
 """
-    fit_j2_mean_elements(vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd <: Number, Tv <: AbstractVector} -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
+    fit_j2_mean_elements(
+        vjd::AbstractVector{Tjd},
+        vr_i::AbstractVector{Tv},
+        vv_i::AbstractVector{Tv};
+        kwargs...
+    ) where {
+        Tjd <: Number,
+        Tv <: AbstractVector
+    } -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
 
 Fit a set of mean Keplerian elements for the J2 orbit propagator using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
@@ -388,7 +402,18 @@ function fit_j2_mean_elements(
 end
 
 """
-    fit_j2_mean_elements!(j2d::J2Propagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {T <: Number, Tepoch <: Number, Tjd <: Number, Tv <: AbstractVector} -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
+    fit_j2_mean_elements!(
+        j2d::J2Propagator{Tepoch, T},
+        vjd::AbstractVector{Tjd},
+        vr_i::AbstractVector{Tv},
+        vv_i::AbstractVector{Tv};
+        kwargs...
+    ) where {
+        T <: Number,
+        Tepoch <: Number,
+        Tjd <: Number,
+        Tv <: AbstractVector
+    } -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the J2 orbit propagator `j2d` using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
@@ -561,7 +586,11 @@ function update_j2_mean_elements_epoch(
 end
 
 """
-    update_j2_mean_elements_epoch!(j2d::J2Propagator, orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KeplerianElements
+    update_j2_mean_elements_epoch!(
+        j2d::J2Propagator,
+        orb::KeplerianElements,
+        new_epoch::Union{Number, DateTime}
+    ) -> KeplerianElements
 
 Update the epoch of the mean elements `orb` using the propagator `j2d` to `new_epoch`, which
 can be represented by a Julian Day or a `DateTime`.
@@ -625,7 +654,10 @@ end
 ############################################################################################
 
 """
-    _similar_propagator(j2d::J2Propagator{Tepoch}, ::Type{T}) where {Tepoch <: Number, T <: Number} -> J2Propagator{Tepoch, T}
+    _similar_propagator(
+        j2d::J2Propagator{Tepoch},
+        ::Type{T}
+    ) where {Tepoch <: Number, T <: Number} -> J2Propagator{Tepoch, T}
 
 Create an uninitialized J2 propagator with the same constants as `j2d` converted to the
 element type `T`.
@@ -635,11 +667,15 @@ function _similar_propagator(
 ) where {Tepoch <: Number, T <: Number}
     new_j2d = J2Propagator{Tepoch, T}()
     new_j2d.j2c = convert(J2PropagatorConstants{T}, j2d.j2c)
+
     return new_j2d
 end
 
 """
-    _j2_mean_elements!(j2d::J2Propagator{Tepoch, T}, t::Number) where {Tepoch <: Number, T <: Number} -> KeplerianElements{MeanAnomaly, Tepoch, T}
+    _j2_mean_elements!(
+        j2d::J2Propagator{Tepoch, T},
+        t::Number
+    ) where {Tepoch <: Number, T <: Number} -> KeplerianElements{MeanAnomaly, Tepoch, T}
 
 Propagate the mean elements of `j2d` to the instant `t` [s] measured from the epoch of the
 initial elements, update the propagator structure, and return the mean elements [SI units].

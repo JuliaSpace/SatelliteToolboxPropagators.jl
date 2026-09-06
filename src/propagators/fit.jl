@@ -76,44 +76,52 @@ const AbstractMeanElementsPropagator{Tepoch, T} = Union{
 
 Return the name of the propagator `pd` used in the messages of the fitting algorithm.
 """
-_propagator_name(::J2Propagator) = "J2"
+_propagator_name(::J2Propagator)           = "J2"
 _propagator_name(::J2OsculatingPropagator) = "J2 osculating"
 _propagator_name(::J4Propagator)           = "J4"
 _propagator_name(::J4OsculatingPropagator) = "J4 osculating"
 _propagator_name(::TwoBodyPropagator)      = "two-body"
 
 """
-    _mean_elements_init!(pd::AbstractMeanElementsPropagator, orb::KeplerianElements) -> Nothing
+    _mean_elements_init!(
+        pd::AbstractMeanElementsPropagator,
+        orb::KeplerianElements
+    ) -> Nothing
 
 Initialize the propagator `pd` with the mean elements `orb` [SI units]. The osculating
 propagators use the internal initialization, which skips the propagation to the initial
 instant, because the algorithm always propagates right afterwards.
 """
-_mean_elements_init!(pd::J2Propagator, orb) = j2_init!(pd, orb)
+_mean_elements_init!(pd::J2Propagator, orb)           = j2_init!(pd, orb)
 _mean_elements_init!(pd::J2OsculatingPropagator, orb) = _j2osc_init!(pd, orb)
 _mean_elements_init!(pd::J4Propagator, orb)           = j4_init!(pd, orb)
 _mean_elements_init!(pd::J4OsculatingPropagator, orb) = _j4osc_init!(pd, orb)
 _mean_elements_init!(pd::TwoBodyPropagator, orb)      = twobody_init!(pd, orb)
 
 """
-    _mean_elements_propagate!(pd::AbstractMeanElementsPropagator{Tepoch, T}, Δt::Number) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
+    _mean_elements_propagate!(
+        pd::AbstractMeanElementsPropagator{Tepoch, T},
+        Δt::Number
+    ) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
 
 Propagate the orbit using `pd` to `Δt` [s] after the epoch of its initial mean elements,
 returning the position [m] and the velocity [m / s] vectors in the inertial frame.
 """
-_mean_elements_propagate!(pd::J2Propagator, Δt) = j2!(pd, Δt)
+_mean_elements_propagate!(pd::J2Propagator, Δt)           = j2!(pd, Δt)
 _mean_elements_propagate!(pd::J2OsculatingPropagator, Δt) = j2osc!(pd, Δt)
 _mean_elements_propagate!(pd::J4Propagator, Δt)           = j4!(pd, Δt)
 _mean_elements_propagate!(pd::J4OsculatingPropagator, Δt) = j4osc!(pd, Δt)
 _mean_elements_propagate!(pd::TwoBodyPropagator, Δt)      = twobody!(pd, Δt)
 
 """
-    _mean_elements_propagator(pd::AbstractMeanElementsPropagator) -> Union{J2Propagator, J4Propagator, TwoBodyPropagator}
+    _mean_elements_propagator(
+        pd::AbstractMeanElementsPropagator
+    ) -> Union{J2Propagator, J4Propagator, TwoBodyPropagator}
 
 Return the structure inside `pd` that stores the initial (`orb₀`) and the current (`orbk`)
 mean elements, which is `pd` itself for the propagators of mean elements.
 """
-_mean_elements_propagator(pd::J2Propagator) = pd
+_mean_elements_propagator(pd::J2Propagator)           = pd
 _mean_elements_propagator(pd::J2OsculatingPropagator) = pd.j2d
 _mean_elements_propagator(pd::J4Propagator)           = pd
 _mean_elements_propagator(pd::J4OsculatingPropagator) = pd.j4d
@@ -122,7 +130,18 @@ _mean_elements_propagator(pd::TwoBodyPropagator)      = pd
 # == Algorithm =============================================================================
 
 """
-    _fit_mean_elements!(pd::AbstractMeanElementsPropagator{Tepoch, T}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tepoch <: Number, T <: Number, Tjd <: Number, Tv <: AbstractVector} -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
+    _fit_mean_elements!(
+        pd::AbstractMeanElementsPropagator{Tepoch, T},
+        vjd::AbstractVector{Tjd},
+        vr_i::AbstractVector{Tv},
+        vv_i::AbstractVector{Tv};
+        kwargs...
+    ) where {
+        Tepoch <: Number,
+        T <: Number,
+        Tjd <: Number,
+        Tv <: AbstractVector
+    } -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the propagator `pd` using the osculating elements
 represented by a set of position vectors `vr_i` [m] and a set of velocity vectors `vv_i`
@@ -455,8 +474,8 @@ end
 """
     _fit_print_action(has_color::Bool, msg::AbstractString) -> Nothing
 
-Print to `stdout` the action message `msg` of the fitting algorithm, prefixed by an `ACTION:`
-tag, which is highlighted if `has_color` is `true`.
+Print to `stdout` the action message `msg` of the fitting algorithm, prefixed by an
+`ACTION:` tag, which is highlighted if `has_color` is `true`.
 """
 # The helper is not inlined so that its allocation sites, which are only reachable when the
 # algorithm is verbose, are counted once regardless of the number of call sites.
@@ -502,12 +521,13 @@ end
 """
     _fit_decorated(versions::Tuple{String, String}, has_color::Bool) -> String
 
-Return the colored version of a string printed by the fitting algorithm, stored as the second
-element of `versions`, if `has_color` is `true`. Otherwise, return the plain version stored
-as its first element.
+Return the colored version of a string printed by the fitting algorithm, stored as the
+second element of `versions`, if `has_color` is `true`. Otherwise, return the plain version
+stored as its first element.
 """
-_fit_decorated(versions::Tuple{String, String}, has_color::Bool) =
-    versions[has_color ? 2 : 1]
+function _fit_decorated(versions::Tuple{String, String}, has_color::Bool)
+    return versions[has_color ? 2 : 1]
+end
 
 """
     _dual_type(::Type{T}) where {T <: Number} -> Type
@@ -515,11 +535,14 @@ _fit_decorated(versions::Tuple{String, String}, has_color::Bool) =
 Return the `ForwardDiff.Dual` type with six partial derivatives used to differentiate a
 propagation with element type `T` with respect to the six components of the state vector.
 """
-_dual_type(::Type{T}) where {T <: Number} =
-    ForwardDiff.Dual{ForwardDiff.Tag{Nothing, T}, T, 6}
+function _dual_type(::Type{T}) where {T <: Number}
+    return ForwardDiff.Dual{ForwardDiff.Tag{Nothing, T}, T, 6}
+end
 
 """
-    _create_fd_propagator(pd::AbstractMeanElementsPropagator{Tepoch, T}) where {Tepoch <: Number, T <: Number} -> typeof(pd)
+    _create_fd_propagator(
+        pd::AbstractMeanElementsPropagator{Tepoch, T}
+    ) where {Tepoch <: Number, T <: Number} -> typeof(pd)
 
 Create an uninitialized propagator with the same constants as `pd` that the
 finite-difference Jacobian uses as scratch space, so it does not clobber the propagator kept
@@ -532,7 +555,9 @@ function _create_fd_propagator(
 end
 
 """
-    _create_ad_propagator(pd::AbstractMeanElementsPropagator{Tepoch, T}) where {Tepoch <: Number, T <: Number} -> AbstractMeanElementsPropagator{Tepoch, D}
+    _create_ad_propagator(
+        pd::AbstractMeanElementsPropagator{Tepoch, T}
+    ) where {Tepoch <: Number, T <: Number} -> AbstractMeanElementsPropagator{Tepoch, D}
 
 Create an uninitialized propagator with the same constants as `pd` but with the element type
 `D = _dual_type(T)`, which the ForwardDiff Jacobian uses to propagate dual numbers.
@@ -544,15 +569,22 @@ function _create_ad_propagator(
 end
 
 """
-    _mean_elements_epoch(pd::AbstractMeanElementsPropagator{Tepoch, T}) where {Tepoch <: Number, T <: Number} -> Tepoch
+    _mean_elements_epoch(
+        pd::AbstractMeanElementsPropagator{Tepoch, T}
+    ) where {Tepoch <: Number, T <: Number} -> Tepoch
 
 Return the epoch [Julian Day] of the initial mean elements stored in `pd`.
 """
-_mean_elements_epoch(pd::AbstractMeanElementsPropagator) =
-    _mean_elements_propagator(pd).orb₀.epoch
+function _mean_elements_epoch(pd::AbstractMeanElementsPropagator)
+    return _mean_elements_propagator(pd).orb₀.epoch
+end
 
 """
-    _update_mean_elements_epoch!(pd::AbstractMeanElementsPropagator{Tepoch, T}, orb::KeplerianElements, new_epoch::Number) where {Tepoch <: Number, T <: Number} -> KeplerianElements{MeanAnomaly, Tepoch, T}
+    _update_mean_elements_epoch!(
+        pd::AbstractMeanElementsPropagator{Tepoch, T},
+        orb::KeplerianElements,
+        new_epoch::Number
+    ) where {Tepoch <: Number, T <: Number} -> KeplerianElements{MeanAnomaly, Tepoch, T}
 
 Update the epoch of the mean elements `orb` [SI units] to `new_epoch` [Julian Day] by
 propagating them with `pd`, and initialize `pd` with the returned elements. The osculating
@@ -578,8 +610,23 @@ function _update_mean_elements_epoch!(
 end
 
 """
-    _mean_elements_jacobian(::FiniteDiffJacobian, pd::AbstractMeanElementsPropagator{Tepoch, T}, Δt::Number, x₁::SVector{6, T}, y₁::SVector{6, T}; kwargs...) where {Tepoch <: Number, T <: Number} -> SMatrix{6, 6, T}
-    _mean_elements_jacobian(::ForwardDiffJacobian, pd::AbstractMeanElementsPropagator{Tepoch, T}, Δt::Number, x₁::SVector{6, T}, y₁::SVector{6, T}; kwargs...) where {Tepoch <: Number, T <: Number} -> SMatrix{6, 6, T}
+    _mean_elements_jacobian(
+        ::FiniteDiffJacobian,
+        pd::AbstractMeanElementsPropagator{Tepoch, T},
+        Δt::Number,
+        x₁::SVector{6, T},
+        y₁::SVector{6, T};
+        kwargs...
+    ) where {Tepoch <: Number, T <: Number} -> SMatrix{6, 6, T}
+
+    _mean_elements_jacobian(
+        ::ForwardDiffJacobian,
+        pd::AbstractMeanElementsPropagator{Tepoch, T},
+        Δt::Number,
+        x₁::SVector{6, T},
+        y₁::SVector{6, T};
+        kwargs...
+    ) where {Tepoch <: Number, T <: Number} -> SMatrix{6, 6, T}
 
 Compute the Jacobian of the state vector `y₁` [m; m / s] propagated by `Δt` [s] with the
 propagator `pd` with respect to the initial state vector `x₁` [m; m / s] at the epoch of the

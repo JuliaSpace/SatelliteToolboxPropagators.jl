@@ -156,7 +156,11 @@ function Propagators.fit_mean_elements!(
 end
 
 """
-    Propagators.init(Val(:J2osc), orb₀::KeplerianElements; kwargs...) -> OrbitPropagatorJ2Osculating
+    Propagators.init(
+        Val(:J2osc),
+        orb₀::KeplerianElements;
+        kwargs...
+    ) -> OrbitPropagatorJ2Osculating
 
 Create and initialize the J2 osculating orbit propagator structure using the mean Keplerian
 elements `orb₀` [SI units].
@@ -196,7 +200,10 @@ function Propagators.init!(orbp::OrbitPropagatorJ2Osculating, orb₀::KeplerianE
 end
 
 """
-    Propagators.propagate!(orbp::OrbitPropagatorJ2Osculating{Tepoch, T}, t::Number) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
+    Propagators.propagate!(
+        orbp::OrbitPropagatorJ2Osculating{Tepoch, T},
+        t::Number
+    ) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
 
 Propagate the orbit of the J2 osculating orbit propagator `orbp` to `t` [s] after the epoch
 of the initial mean elements, updating the internal state of `orbp`.

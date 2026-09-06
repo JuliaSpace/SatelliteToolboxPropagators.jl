@@ -11,7 +11,16 @@ Propagators.mean_elements(orbp::OrbitPropagatorTwoBody) = orbp.tbd.orbk
 Propagators.name(orbp::OrbitPropagatorTwoBody)          = "Two-Body Orbit Propagator"
 
 """
-    Propagators.fit_mean_elements(::Val{:TwoBody}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd <: Number, Tv <: AbstractVector} -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
+    Propagators.fit_mean_elements(
+        ::Val{:TwoBody},
+        vjd::AbstractVector{Tjd},
+        vr_i::AbstractVector{Tv},
+        vv_i::AbstractVector{Tv};
+        kwargs...
+    ) where {
+        Tjd <: Number,
+        Tv <: AbstractVector
+    } -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
 
 Fit a set of mean Keplerian elements for the two-body orbit propagator using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
@@ -77,7 +86,16 @@ function Propagators.fit_mean_elements(
 end
 
 """
-    Propagators.fit_mean_elements!(orbp::OrbitPropagatorTwoBody, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) where {Tjd <: Number, Tv <: AbstractVector} -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
+    Propagators.fit_mean_elements!(
+        orbp::OrbitPropagatorTwoBody,
+        vjd::AbstractVector{Tjd},
+        vr_i::AbstractVector{Tv},
+        vv_i::AbstractVector{Tv};
+        kwargs...
+    ) where {
+        Tjd <: Number,
+        Tv <: AbstractVector
+    } -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the two-body orbit propagator `orbp` using the
 osculating elements represented by a set of position vectors `vr_i` [m] and a set of
@@ -187,7 +205,10 @@ function Propagators.init!(orbp::OrbitPropagatorTwoBody, orb₀::KeplerianElemen
 end
 
 """
-    Propagators.propagate!(orbp::OrbitPropagatorTwoBody{Tepoch, T}, t::Number) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
+    Propagators.propagate!(
+        orbp::OrbitPropagatorTwoBody{Tepoch, T},
+        t::Number
+    ) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
 
 Propagate the orbit of the two-body orbit propagator `orbp` to `t` [s] after the epoch of
 the initial mean elements, updating the internal state of `orbp`.

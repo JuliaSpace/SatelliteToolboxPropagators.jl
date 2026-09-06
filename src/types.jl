@@ -45,14 +45,9 @@ function J2PropagatorConstants{T}(j2c::J2PropagatorConstants) where {T <: Number
     return J2PropagatorConstants{T}(T(j2c.R0), T(j2c.μm), T(j2c.J2))
 end
 
-"""
-    Base.convert(::Type{J2PropagatorConstants{T}}, j2c::J2PropagatorConstants) where {T <: Number} -> J2PropagatorConstants{T}
-
-Convert the J2 propagator constants `j2c` to the element type `T`. The object itself is
-returned if it already has this type.
-"""
 function Base.convert(
-    ::Type{J2PropagatorConstants{T}}, j2c::J2PropagatorConstants
+    ::Type{J2PropagatorConstants{T}},
+    j2c::J2PropagatorConstants
 ) where {T <: Number}
     return J2PropagatorConstants{T}(j2c)
 end
@@ -149,7 +144,9 @@ struct J4PropagatorConstants{T <: Number}
 end
 
 """
-    J4PropagatorConstants{T}(j4c::J4PropagatorConstants) where {T <: Number} -> J4PropagatorConstants{T}
+    J4PropagatorConstants{T}(
+        j4c::J4PropagatorConstants
+    ) where {T <: Number} -> J4PropagatorConstants{T}
 
 Create a copy of the J4 propagator constants `j4c` with the element type `T`.
 """
@@ -157,12 +154,6 @@ function J4PropagatorConstants{T}(j4c::J4PropagatorConstants) where {T <: Number
     return J4PropagatorConstants{T}(T(j4c.R0), T(j4c.μm), T(j4c.J2), T(j4c.J4))
 end
 
-"""
-    Base.convert(::Type{J4PropagatorConstants{T}}, j4c::J4PropagatorConstants) where {T <: Number} -> J4PropagatorConstants{T}
-
-Convert the J4 propagator constants `j4c` to the element type `T`. The object itself is
-returned if it already has this type.
-"""
 function Base.convert(
     ::Type{J4PropagatorConstants{T}}, j4c::J4PropagatorConstants
 ) where {T <: Number}
@@ -296,7 +287,10 @@ end
 # == J2 Osculating Orbit Propagator ========================================================
 
 """
-    struct OrbitPropagatorJ2Osculating{Tepoch <: Number, T <: Number} <: OrbitPropagator{Tepoch, T}
+    struct OrbitPropagatorJ2Osculating{
+        Tepoch <: Number,
+        T <: Number
+    } <: OrbitPropagator{Tepoch, T}
 
 J2 osculating orbit propagator for the `Propagators` API.
 
@@ -329,7 +323,10 @@ end
 # == J4 Osculating Orbit Propagator ========================================================
 
 """
-    struct OrbitPropagatorJ4Osculating{Tepoch <: Number, T <: Number} <: OrbitPropagator{Tepoch, T}
+    struct OrbitPropagatorJ4Osculating{
+        Tepoch <: Number,
+        T <: Number
+    } <: OrbitPropagator{Tepoch, T}
 
 J4 osculating orbit propagator for the `Propagators` API.
 
@@ -362,7 +359,10 @@ end
 # == Two-Body Orbit Propagator =============================================================
 
 """
-    struct OrbitPropagatorTwoBody{Tepoch <: Number, T <: Number} <: OrbitPropagator{Tepoch, T}
+    struct OrbitPropagatorTwoBody{
+        Tepoch <: Number,
+        T <: Number
+    } <: OrbitPropagator{Tepoch, T}
 
 Two-body orbit propagator for the `Propagators` API.
 
@@ -387,13 +387,6 @@ const _PropagatorData{Tepoch, T} = Union{
     TwoBodyPropagator{Tepoch, T},
 }
 
-"""
-    Base.copy(pd::P) where {P <: _PropagatorData} -> P
-
-Create a copy of the propagator structure `pd`. The fields that are propagator structures
-themselves, such as the J2 propagator inside the J2 osculating propagator, are copied
-recursively so that the copy can be propagated independently of `pd`.
-"""
 function Base.copy(pd::P) where {P <: _PropagatorData}
     return P(ntuple(i -> _copy_field(getfield(pd, i)), Val(fieldcount(P)))...)
 end
@@ -412,7 +405,10 @@ _copy_field(x) = x
 _copy_field(pd::_PropagatorData) = copy(pd)
 
 """
-    _propagator_eltype(::Type{Tconstants}, ::Type{Tkepler}) where {Tconstants <: Number, Tkepler <: Number} -> Type
+    _propagator_eltype(
+        ::Type{Tconstants},
+        ::Type{Tkepler}
+    ) where {Tconstants <: Number, Tkepler <: Number} -> Type
 
 Return the element type used by a propagator initialized with constants of type
 `Tconstants` and Keplerian elements of type `Tkepler`. If `Tkepler` is an `AbstractFloat`,

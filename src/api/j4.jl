@@ -195,7 +195,10 @@ function Propagators.init!(orbp::OrbitPropagatorJ4, orb₀::KeplerianElements)
 end
 
 """
-    Propagators.propagate!(orbp::OrbitPropagatorJ4{Tepoch, T}, t::Number) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
+    Propagators.propagate!(
+        orbp::OrbitPropagatorJ4{Tepoch, T},
+        t::Number
+    ) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
 
 Propagate the orbit of the J4 orbit propagator `orbp` to `t` [s] after the epoch of
 the initial mean elements, updating the internal state of `orbp`.
