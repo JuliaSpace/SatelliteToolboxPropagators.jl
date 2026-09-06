@@ -17,6 +17,11 @@ Version 2.0.0
   `KeplerianElements{MeanAnomaly}`, and `Propagators.mean_elements` returns
   `KeplerianElements{MeanAnomaly}` for every propagator, including SGP4, which returned the
   true anomaly.
+- ![Feature][badge-feature] Initialize the SGP4 orbit propagator with an Orbit
+  Mean-Elements Message (OMM) using `Propagators.init(Val(:SGP4), omm)` and
+  `Propagators.init!(orbp, omm)`, where `omm` is an `OrbitMeanElementsMessage` from
+  **SatelliteToolboxOrbitDataMessages.jl**, which is re-exported through
+  **SatelliteToolboxSgp4.jl**.
 - ![Feature][badge-feature] Add the mean elements fitting and the epoch update to the
   two-body propagator: `fit_twobody_mean_elements`, `fit_twobody_mean_elements!`,
   `update_twobody_mean_elements_epoch`, `update_twobody_mean_elements_epoch!`, and the
