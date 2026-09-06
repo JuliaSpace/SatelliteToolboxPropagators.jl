@@ -15,14 +15,14 @@
 ############################################################################################
 
 function Base.show(io::IO, pd::PropagatorData)
-    name = Propagators._type_name(pd)
+    name = type_name(pd)
 
     if !_is_initialized(pd)
         print(io, name, " (not initialized)")
         return nothing
     end
 
-    SatelliteToolboxBase.print_compact(io, name, _initial_epoch(pd))
+    print_compact(io, name, _initial_epoch(pd))
 
     return nothing
 end
@@ -32,24 +32,22 @@ end
 ############################################################################################
 
 function Base.show(io::IO, ::MIME"text/plain", pd::PropagatorData)
-    SatelliteToolboxBase.print_tree(io, Propagators._type_name(pd), pd)
+    print_tree(io, type_name(pd), pd)
     return nothing
 end
 
 # The body of the rich representation is overloaded so that the API wrappers can print it
 # under their own header.
-function SatelliteToolboxBase.print_tree_body(io::IO, pd::PropagatorData)
+function print_tree_body(io::IO, pd::PropagatorData)
     if !_is_initialized(pd)
-        fields   = SatelliteToolboxBase.PrintedField[("Status", "not initialized", "")]
-        sections = SatelliteToolboxBase.PrintedSection[]
-        SatelliteToolboxBase.print_tree_body(io, fields, sections)
+        print_status(io, "not initialized")
         return nothing
     end
 
     sections = _sections(pd)
     push!(sections, "Propagation" => _propagation_fields(pd.Δt, "s"))
 
-    SatelliteToolboxBase.print_tree_body(io, SatelliteToolboxBase.PrintedField[], sections)
+    print_tree_body(io, PrintedField[], sections)
 
     return nothing
 end
@@ -59,16 +57,29 @@ end
 ############################################################################################
 
 """
-    _constants_fields(constants) -> Vector{SatelliteToolboxBase.PrintedField}
+    _constants(
+        pd::PropagatorData
+    ) -> Union{J2PropagatorConstants, J4PropagatorConstants, Number}
+
+Return the constants of the initialized propagator structure `pd`: the structure with the
+gravitational constants of the J2 and J4 propagators, or the standard gravitational
+parameter [m³ / s²] of the two-body propagator.
+"""
+_constants(pd::J2Propagator)           = pd.j2c
+_constants(pd::J2OsculatingPropagator) = _constants(pd.j2d)
+_constants(pd::J4Propagator)           = pd.j4c
+_constants(pd::J4OsculatingPropagator) = _constants(pd.j4d)
+_constants(pd::TwoBodyPropagator)      = pd.μ
+
+"""
+    _constants_fields(constants) -> Vector{PrintedField}
 
 Return the fields that print the propagator `constants`, which are a
 `J2PropagatorConstants`, a `J4PropagatorConstants`, or the standard gravitational parameter
 [m³ / s²] of the two-body propagator. The equatorial radius is printed in kilometers.
 """
 function _constants_fields(j2c::J2PropagatorConstants)
-    format_value = SatelliteToolboxBase.format_value
-
-    return SatelliteToolboxBase.PrintedField[
+    return PrintedField[
         ("R₀", format_value(j2c.R0 / 1000), "km"),
         ("μm", format_value(j2c.μm),        "rad/s"),
         ("J₂", format_value(j2c.J2),        ""),
@@ -76,9 +87,7 @@ function _constants_fields(j2c::J2PropagatorConstants)
 end
 
 function _constants_fields(j4c::J4PropagatorConstants)
-    format_value = SatelliteToolboxBase.format_value
-
-    return SatelliteToolboxBase.PrintedField[
+    return PrintedField[
         ("R₀", format_value(j4c.R0 / 1000), "km"),
         ("μm", format_value(j4c.μm),        "rad/s"),
         ("J₂", format_value(j4c.J2),        ""),
@@ -87,10 +96,20 @@ function _constants_fields(j4c::J4PropagatorConstants)
 end
 
 function _constants_fields(μ::Number)
-    return SatelliteToolboxBase.PrintedField[
-        ("μ", SatelliteToolboxBase.format_value(μ), "m³/s²"),
-    ]
+    return PrintedField[("μ", format_value(μ), "m³/s²")]
 end
+
+"""
+    _initial_elements(pd::PropagatorData) -> KeplerianElements{MeanAnomaly}
+
+Return the initial mean elements stored in the initialized propagator structure `pd`. The
+osculating propagators return the elements of the propagator they wrap.
+"""
+_initial_elements(pd::J2Propagator)           = pd.orb₀
+_initial_elements(pd::J2OsculatingPropagator) = _initial_elements(pd.j2d)
+_initial_elements(pd::J4Propagator)           = pd.orb₀
+_initial_elements(pd::J4OsculatingPropagator) = _initial_elements(pd.j4d)
+_initial_elements(pd::TwoBodyPropagator)      = pd.orb₀
 
 """
     _initial_epoch(pd::PropagatorData) -> Number
@@ -98,25 +117,16 @@ end
 Return the epoch [Julian Day] of the initial mean elements stored in the initialized
 propagator structure `pd`.
 """
-_initial_epoch(pd::J2Propagator)           = pd.orb₀.epoch
-_initial_epoch(pd::J2OsculatingPropagator) = _initial_epoch(pd.j2d)
-_initial_epoch(pd::J4Propagator)           = pd.orb₀.epoch
-_initial_epoch(pd::J4OsculatingPropagator) = _initial_epoch(pd.j4d)
-_initial_epoch(pd::TwoBodyPropagator)      = pd.orb₀.epoch
+_initial_epoch(pd::PropagatorData) = _initial_elements(pd).epoch
 
 """
-    _propagation_fields(
-        Δt::Number,
-        unit::String
-    ) -> Vector{SatelliteToolboxBase.PrintedField}
+    _propagation_fields(Δt::Number, unit::String) -> Vector{PrintedField}
 
 Return the fields of the section that prints the last propagation instant `Δt`, measured
 from the epoch of the initial mean elements in the `unit` given as a string.
 """
 function _propagation_fields(Δt::Number, unit::String)
-    return SatelliteToolboxBase.PrintedField[
-        ("Last Instant", SatelliteToolboxBase.format_value(Δt), unit),
-    ]
+    return PrintedField[("Last Instant", format_value(Δt), unit)]
 end
 
 """
@@ -128,19 +138,15 @@ set the field `Δt` to `NaN`, which is replaced by the initialization functions.
 _is_initialized(pd::PropagatorData) = !isnan(pd.Δt)
 
 """
-    _mean_elements_fields(
-        orb₀::KeplerianElements{MeanAnomaly}
-    ) -> Vector{SatelliteToolboxBase.PrintedField}
+    _mean_elements_fields(orb₀::KeplerianElements{MeanAnomaly}) -> Vector{PrintedField}
 
 Return the fields that print the initial mean elements `orb₀` and their epoch in the rich
 representation of a propagator structure. The semi-major axis is printed in kilometers and
 the angles in degrees.
 """
 function _mean_elements_fields(orb₀::KeplerianElements{MeanAnomaly})
-    format_value = SatelliteToolboxBase.format_value
-
-    return SatelliteToolboxBase.PrintedField[
-        ("Epoch",             SatelliteToolboxBase.epoch_string(orb₀.epoch),     ""),
+    return PrintedField[
+        ("Epoch",             epoch_string(orb₀.epoch),                          ""),
         ("Semi-Major Axis",   format_value(orb₀.semi_major_axis / 1000),         "km"),
         ("Eccentricity",      format_value(orb₀.eccentricity),                   ""),
         ("Inclination",       format_value(rad2deg(orb₀.inclination)),           "°"),
@@ -151,25 +157,19 @@ function _mean_elements_fields(orb₀::KeplerianElements{MeanAnomaly})
 end
 
 """
-    _secular_rates_fields(
-        n̄::Number[, ∂Ω::Number, ∂ω::Number]
-    ) -> Vector{SatelliteToolboxBase.PrintedField}
+    _secular_rates_fields(n̄::Number[, ∂Ω::Number, ∂ω::Number]) -> Vector{PrintedField}
 
 Return the fields that print the perturbed mean motion `n̄` [rad / s] and, if provided, the
-RAAN rate `∂Ω` [rad / s] and the argument of pericenter rate `∂ω` [rad / s] in the rich
+RAAN rate `∂Ω` [rad / s] and the argument of periapsis rate `∂ω` [rad / s] in the rich
 representation of a propagator structure. The mean motion is printed in revolutions per day
 and the rates in degrees per day.
 """
 function _secular_rates_fields(n̄::Number)
-    return SatelliteToolboxBase.PrintedField[
-        ("Mean Motion", SatelliteToolboxBase.format_value(86400 * n̄ / 2π), "rev/day"),
-    ]
+    return PrintedField[("Mean Motion", format_value(86400 * n̄ / 2π), "rev/day")]
 end
 
 function _secular_rates_fields(n̄::Number, ∂Ω::Number, ∂ω::Number)
-    format_value = SatelliteToolboxBase.format_value
-
-    return SatelliteToolboxBase.PrintedField[
+    return PrintedField[
         ("Mean Motion",            format_value(86400 * n̄ / 2π),     "rev/day"),
         ("RAAN Rate",              format_value(86400 * rad2deg(∂Ω)), "°/day"),
         ("Arg. of Periapsis Rate", format_value(86400 * rad2deg(∂ω)), "°/day"),
@@ -177,7 +177,7 @@ function _secular_rates_fields(n̄::Number, ∂Ω::Number, ∂ω::Number)
 end
 
 """
-    _sections(pd::PropagatorData) -> Vector{SatelliteToolboxBase.PrintedSection}
+    _sections(pd::PropagatorData) -> Vector{PrintedSection}
 
 Return the sections of the rich representation of the initialized propagator structure
 `pd`: the initial mean elements with their epoch, the secular rates, and the constants. The
@@ -185,24 +185,16 @@ last propagation instant is appended by the caller. The osculating propagators p
 sections of the propagator they wrap, since the short-period corrections do not add any
 parameter.
 """
-function _sections(pd::J2Propagator)
-    return SatelliteToolboxBase.PrintedSection[
+function _sections(pd::Union{J2Propagator, J4Propagator})
+    return PrintedSection[
         "Mean Elements" => _mean_elements_fields(pd.orb₀),
         "Secular Rates" => _secular_rates_fields(pd.n̄, pd.∂Ω, pd.∂ω),
-        "Constants"     => _constants_fields(pd.j2c),
-    ]
-end
-
-function _sections(pd::J4Propagator)
-    return SatelliteToolboxBase.PrintedSection[
-        "Mean Elements" => _mean_elements_fields(pd.orb₀),
-        "Secular Rates" => _secular_rates_fields(pd.n̄, pd.∂Ω, pd.∂ω),
-        "Constants"     => _constants_fields(pd.j4c),
+        "Constants"     => _constants_fields(_constants(pd)),
     ]
 end
 
 function _sections(pd::TwoBodyPropagator)
-    return SatelliteToolboxBase.PrintedSection[
+    return PrintedSection[
         "Mean Elements" => _mean_elements_fields(pd.orb₀),
         "Secular Rates" => _secular_rates_fields(pd.n₀),
         "Constants"     => _constants_fields(pd.μ),

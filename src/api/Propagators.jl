@@ -3,8 +3,9 @@ module Propagators
 using Dates
 
 import Base: copy, eltype, length, iterate, show
-import SatelliteToolboxBase
 import SatelliteToolboxBase: @maybe_threads, get_partition, OrbitStateVector
+import SatelliteToolboxBase: PrintedField, PrintedSection, epoch_string, format_value
+import SatelliteToolboxBase: print_compact, print_status, print_tree, type_name
 
 export OrbitPropagator
 
@@ -737,7 +738,7 @@ function show(io::IO, orbp::OrbitPropagator)
         return nothing
     end
 
-    SatelliteToolboxBase.print_compact(io, header, epoch(orbp))
+    print_compact(io, header, epoch(orbp))
 
     return nothing
 end
@@ -749,25 +750,25 @@ function show(io::IO, ::MIME"text/plain", orbp::OrbitPropagator)
     # If the propagator provides its data structure, we print its body under the header of
     # the wrapper.
     if !isnothing(data)
-        SatelliteToolboxBase.print_tree(io, header, data)
+        print_tree(io, header, data)
         return nothing
     end
 
     # Otherwise, we can only print the information obtained through the API.
-    if is_initialized(orbp)
-        epoch_str = SatelliteToolboxBase.epoch_string(epoch(orbp))
-        Δt_str    = SatelliteToolboxBase.format_value(last_instant(orbp))
-
-        fields   = SatelliteToolboxBase.PrintedField[]
-        sections = SatelliteToolboxBase.PrintedSection[
-            "Propagation" => [("Epoch", epoch_str, ""), ("Last Instant", Δt_str, "s")],
-        ]
-    else
-        fields   = SatelliteToolboxBase.PrintedField[("Status", "not initialized", "")]
-        sections = SatelliteToolboxBase.PrintedSection[]
+    if !is_initialized(orbp)
+        println(io, header, ":")
+        print_status(io, "not initialized")
+        return nothing
     end
 
-    SatelliteToolboxBase.print_tree(io, header, fields, sections)
+    epoch_str = epoch_string(epoch(orbp))
+    Δt_str    = format_value(last_instant(orbp))
+
+    sections = PrintedSection[
+        "Propagation" => [("Epoch", epoch_str, ""), ("Last Instant", Δt_str, "s")],
+    ]
+
+    print_tree(io, header, PrintedField[], sections)
 
     return nothing
 end
@@ -783,21 +784,10 @@ Return the header of the printed representations of `orbp`: its type with the pa
 followed by the propagator name in parentheses if the propagator defines one.
 """
 function _header(orbp::OrbitPropagator)
-    type_name = _type_name(orbp)
+    header    = type_name(orbp)
     prop_name = name(orbp)
-    prop_name == type_name && return type_name
-    return string(type_name, " (", prop_name, ")")
-end
-
-"""
-    _type_name(x) -> String
-
-Return the name of the type of `x` with its parameters, as used in the headers of the
-printed representations.
-"""
-function _type_name(x)
-    T = typeof(x)
-    return string(nameof(T), "{", join(T.parameters, ", "), "}")
+    prop_name == header && return header
+    return string(header, " (", prop_name, ")")
 end
 
 """

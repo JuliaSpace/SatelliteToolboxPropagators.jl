@@ -108,7 +108,7 @@ const SHOW_SGP4_BODY = join(
         "  │    RA of Asc. Node   : 247.6961°",
         "  │    Arg. of Periapsis : 88.1964°",
         "  │    Mean Anomaly      : 271.9322°",
-        "  │    B*                : 3.594e-5 1/er",
+        "  │    B*                : 3.594e-5 1/ER",
         "  ├─ Constants",
         "  │    R₀  : 6378.137 km",
         "  │    XKE : 0.07436685317 er^(3/2)/min",

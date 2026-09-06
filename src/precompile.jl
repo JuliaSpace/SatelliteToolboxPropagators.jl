@@ -69,6 +69,10 @@ PrecompileTools.@setup_workload begin
 
                 orbp = Propagators.init(Val(prop), mean_elements)
 
+                # Exercise the compact and the rich representations of the propagator.
+                show(IOBuffer(), orbp)
+                show(IOBuffer(), MIME("text/plain"), orbp)
+
                 Propagators.propagate!(orbp, 0.0)
                 Propagators.propagate!(orbp, [0.0, 1.0])
                 Propagators.propagate!(orbp, [0.0, 1.0, 2.0])
