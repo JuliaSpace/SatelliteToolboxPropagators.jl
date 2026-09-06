@@ -143,7 +143,9 @@ Return the initial elements' epoch of the propagator `orbp` [Julian Day, UTC].
 function epoch end
 
 """
-    last_instant(orbp::OrbitPropagator{Tepoch, T}) where {Tepoch <: Number, T <: Number} -> T
+    last_instant(
+        orbp::OrbitPropagator{Tepoch, T}
+    ) where {Tepoch <: Number, T <: Number} -> T
 
 Return the last propagation instant [s] measured from the epoch.
 """

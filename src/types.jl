@@ -37,7 +37,9 @@ struct J2PropagatorConstants{T <: Number}
 end
 
 """
-    J2PropagatorConstants{T}(j2c::J2PropagatorConstants) where {T <: Number} -> J2PropagatorConstants{T}
+    J2PropagatorConstants{T}(
+        j2c::J2PropagatorConstants
+    ) where {T <: Number} -> J2PropagatorConstants{T}
 
 Create a copy of the J2 propagator constants `j2c` with the element type `T`.
 """
