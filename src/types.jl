@@ -67,7 +67,8 @@ assigned before initializing a structure created with the empty constructor.
 - `orb₀::KeplerianElements{MeanAnomaly, Tepoch, T}`: Initial mean orbit elements [SI units].
 - `orbk::KeplerianElements{MeanAnomaly, Tepoch, T}`: Current mean orbit elements [SI units].
 - `j2c::J2PropagatorConstants{T}`: Propagator constants.
-- `Δt::T`: Timespan from the initial elements' epoch [s].
+- `Δt::T`: Timespan from the initial elements' epoch [s], which is `NaN` until the structure
+    is initialized.
 - `∂Ω::T`: RAAN time derivative [rad / s].
 - `∂ω::T`: Argument of perigee time derivative [rad / s].
 - `n̄::T`: Perturbed mean motion [rad / s].
@@ -81,9 +82,8 @@ initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"
 prints a tree with the epoch and the last propagation instant, followed by the sections
 with the initial mean elements, the secular rates, and the constants, one field per line
 with its unit, with the labels in bold and the units dimmed if `io` supports color. The body
-can be printed under another header with `SatelliteToolboxBase.print_tree_body`. The
-structures created with the empty constructor hold undefined values until they are
-initialized.
+can be printed under another header with `SatelliteToolboxBase.print_tree_body`. An
+uninitialized structure prints the status `not initialized` instead.
 """
 mutable struct J2Propagator{Tepoch <: Number, T <: Number}
     orb₀::KeplerianElements{MeanAnomaly, Tepoch, T}
@@ -100,7 +100,11 @@ mutable struct J2Propagator{Tepoch <: Number, T <: Number}
     # == Constructors ======================================================================
 
     J2Propagator{Tepoch, T}(args...) where {Tepoch <: Number, T <: Number} = new(args...)
-    J2Propagator{Tepoch, T}() where {Tepoch <: Number, T <: Number} = new()
+    function J2Propagator{Tepoch, T}() where {Tepoch <: Number, T <: Number}
+        pd    = new()
+        pd.Δt = _uninitialized_instant(T)
+        return pd
+    end
 end
 
 ############################################################################################
@@ -118,7 +122,8 @@ which must be assigned before initializing a structure created with the empty co
 # Fields
 
 - `j2d::J2Propagator{Tepoch, T}`: J2 orbit propagator that propagates the mean elements.
-- `Δt::T`: Timespan from the initial elements' epoch [s].
+- `Δt::T`: Timespan from the initial elements' epoch [s], which is `NaN` until the structure
+    is initialized.
 - `orbk::KeplerianElements{TrueAnomaly, Tepoch, T}`: Current osculating orbit elements [SI
     units].
 
@@ -143,7 +148,11 @@ mutable struct J2OsculatingPropagator{Tepoch <: Number, T <: Number}
 
     J2OsculatingPropagator{Tepoch, T}(args...) where {Tepoch <: Number, T <: Number} =
         new(args...)
-    J2OsculatingPropagator{Tepoch, T}() where {Tepoch <: Number, T <: Number} = new()
+    function J2OsculatingPropagator{Tepoch, T}() where {Tepoch <: Number, T <: Number}
+        pd    = new()
+        pd.Δt = _uninitialized_instant(T)
+        return pd
+    end
 end
 
 ############################################################################################
@@ -200,7 +209,8 @@ assigned before initializing a structure created with the empty constructor.
 - `orb₀::KeplerianElements{MeanAnomaly, Tepoch, T}`: Initial mean orbit elements [SI units].
 - `orbk::KeplerianElements{MeanAnomaly, Tepoch, T}`: Current mean orbit elements [SI units].
 - `j4c::J4PropagatorConstants{T}`: Propagator constants.
-- `Δt::T`: Timespan from the initial elements' epoch [s].
+- `Δt::T`: Timespan from the initial elements' epoch [s], which is `NaN` until the structure
+    is initialized.
 - `∂Ω::T`: RAAN time derivative [rad / s].
 - `∂ω::T`: Argument of perigee time derivative [rad / s].
 - `n̄::T`: Perturbed mean motion [rad / s].
@@ -214,9 +224,8 @@ initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"
 prints a tree with the epoch and the last propagation instant, followed by the sections
 with the initial mean elements, the secular rates, and the constants, one field per line
 with its unit, with the labels in bold and the units dimmed if `io` supports color. The body
-can be printed under another header with `SatelliteToolboxBase.print_tree_body`. The
-structures created with the empty constructor hold undefined values until they are
-initialized.
+can be printed under another header with `SatelliteToolboxBase.print_tree_body`. An
+uninitialized structure prints the status `not initialized` instead.
 """
 mutable struct J4Propagator{Tepoch <: Number, T <: Number}
     orb₀::KeplerianElements{MeanAnomaly, Tepoch, T}
@@ -233,7 +242,11 @@ mutable struct J4Propagator{Tepoch <: Number, T <: Number}
     # == Constructors ======================================================================
 
     J4Propagator{Tepoch, T}(args...) where {Tepoch <: Number, T <: Number} = new(args...)
-    J4Propagator{Tepoch, T}() where {Tepoch <: Number, T <: Number} = new()
+    function J4Propagator{Tepoch, T}() where {Tepoch <: Number, T <: Number}
+        pd    = new()
+        pd.Δt = _uninitialized_instant(T)
+        return pd
+    end
 end
 
 ############################################################################################
@@ -251,7 +264,8 @@ which must be assigned before initializing a structure created with the empty co
 # Fields
 
 - `j4d::J4Propagator{Tepoch, T}`: J4 orbit propagator that propagates the mean elements.
-- `Δt::T`: Timespan from the initial elements' epoch [s].
+- `Δt::T`: Timespan from the initial elements' epoch [s], which is `NaN` until the structure
+    is initialized.
 - `orbk::KeplerianElements{TrueAnomaly, Tepoch, T}`: Current osculating orbit elements [SI
     units].
 
@@ -276,7 +290,11 @@ mutable struct J4OsculatingPropagator{Tepoch <: Number, T <: Number}
 
     J4OsculatingPropagator{Tepoch, T}(args...) where {Tepoch <: Number, T <: Number} =
         new(args...)
-    J4OsculatingPropagator{Tepoch, T}() where {Tepoch <: Number, T <: Number} = new()
+    function J4OsculatingPropagator{Tepoch, T}() where {Tepoch <: Number, T <: Number}
+        pd    = new()
+        pd.Δt = _uninitialized_instant(T)
+        return pd
+    end
 end
 
 ############################################################################################
@@ -296,7 +314,8 @@ which must be assigned before initializing a structure created with the empty co
 - `orb₀::KeplerianElements{MeanAnomaly, Tepoch, T}`: Initial mean orbit elements [SI units].
 - `orbk::KeplerianElements{MeanAnomaly, Tepoch, T}`: Current mean orbit elements [SI units].
 - `μ::T`: Standard gravitational parameter of the central body [m³ / s²].
-- `Δt::T`: Timespan from the initial elements' epoch [s].
+- `Δt::T`: Timespan from the initial elements' epoch [s], which is `NaN` until the structure
+    is initialized.
 - `n₀::T`: Mean motion [rad / s].
 
 # Extended help
@@ -308,9 +327,8 @@ initial mean elements as a Julian Day and as a date. `show(io, MIME("text/plain"
 prints a tree with the epoch and the last propagation instant, followed by the sections
 with the initial mean elements, the mean motion, and the constants, one field per line with
 its unit, with the labels in bold and the units dimmed if `io` supports color. The body
-can be printed under another header with `SatelliteToolboxBase.print_tree_body`. The
-structures created with the empty constructor hold undefined values until they are
-initialized.
+can be printed under another header with `SatelliteToolboxBase.print_tree_body`. An
+uninitialized structure prints the status `not initialized` instead.
 """
 mutable struct TwoBodyPropagator{Tepoch <: Number, T <: Number}
     orb₀::KeplerianElements{MeanAnomaly, Tepoch, T}
@@ -326,7 +344,11 @@ mutable struct TwoBodyPropagator{Tepoch <: Number, T <: Number}
 
     TwoBodyPropagator{Tepoch, T}(args...) where {Tepoch <: Number, T <: Number} =
         new(args...)
-    TwoBodyPropagator{Tepoch, T}() where {Tepoch <: Number, T <: Number} = new()
+    function TwoBodyPropagator{Tepoch, T}() where {Tepoch <: Number, T <: Number}
+        pd    = new()
+        pd.Δt = _uninitialized_instant(T)
+        return pd
+    end
 end
 
 ############################################################################################
@@ -507,6 +529,16 @@ end
 ############################################################################################
 #                                    Private Functions                                     #
 ############################################################################################
+
+"""
+    _uninitialized_instant(::Type{T}) where {T <: Number} -> T
+
+Return the propagation instant stored in the field `Δt` by the empty constructors of the
+propagator structures, `NaN` converted to `T`, which marks a structure as not initialized
+until an initialization function assigns its fields. Hence, `T` must be able to represent
+`NaN`, as every floating-point type and the dual numbers do.
+"""
+_uninitialized_instant(::Type{T}) where {T <: Number} = T(NaN)
 
 """
     _copy_field(x) -> typeof(x)

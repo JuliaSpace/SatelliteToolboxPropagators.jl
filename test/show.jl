@@ -163,9 +163,15 @@ const SHOW_SGP4_BODY = join(
 
     @testset "Uninitialized" begin
         for pd in (
+            J2Propagator{Float64, Float64}(),
             J2OsculatingPropagator{Float64, Float64}(),
+            J4Propagator{Float64, Float32}(),
             J4OsculatingPropagator{Float64, Float32}(),
+            TwoBodyPropagator{Float64, Float64}(),
         )
+            # The empty constructors mark the structure with a `NaN` propagation instant.
+            @test isnan(pd.Δt)
+
             name = string(nameof(typeof(pd)), "{", join(typeof(pd).parameters, ", "), "}")
             @test sprint(show, pd) == "$name (not initialized)"
             expected = "$name:\n  Status : not initialized"
@@ -254,12 +260,24 @@ end
     @testset "Uninitialized" begin
         scenarios = (
             (
+                OrbitPropagatorJ2(J2Propagator{Float64, Float64}()),
+                "OrbitPropagatorJ2{Float64, Float64} (J2 Orbit Propagator)",
+            ),
+            (
                 OrbitPropagatorJ2Osculating(J2OsculatingPropagator{Float64, Float64}()),
                 "OrbitPropagatorJ2Osculating{Float64, Float64} (J2 Osculating Orbit Propagator)",
             ),
             (
+                OrbitPropagatorJ4(J4Propagator{Float64, Float64}()),
+                "OrbitPropagatorJ4{Float64, Float64} (J4 Orbit Propagator)",
+            ),
+            (
                 OrbitPropagatorJ4Osculating(J4OsculatingPropagator{Float64, Float64}()),
                 "OrbitPropagatorJ4Osculating{Float64, Float64} (J4 Osculating Orbit Propagator)",
+            ),
+            (
+                OrbitPropagatorTwoBody(TwoBodyPropagator{Float64, Float64}()),
+                "OrbitPropagatorTwoBody{Float64, Float64} (Two-Body Orbit Propagator)",
             ),
             (
                 OrbitPropagatorSgp4(Sgp4Propagator{Float64}(SGP4C_WGS84)),
@@ -269,6 +287,9 @@ end
 
         for (orbp, header) in scenarios
             @test !Propagators.is_initialized(orbp)
+
+            # The propagators of this package mark the structure with a `NaN` instant.
+            orbp isa OrbitPropagatorSgp4 || @test isnan(Propagators.last_instant(orbp))
             @test sprint(show, orbp) == "$header (not initialized)"
 
             expected = "$header:\n  Status : not initialized"

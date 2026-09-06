@@ -109,17 +109,10 @@ _initial_epoch(pd::TwoBodyPropagator)      = pd.orb₀.epoch
 """
     _is_initialized(pd::PropagatorData) -> Bool
 
-Return whether the propagator structure `pd` has been initialized. The osculating
-propagators created with the empty constructor have an undefined field `j2d` or `j4d` until
-they are initialized. The other structures only have `isbits` fields, which always hold a
-value, so they cannot be distinguished from initialized ones and this function returns
-`true`.
+Return whether the propagator structure `pd` has been initialized. The empty constructors
+set the field `Δt` to `NaN`, which is replaced by the initialization functions.
 """
-_is_initialized(pd::J2Propagator)           = true
-_is_initialized(pd::J2OsculatingPropagator) = isdefined(pd, :j2d)
-_is_initialized(pd::J4Propagator)           = true
-_is_initialized(pd::J4OsculatingPropagator) = isdefined(pd, :j4d)
-_is_initialized(pd::TwoBodyPropagator)      = true
+_is_initialized(pd::PropagatorData) = !isnan(pd.Δt)
 
 """
     _mean_elements_fields(

@@ -42,6 +42,9 @@ Version 2.0.0
   which returns the structure of the propagation theory wrapped by an `OrbitPropagator`,
   and `Propagators.is_initialized`, which tells whether a propagator created without
   initial elements has been initialized.
+- ![Enhancement][badge-enhancement] The empty constructors of the propagator structures
+  set the field `Δt` to `NaN`, which marks the structure as not initialized until an
+  initialization function assigns its fields.
 - ![Enhancement][badge-enhancement] Print the propagator structures `J2Propagator`,
   `J2OsculatingPropagator`, `J4Propagator`, `J4OsculatingPropagator`, and
   `TwoBodyPropagator` with the tree layout of **SatelliteToolboxBase.jl** v2.1, which
