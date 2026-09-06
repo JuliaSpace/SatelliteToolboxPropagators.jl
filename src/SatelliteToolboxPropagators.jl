@@ -7,6 +7,7 @@ using StyledStrings
 
 using ForwardDiff
 using Reexport
+using SatelliteToolboxOrbitDataMessages
 using StaticArrays
 
 @reexport using SatelliteToolboxBase

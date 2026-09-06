@@ -33,6 +33,22 @@ PrecompileTools.@setup_workload begin
 
     vjd = [2.46002818657856e6, 2.460028190050782e6]
 
+    omm = parse_omm(
+        """
+        <?xml version="1.0" encoding="utf-8"?>
+        <ndm><omm id="CCSDS_OMM_VERS" version="3.0">
+        <header><CREATION_DATE>2025-12-30T23:36:37</CREATION_DATE><ORIGINATOR>18 SPCS</ORIGINATOR></header>
+        <body><segment>
+        <metadata><OBJECT_NAME>AMAZONIA 1</OBJECT_NAME><OBJECT_ID>2021-015A</OBJECT_ID><CENTER_NAME>EARTH</CENTER_NAME><REF_FRAME>TEME</REF_FRAME><TIME_SYSTEM>UTC</TIME_SYSTEM><MEAN_ELEMENT_THEORY>SGP4</MEAN_ELEMENT_THEORY></metadata>
+        <data>
+        <meanElements><EPOCH>2025-12-30T18:12:04.533984</EPOCH><MEAN_MOTION>14.40772474</MEAN_MOTION><ECCENTRICITY>0.00011240</ECCENTRICITY><INCLINATION>98.3721</INCLINATION><RA_OF_ASC_NODE>75.0877</RA_OF_ASC_NODE><ARG_OF_PERICENTER>97.3772</ARG_OF_PERICENTER><MEAN_ANOMALY>262.7545</MEAN_ANOMALY></meanElements>
+        <tleParameters><EPHEMERIS_TYPE>0</EPHEMERIS_TYPE><CLASSIFICATION_TYPE>U</CLASSIFICATION_TYPE><NORAD_CAT_ID>47699</NORAD_CAT_ID><ELEMENT_SET_NO>999</ELEMENT_SET_NO><REV_AT_EPOCH>25439</REV_AT_EPOCH><BSTAR>0.00015330000000</BSTAR><MEAN_MOTION_DOT>0.00000447</MEAN_MOTION_DOT><MEAN_MOTION_DDOT>0.0000000000000</MEAN_MOTION_DDOT></tleParameters>
+        </data>
+        </segment></body>
+        </omm></ndm>
+        """,
+    )
+
     # The fitting functions print their progress, which we silence here.
     redirect_stdout(devnull) do
         PrecompileTools.@compile_workload begin
@@ -216,6 +232,14 @@ PrecompileTools.@setup_workload begin
                 Propagators.step!(orbp, Dates.Second(1), OrbitStateVector)
                 Propagators.step!(orbp, Dates.Second(1) + Dates.Minute(1), OrbitStateVector)
             end
+
+            # Exercise the SGP4 initialization from an Orbit Mean-Elements Message.
+            orbp = Propagators.init(Val(:SGP4), omm)
+            Propagators.propagate!(orbp, 0.0)
+            Propagators.init!(orbp, omm)
+
+            orbp = Propagators.init(Val(:SGP4), omm; sgp4c = sgp4c_wgs84_f32)
+            Propagators.propagate!(orbp, 0.0f0)
         end
     end
 end

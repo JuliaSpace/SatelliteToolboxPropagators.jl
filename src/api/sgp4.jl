@@ -349,8 +349,15 @@ end
 
     Propagators.init(Val(:SGP4), tle::TLE; kwargs...) -> OrbitPropagatorSgp4
 
+    Propagators.init(
+        Val(:SGP4),
+        omm::OrbitMeanElementsMessage;
+        kwargs...
+    ) -> OrbitPropagatorSgp4
+
 Create and initialize the SGP4 orbit propagator structure using the initial orbit specified
-by the arguments.
+by the arguments. The initialization from an Orbit Mean-Elements Message (OMM) can fail if
+the message does not describe an SGP4 orbit.
 
 !!! note
 
@@ -368,14 +375,33 @@ by the arguments.
 - `M₀::Number`: "Mean" mean anomaly at epoch [rad].
 - `bstar::Number`: Drag parameter (B*).
 - `tle::TLE`: Two-line elements used for the initialization.
+- `omm::OrbitMeanElementsMessage`: Orbit Mean-Elements Message used for the initialization.
+    Its mean element theory must be `"SGP4"`, and it must provide the mean motion or the
+    semi-major axis together with the gravitational coefficient. The drag term is set to 0
+    if it is absent. See `sgp4_init` in **SatelliteToolboxSgp4.jl** for the details.
 
 # Keywords
 
 - `sgp4c::Sgp4Constants`: SGP4 orbit propagator constants (see `Sgp4Constants`).
     (**Default**: `sgp4c_wgs84`)
+
+# Extended help
+
+## Throws
+
+- `ArgumentError`: If the mean element theory of `omm` is not `"SGP4"`, or if `omm`
+    provides neither the mean motion nor the semi-major axis together with the
+    gravitational coefficient.
 """
 function Propagators.init(::Val{:SGP4}, tle::TLE; sgp4c::Sgp4Constants = sgp4c_wgs84)
     sgp4d = sgp4_init(tle; sgp4c = sgp4c)
+    return OrbitPropagatorSgp4(sgp4d)
+end
+
+function Propagators.init(
+    ::Val{:SGP4}, omm::OrbitMeanElementsMessage; sgp4c::Sgp4Constants = sgp4c_wgs84
+)
+    sgp4d = sgp4_init(omm; sgp4c = sgp4c)
     return OrbitPropagatorSgp4(sgp4d)
 end
 
@@ -415,8 +441,15 @@ end
         kwargs...
     ) -> Nothing
 
+    Propagators.init!(
+        orbp::OrbitPropagatorSgp4,
+        omm::OrbitMeanElementsMessage;
+        kwargs...
+    ) -> Nothing
+
 Initialize the SGP4 orbit propagator structure `orbp` using the initial orbit specified
-by the arguments.
+by the arguments. The initialization from an Orbit Mean-Elements Message (OMM) can fail if
+the message does not describe an SGP4 orbit.
 
 !!! warning
 
@@ -434,9 +467,26 @@ by the arguments.
 - `M₀::Number`: "Mean" mean anomaly at epoch [rad].
 - `bstar::Number`: Drag parameter (B*).
 - `tle::TLE`: Two-line elements used for the initialization.
+- `omm::OrbitMeanElementsMessage`: Orbit Mean-Elements Message used for the initialization.
+    Its mean element theory must be `"SGP4"`, and it must provide the mean motion or the
+    semi-major axis together with the gravitational coefficient. The drag term is set to 0
+    if it is absent. See `sgp4_init!` in **SatelliteToolboxSgp4.jl** for the details.
+
+# Extended help
+
+## Throws
+
+- `ArgumentError`: If the mean element theory of `omm` is not `"SGP4"`, or if `omm`
+    provides neither the mean motion nor the semi-major axis together with the
+    gravitational coefficient.
 """
 function Propagators.init!(orbp::OrbitPropagatorSgp4, tle::TLE)
     sgp4_init!(orbp.sgp4d, tle)
+    return nothing
+end
+
+function Propagators.init!(orbp::OrbitPropagatorSgp4, omm::OrbitMeanElementsMessage)
+    sgp4_init!(orbp.sgp4d, omm)
     return nothing
 end
 

@@ -528,6 +528,101 @@
     end
 end
 
+@testset "Initialization Using OMM" verbose = true begin
+    # We build an Orbit Mean-Elements Message with the elements of the CBERS 2 TLE. The OMM
+    # stores the epoch with a limited precision, so we compare the propagation with a
+    # propagator initialized with exactly the same numbers instead of with the TLE.
+    tle = tle"""
+        CBERS 2
+        1 28057U 03049A   06177.78615833  .00000060  00000-0  35940-4 0  1836
+        2 28057  98.4283 247.6961 0000884  88.1964 271.9322 14.35478080140550
+        """
+
+    epoch_dt = julian2datetime(tle_epoch(tle))
+    epoch    = datetime2julian(epoch_dt)
+
+    omm = parse_omm(
+        """
+        <?xml version="1.0" encoding="utf-8"?>
+        <ndm><omm id="CCSDS_OMM_VERS" version="3.0">
+        <header><CREATION_DATE>2026-01-01T00:00:00</CREATION_DATE><ORIGINATOR>TEST</ORIGINATOR></header>
+        <body><segment>
+        <metadata><OBJECT_NAME>CBERS 2</OBJECT_NAME><OBJECT_ID>2003-049A</OBJECT_ID><CENTER_NAME>EARTH</CENTER_NAME><REF_FRAME>TEME</REF_FRAME><TIME_SYSTEM>UTC</TIME_SYSTEM><MEAN_ELEMENT_THEORY>SGP4</MEAN_ELEMENT_THEORY></metadata>
+        <data>
+        <meanElements><EPOCH>$(string(epoch_dt))</EPOCH><MEAN_MOTION>14.35478080</MEAN_MOTION><ECCENTRICITY>0.0000884</ECCENTRICITY><INCLINATION>98.4283</INCLINATION><RA_OF_ASC_NODE>247.6961</RA_OF_ASC_NODE><ARG_OF_PERICENTER>88.1964</ARG_OF_PERICENTER><MEAN_ANOMALY>271.9322</MEAN_ANOMALY></meanElements>
+        <tleParameters><EPHEMERIS_TYPE>0</EPHEMERIS_TYPE><CLASSIFICATION_TYPE>U</CLASSIFICATION_TYPE><NORAD_CAT_ID>28057</NORAD_CAT_ID><ELEMENT_SET_NO>183</ELEMENT_SET_NO><REV_AT_EPOCH>14055</REV_AT_EPOCH><BSTAR>0.000035940</BSTAR><MEAN_MOTION_DOT>0.00000060</MEAN_MOTION_DOT><MEAN_MOTION_DDOT>0.0</MEAN_MOTION_DDOT></tleParameters>
+        </data>
+        </segment></body>
+        </omm></ndm>
+        """,
+    )
+
+    for (T, sgp4c) in ((Float64, sgp4c_wgs72), (Float32, sgp4c_wgs72_f32))
+        @testset "$T" begin
+            orbp_ref = Propagators.init(
+                Val(:SGP4),
+                epoch,
+                14.35478080 * 2π / 86400,
+                0.0000884,
+                98.4283 |> deg2rad,
+                247.6961 |> deg2rad,
+                88.1964 |> deg2rad,
+                271.9322 |> deg2rad,
+                0.000035940;
+                sgp4c = sgp4c,
+            )
+
+            # == Initialization ============================================================
+
+            orbp = Propagators.init(Val(:SGP4), omm; sgp4c = sgp4c)
+
+            @test orbp isa OrbitPropagatorSgp4{Float64, T}
+            @test Propagators.epoch(orbp) == epoch
+
+            for t in (0, 3600, 86400)
+                r_teme, v_teme = Propagators.propagate!(orbp, t)
+                r_ref, v_ref   = Propagators.propagate!(orbp_ref, t)
+
+                @test eltype(r_teme) == T
+                @test eltype(v_teme) == T
+                @test r_teme ≈ r_ref
+                @test v_teme ≈ v_ref
+            end
+
+            # == In-Place Initialization ===================================================
+
+            orbp              = OrbitPropagatorSgp4(Sgp4Propagator{Float64, T}())
+            orbp.sgp4d.sgp4c  = sgp4c
+            orbp.sgp4d.sgp4ds = SatelliteToolboxSgp4.Sgp4DeepSpace{T}()
+            Propagators.init!(orbp, omm)
+
+            @test Propagators.epoch(orbp) == epoch
+
+            r_teme, v_teme = Propagators.propagate!(orbp, 3600)
+            r_ref, v_ref   = Propagators.propagate!(orbp_ref, 3600)
+
+            @test r_teme ≈ r_ref
+            @test v_teme ≈ v_ref
+
+            # == Simultaneous Initialization and Propagation ===============================
+
+            r_teme, v_teme, orbp = Propagators.propagate(
+                Val(:SGP4), 3600, omm; sgp4c = sgp4c
+            )
+
+            @test orbp isa OrbitPropagatorSgp4{Float64, T}
+            @test r_teme ≈ r_ref
+            @test v_teme ≈ v_ref
+        end
+    end
+
+    # A message that does not describe an SGP4 orbit must be rejected.
+    @testset "Errors" begin
+        omm_theory = OrbitMeanElementsMessage(omm; mean_element_theory = "DSST")
+        @test_throws ArgumentError Propagators.init(Val(:SGP4), omm_theory)
+    end
+end
+
 @testset "Fitting Mean Elements for the SGP4 Osculating Orbit Propagator" verbose = true begin
     # The algorithm is already heavily testes in SatelliteToolboxSgp4.jl. Hence, we will
     # perform just an interface test here with a simple case.

@@ -85,6 +85,45 @@ where:
 
 The keywords `kwargs...` are the same as in the first version of this function.
 
+Finally, the propagator can be initialized with an [Orbit Mean-Elements Message
+(OMM)](https://public.ccsds.org/Pubs/502x0b3e1.pdf) whose mean element theory is SGP4:
+
+```julia
+Propagators.init(Val(:SGP4), omm::OrbitMeanElementsMessage; kwargs...) -> OrbitPropagatorSgp4
+```
+
+The mean motion is obtained from the field `MEAN_MOTION` or, if it is absent, from the
+semi-major axis and the gravitational coefficient, and the drag term is set to 0 if the
+field `BSTAR` is absent. The keywords `kwargs...` are the same as in the first version of
+this function.
+
+!!! note
+
+    The package
+    [**SatelliteToolboxOrbitDataMessages.jl**](https://github.com/JuliaSpace/SatelliteToolboxOrbitDataMessages.jl)
+    defines the type `OrbitMeanElementsMessage` and the functions to read, parse, and fetch
+    the messages, and it is re-exported here.
+
+```@repl sgp4
+omm = parse_omm(
+    """
+    <?xml version="1.0" encoding="utf-8"?>
+    <ndm><omm id="CCSDS_OMM_VERS" version="3.0">
+    <header><CREATION_DATE>2025-12-30T23:36:37</CREATION_DATE><ORIGINATOR>18 SPCS</ORIGINATOR></header>
+    <body><segment>
+    <metadata><OBJECT_NAME>AMAZONIA 1</OBJECT_NAME><OBJECT_ID>2021-015A</OBJECT_ID><CENTER_NAME>EARTH</CENTER_NAME><REF_FRAME>TEME</REF_FRAME><TIME_SYSTEM>UTC</TIME_SYSTEM><MEAN_ELEMENT_THEORY>SGP4</MEAN_ELEMENT_THEORY></metadata>
+    <data>
+    <meanElements><EPOCH>2025-12-30T18:12:04.533984</EPOCH><MEAN_MOTION>14.40772474</MEAN_MOTION><ECCENTRICITY>0.00011240</ECCENTRICITY><INCLINATION>98.3721</INCLINATION><RA_OF_ASC_NODE>75.0877</RA_OF_ASC_NODE><ARG_OF_PERICENTER>97.3772</ARG_OF_PERICENTER><MEAN_ANOMALY>262.7545</MEAN_ANOMALY></meanElements>
+    <tleParameters><EPHEMERIS_TYPE>0</EPHEMERIS_TYPE><CLASSIFICATION_TYPE>U</CLASSIFICATION_TYPE><NORAD_CAT_ID>47699</NORAD_CAT_ID><ELEMENT_SET_NO>999</ELEMENT_SET_NO><REV_AT_EPOCH>25439</REV_AT_EPOCH><BSTAR>0.00015330000000</BSTAR><MEAN_MOTION_DOT>0.00000447</MEAN_MOTION_DOT><MEAN_MOTION_DDOT>0.0000000000000</MEAN_MOTION_DDOT></tleParameters>
+    </data>
+    </segment></body>
+    </omm></ndm>
+    """
+)
+
+Propagators.init(Val(:SGP4), omm)
+```
+
 ## Fitting TLEs
 
 We can use the function:
