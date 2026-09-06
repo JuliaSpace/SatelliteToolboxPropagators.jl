@@ -25,7 +25,7 @@ updated to that instant, which fails for epochs outside the years a TLE can repr
 - `ArgumentError`: If the epoch year is outside the interval [1976, 2075].
 """
 function Propagators.mean_elements(orbp::OrbitPropagatorSgp4)
-    # We need to copy the propagator to avoid modifying it.
+    # We need to copy the propagator because updating the TLE epoch modifies it.
     sgp4d = copy(orbp.sgp4d)
     sgp4c = sgp4d.sgp4c
 
@@ -62,12 +62,10 @@ function Propagators.mean_elements(orbp::OrbitPropagatorSgp4)
         mean_motion         = 720 * sgp4d.n₀ / π,
     )
 
-    # Now, we update the TLE epoch to the current propagation instant.
+    # Now, we update the TLE epoch to the current propagation instant, which also
+    # initializes the copied propagator with the updated mean elements.
     new_epoch = Propagators.epoch(orbp) + Propagators.last_instant(orbp) / 86400
-    updated_tle = update_sgp4_tle_epoch!(sgp4d, tle, new_epoch; verbose = false)
-
-    # Initialize the propagator to obtain the mean elements.
-    sgp4_init!(sgp4d, updated_tle)
+    update_sgp4_mean_elements_epoch!(sgp4d, tle, new_epoch; verbose = false)
 
     # Create and return the Keplerian elements storing the mean anomaly. The semi-major axis
     # is recovered from the mean motion using the SGP4 constants, converting it to meters.
@@ -84,24 +82,26 @@ end
 
 """
     Propagators.fit_mean_elements(
-        ::Val{:SGP4},
+        [sink::Type, ]::Val{:SGP4},
         vjd::AbstractVector{Tjd},
         vr_teme::AbstractVector{Tv},
         vv_teme::AbstractVector{Tv};
         kwargs...
-    ) -> TLE, SMatrix{7, 7, T}
+    ) where {Tjd <: Number, Tv <: AbstractVector} -> sink, SMatrix{7, 7, Float64}
 
-Fit a Two-Line Element set (`TLE`) for the SGP4 orbit propagator using the osculating
-elements represented by a set of position vectors `vr_teme` [m] and a set of velocity
-vectors `vv_teme` [m / s] represented in the True-Equator, Mean-Equinox reference frame
-(TEME) at instants in the array `vjd` [Julian Day].
+Fit a set of SGP4 mean elements using the osculating elements represented by a set of
+position vectors `vr_teme` [m] and a set of velocity vectors `vv_teme` [m / s] represented
+in the True-Equator, Mean-Equinox reference frame (TEME) at instants in the array `vjd`
+[Julian Day, UTC]. The mean elements are returned as an object of type `sink`, which can be
+`TLE` or `OrbitMeanElementsMessage`. If it is omitted, an `OrbitMeanElementsMessage` is
+returned. The fitting can fail if the least-square iterations diverge.
 
 This algorithm was based on **[1]**.
 
 !!! note
 
     This algorithm version will allocate a new SGP4 propagator with the default constants
-    `sgp4c_wgs84`. If another set of constants are required, use the function
+    `SGP4C_WGS84`. If another set of constants are required, use the function
     [`Propagators.fit_mean_elements!`](@ref) instead.
 
 # Keywords
@@ -116,61 +116,69 @@ This algorithm was based on **[1]**.
 - `estimate_bstar::Bool`: If `true`, the algorithm will try to estimate the B* parameter.
     Otherwise, it will be set to 0 or to the value in the initial guess (see section
     **Initial Guess**).
-    (**Default**: true)
-- `initial_guess::Union{Nothing, AbstractVector, TLE}`: Initial guess for the TLE fitting
-    process. If it is `nothing`, the algorithm will obtain an initial estimate from the
-    osculating elements in `vr_teme` and `vv_teme`. For more information, see the section
-    **Initial Guess**.
-    (**Default**: nothing)
+    (**Default**: `true`)
+- `include_covariance::Bool`: If `true`, the covariance of the mean position and velocity
+    obtained by the least-square algorithm is stored in the covariance matrix section of
+    the output, represented in the TEME reference frame. It is only used when `sink` is
+    `OrbitMeanElementsMessage`.
+    (**Default**: `true`)
+- `initial_guess::Union{Nothing, AbstractVector, TLE, OrbitMeanElementsMessage}`: Initial
+    guess for the fitting process. If it is `nothing`, the algorithm will obtain an initial
+    estimate from the osculating elements in `vr_teme` and `vv_teme`. For more information,
+    see the section **Initial Guess**.
+    (**Default**: `nothing`)
 - `jacobian_method::AbstractJacobianMethod`: Method used to compute the Jacobian matrix. It
     can be `FiniteDiffJacobian()` for finite differences or `ForwardDiffJacobian()` for
-    `ForwardDiff.jl` automatic differentiation.
+    **ForwardDiff.jl** automatic differentiation.
     (**Default**: `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix.
+    finite-difference when calculating the Jacobian matrix. Only used with
+    `FiniteDiffJacobian()`.
     (**Default**: 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
-    `jacobian_perturbation_tol`.
+    `jacobian_perturbation_tol`. Only used with `FiniteDiffJacobian()`.
     (**Default**: 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
     (**Default**: 50)
-- `mean_elements_epoch::Number`: Epoch for the fitted TLE.
-    (**Default**: vjd[end])
+- `mean_elements_epoch::Number`: Epoch of the fitted mean elements [Julian Day, UTC].
+    (**Default**: `vjd[end]`)
+- `template::Union{Nothing, sink, NamedTuple}`: Source of the metadata of the output. If it
+    is an object of type `sink`, its metadata is copied, e.g. the satellite name and number
+    of a `TLE` or the header, the metadata, and the TLE-related parameters of an
+    `OrbitMeanElementsMessage`. If it is a `NamedTuple`, its entries are passed as keywords
+    to the constructor of `sink` on top of the default metadata, e.g.
+    `(; name = "AMAZONIA 1", satellite_number = 47699)` for a `TLE` or
+    `(; object_name = "AMAZONIA 1", object_id = "2021-015A", norad_cat_id = 47699)` for
+    an `OrbitMeanElementsMessage`. In both cases, only the mean elements, the epoch, the
+    drag term, and the covariance matrix are set by the fitted values, and a `NamedTuple`
+    must not contain them. If it is `nothing`, the metadata is filled with default values.
+    (**Default**: `nothing`)
 - `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default**: true)
+    (**Default**: `true`)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
     `weight_vector` at its diagonal.
     (**Default**: `@SVector(ones(Bool, 6))`)
-- `classification::Char`: Satellite classification character for the output TLE.
-    (**Default**: 'U')
-- `element_set_number::Int`: Element set number for the output TLE.
-    (**Default**: 0)
-- `international_designator::String`: International designator string for the output TLE.
-    (**Default**: "999999")
-- `name::String`: Satellite name for the output TLE.
-    (**Default**: "UNDEFINED")
-- `revolution_number::Int`: Revolution number for the output TLE.
-    (**Default**: 0)
-- `satellite_number::Int`: Satellite number for the output TLE.
-    (**Default**: 9999)
 
 # Returns
 
-- `TLE`: The fitted TLE.
-- `SMatrix{7, 7, T}`: Final covariance matrix of the least-square algorithm.
+- `sink`: The fitted mean elements.
+- `SMatrix{7, 7, Float64}`: Final covariance matrix of the least-square algorithm, whose
+    state is the mean position [km], the mean velocity [km / s], and the drag term B*
+    [1 / er].
 
 # Initial Guess
 
-This algorithm uses a least-square algorithm to fit a TLE based on a set of osculating state
-vectors. Since the system is chaotic, a good initial guess is paramount for algorithm
-convergence. We can provide an initial guess using the keyword `initial_guess`.
+This algorithm uses a least-square algorithm to fit a set of mean elements based on a set
+of osculating state vectors. Since the system is chaotic, a good initial guess is paramount
+for algorithm convergence. We can provide an initial guess using the keyword
+`initial_guess`.
 
-If `initial_guess` is a `TLE`, we update the TLE epoch using the function
-`update_sgp4_tle_epoch!` to the desired one in `mean_elements_epoch`. Afterward, we use this
-new TLE as the initial guess.
+If `initial_guess` is a `TLE` or an `OrbitMeanElementsMessage`, we update its epoch to the
+desired one in `mean_elements_epoch`. Afterward, we use these mean elements as the initial
+guess.
 
 If `initial_guess` is an `AbstractVector`, we use this vector as the initial mean state
 vector for the algorithm. It must contain 7 elements as follows:
@@ -183,20 +191,28 @@ vector for the algorithm. It must contain 7 elements as follows:
 
 If `initial_guess` is `nothing`, the algorithm takes the closest osculating state vector to
 the `mean_elements_epoch` and uses it as the initial mean state vector. In this case, the
-epoch is set to the same epoch of the osculating data in `vjd`. When the fitted TLE is
-obtained, the algorithm uses the function `update_sgp4_tle_epoch!` to change its epoch to
-`mean_elements_epoch`.
+epoch is set to the same epoch of the osculating data in `vjd`. When the fitted mean
+elements are obtained, the algorithm updates their epoch to `mean_elements_epoch`.
 
 !!! note
 
-    If `initial_guess` is not `nothing`, the B* initial estimate is obtained from the TLE or
-    the state vector. Hence, if `estimate_bstar` is `false`, it will be kept constant with
-    this initial value.
+    If `initial_guess` is not `nothing`, the B* initial estimate is obtained from the mean
+    elements or the state vector. Hence, if `estimate_bstar` is `false`, it will be kept
+    constant with this initial value.
 
 # References
 
 - **[1]** Vallado, D. A., Crawford, P (2008). SGP4 Orbit Determination. American Institute
     of Aeronautics and Astronautics.
+
+# Extended help
+
+## Throws
+
+- `ArgumentError`: If `vjd`, `vr_teme`, and `vv_teme` do not have the same length, if
+    `weight_vector` does not have six elements, if `max_iterations` is lower than 1, or if
+    a `NamedTuple` template contains a field set by the fit.
+- `Sgp4FitDivergenceError`: If the least-square iterations diverge.
 """
 function Propagators.fit_mean_elements(
     ::Val{:SGP4},
@@ -205,123 +221,75 @@ function Propagators.fit_mean_elements(
     vv_teme::AbstractVector{Tv};
     kwargs...,
 ) where {Tjd <: Number, Tv <: AbstractVector}
-    return fit_sgp4_tle(vjd, vr_teme ./ 1000, vv_teme ./ 1000; kwargs...)
+    return Propagators.fit_mean_elements(
+        OrbitMeanElementsMessage, Val(:SGP4), vjd, vr_teme, vv_teme; kwargs...
+    )
+end
+
+function Propagators.fit_mean_elements(
+    ::Type{S},
+    ::Val{:SGP4},
+    vjd::AbstractVector{Tjd},
+    vr_teme::AbstractVector{Tv},
+    vv_teme::AbstractVector{Tv};
+    kwargs...,
+) where {S <: Union{TLE, OrbitMeanElementsMessage}, Tjd <: Number, Tv <: AbstractVector}
+    return fit_sgp4_mean_elements(S, vjd, vr_teme ./ 1000, vv_teme ./ 1000; kwargs...)
 end
 
 """
     Propagators.fit_mean_elements!(
-        orbp::OrbitPropagatorSgp4,
+        orbp::OrbitPropagatorSgp4{Tepoch, T},
         vjd::AbstractVector{Tjd},
         vr_teme::AbstractVector{Tv},
-        vv_teme::AbstractVector{Tv};
+        vv_teme::AbstractVector{Tv}[, sink::Type];
         kwargs...
-    ) where {Tjd <: Number, Tv <: AbstractVector} -> TLE, SMatrix{7, 7, T}
+    ) where {
+        Tepoch <: Number,
+        T <: Number,
+        Tjd <: Number,
+        Tv <: AbstractVector
+    } -> sink, SMatrix{7, 7, T}
 
-Fit a Two-Line Element set (`TLE`) for the SGP4 orbit propagator `orbp` using the
-osculating elements represented by a set of position vectors `vr_teme` [m] and a set of
-velocity vectors `vv_teme` [m / s] represented in the True-Equator, Mean-Equinox reference
-frame (TEME) at instants in the array `vjd` [Julian Day].
+Fit a set of SGP4 mean elements for the orbit propagator `orbp` using the osculating
+elements represented by a set of position vectors `vr_teme` [m] and a set of velocity
+vectors `vv_teme` [m / s] represented in the True-Equator, Mean-Equinox reference frame
+(TEME) at instants in the array `vjd` [Julian Day, UTC]. The mean elements are returned as
+an object of type `sink`, which can be `TLE` or `OrbitMeanElementsMessage`. If it is
+omitted, an `OrbitMeanElementsMessage` is returned. The fitting can fail if the
+least-square iterations diverge.
 
 This algorithm was based on **[1]**.
 
 !!! note
 
-    The SGP4 orbit propagator `orbp` will be initialized with the TLE returned by the
-    function.
+    The SGP4 orbit propagator `orbp` will be initialized with the mean elements returned by
+    the function.
 
 # Keywords
 
-- `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
-    `atol` at any iteration, the computation loop stops.
-    (**Default**: 2e-4)
-- `rtol::Number`: Tolerance for the relative difference between the residuals. If the
-    relative difference between the residuals in two consecutive iterations is lower than
-    `rtol`, the computation loop stops.
-    (**Default**: 2e-4)
-- `estimate_bstar::Bool`: If `true`, the algorithm will try to estimate the B* parameter.
-    Otherwise, it will be set to 0 or to the value in the initial guess (see section
-    **Initial Guess**).
-    (**Default**: true)
-- `initial_guess::Union{Nothing, AbstractVector, TLE}`: Initial guess for the TLE fitting
-    process. If it is `nothing`, the algorithm will obtain an initial estimate from the
-    osculating elements in `vr_teme` and `vv_teme`. For more information, see the section
-    **Initial Guess**.
-    (**Default**: nothing)
-- `jacobian_method::AbstractJacobianMethod`: Method used to compute the Jacobian matrix. It
-    can be `FiniteDiffJacobian()` for finite differences or `ForwardDiffJacobian()` for
-    `ForwardDiff.jl` automatic differentiation.
-    (**Default**: `FiniteDiffJacobian()`)
-- `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix.
-    (**Default**: 1e-3)
-- `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
-    the Jacobian matrix. If the computed perturbation is lower than
-    `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
-    `jacobian_perturbation_tol`.
-    (**Default**: 1e-7)
-- `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
-    (**Default**: 50)
-- `mean_elements_epoch::Number`: Epoch for the fitted TLE.
-    (**Default**: vjd[end])
-- `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default**: true)
-- `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
-    algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
-    `weight_vector` at its diagonal.
-    (**Default**: `@SVector(ones(Bool, 6))`)
-- `classification::Char`: Satellite classification character for the output TLE.
-    (**Default**: 'U')
-- `element_set_number::Int`: Element set number for the output TLE.
-    (**Default**: 0)
-- `international_designator::String`: International designator string for the output TLE.
-    (**Default**: "999999")
-- `name::String`: Satellite name for the output TLE.
-    (**Default**: "UNDEFINED")
-- `revolution_number::Int`: Revolution number for the output TLE.
-    (**Default**: 0)
-- `satellite_number::Int`: Satellite number for the output TLE.
-    (**Default**: 9999)
+The keywords are the same as in [`Propagators.fit_mean_elements`](@ref) for the SGP4 orbit
+propagator.
 
 # Returns
 
-- `TLE`: The fitted TLE.
-- `SMatrix{7, 7, T}`: Final covariance matrix of the least-square algorithm.
-
-# Initial Guess
-
-This algorithm uses a least-square algorithm to fit a TLE based on a set of osculating state
-vectors. Since the system is chaotic, a good initial guess is paramount for algorithm
-convergence. We can provide an initial guess using the keyword `initial_guess`.
-
-If `initial_guess` is a `TLE`, we update the TLE epoch using the function
-`update_sgp4_tle_epoch!` to the desired one in `mean_elements_epoch`. Afterward, we use this
-new TLE as the initial guess.
-
-If `initial_guess` is an `AbstractVector`, we use this vector as the initial mean state
-vector for the algorithm. It must contain 7 elements as follows:
-
-    ┌                                    ┐
-    │ IDs 1 to 3: Mean position [km]     │
-    │ IDs 4 to 6: Mean velocity [km / s] │
-    │ ID  7:      Bstar         [1 / er] │
-    └                                    ┘
-
-If `initial_guess` is `nothing`, the algorithm takes the closest osculating state vector to
-the `mean_elements_epoch` and uses it as the initial mean state vector. In this case, the
-epoch is set to the same epoch of the osculating data in `vjd`. When the fitted TLE is
-obtained, the algorithm uses the function `update_sgp4_tle_epoch!` to change its epoch to
-`mean_elements_epoch`.
-
-!!! note
-
-    If `initial_guess` is not `nothing`, the B* initial estimate is obtained from the TLE or
-    the state vector. Hence, if `estimate_bstar` is `false`, it will be kept constant with
-    this initial value.
+- `sink`: The fitted mean elements.
+- `SMatrix{7, 7, T}`: Final covariance matrix of the least-square algorithm, whose state is
+    the mean position [km], the mean velocity [km / s], and the drag term B* [1 / er].
 
 # References
 
 - **[1]** Vallado, D. A., Crawford, P (2008). SGP4 Orbit Determination. American Institute
     of Aeronautics and Astronautics.
+
+# Extended help
+
+## Throws
+
+- `ArgumentError`: If `vjd`, `vr_teme`, and `vv_teme` do not have the same length, if
+    `weight_vector` does not have six elements, if `max_iterations` is lower than 1, or if
+    a `NamedTuple` template contains a field set by the fit.
+- `Sgp4FitDivergenceError`: If the least-square iterations diverge.
 """
 function Propagators.fit_mean_elements!(
     orbp::OrbitPropagatorSgp4,
@@ -330,7 +298,22 @@ function Propagators.fit_mean_elements!(
     vv_teme::AbstractVector{Tv};
     kwargs...,
 ) where {Tjd <: Number, Tv <: AbstractVector}
-    return fit_sgp4_tle!(orbp.sgp4d, vjd, vr_teme ./ 1000, vv_teme ./ 1000; kwargs...)
+    return Propagators.fit_mean_elements!(
+        orbp, vjd, vr_teme, vv_teme, OrbitMeanElementsMessage; kwargs...
+    )
+end
+
+function Propagators.fit_mean_elements!(
+    orbp::OrbitPropagatorSgp4,
+    vjd::AbstractVector{Tjd},
+    vr_teme::AbstractVector{Tv},
+    vv_teme::AbstractVector{Tv},
+    ::Type{S};
+    kwargs...,
+) where {S <: Union{TLE, OrbitMeanElementsMessage}, Tjd <: Number, Tv <: AbstractVector}
+    return fit_sgp4_mean_elements!(
+        orbp.sgp4d, S, vjd, vr_teme ./ 1000, vv_teme ./ 1000; kwargs...
+    )
 end
 
 """
@@ -382,8 +365,10 @@ the message does not describe an SGP4 orbit.
 
 # Keywords
 
-- `sgp4c::Sgp4Constants`: SGP4 orbit propagator constants (see `Sgp4Constants`).
-    (**Default**: `sgp4c_wgs84`)
+- `sgp4c::Sgp4Constants`: SGP4 orbit propagator constants (see `Sgp4Constants`). The
+    constants in another number type can be obtained with the converting constructor, e.g.
+    `Sgp4Constants{Float32}(SGP4C_WGS84)`.
+    (**Default**: `SGP4C_WGS84`)
 
 # Extended help
 
@@ -393,13 +378,13 @@ the message does not describe an SGP4 orbit.
     provides neither the mean motion nor the semi-major axis together with the
     gravitational coefficient.
 """
-function Propagators.init(::Val{:SGP4}, tle::TLE; sgp4c::Sgp4Constants = sgp4c_wgs84)
+function Propagators.init(::Val{:SGP4}, tle::TLE; sgp4c::Sgp4Constants = SGP4C_WGS84)
     sgp4d = sgp4_init(tle; sgp4c = sgp4c)
     return OrbitPropagatorSgp4(sgp4d)
 end
 
 function Propagators.init(
-    ::Val{:SGP4}, omm::OrbitMeanElementsMessage; sgp4c::Sgp4Constants = sgp4c_wgs84
+    ::Val{:SGP4}, omm::OrbitMeanElementsMessage; sgp4c::Sgp4Constants = SGP4C_WGS84
 )
     sgp4d = sgp4_init(omm; sgp4c = sgp4c)
     return OrbitPropagatorSgp4(sgp4d)
@@ -415,7 +400,7 @@ function Propagators.init(
     ω₀::Number,
     M₀::Number,
     bstar::Number;
-    sgp4c::Sgp4Constants = sgp4c_wgs84,
+    sgp4c::Sgp4Constants = SGP4C_WGS84,
 )
     sgp4d = sgp4_init(epoch, 60n₀, e₀, i₀, Ω₀, ω₀, M₀, bstar; sgp4c = sgp4c)
     return OrbitPropagatorSgp4(sgp4d)
@@ -454,7 +439,8 @@ the message does not describe an SGP4 orbit.
 !!! warning
 
     The propagation constants `sgp4c::Sgp4Constants` in `orbp.sgp4d` will not be changed.
-    Hence, they must be initialized.
+    Hence, they must be initialized, e.g. by creating the structure with
+    `Sgp4Propagator{Float64}(SGP4C_WGS84)`.
 
 # Arguments
 

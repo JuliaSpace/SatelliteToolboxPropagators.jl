@@ -35,7 +35,7 @@ const PropagationSink = Union{Type{Tuple}, Type{OrbitStateVector}}
 
 """
     fit_mean_elements(
-        ::Val{:propagator},
+        [sink::Type, ]::Val{:propagator},
         vjd::AbstractVector{Tjd},
         vr_i::AbstractVector{Tv},
         vv_i::AbstractVector{Tv};
@@ -43,7 +43,7 @@ const PropagationSink = Union{Type{Tuple}, Type{OrbitStateVector}}
     ) where {Tjd <: Number, Tv <: AbstractVector} -> <Mean elements>, <Covariance>
 
     fit_mean_elements(
-        ::Val{:propagator},
+        [sink::Type, ]::Val{:propagator},
         vsv::AbstractVector{OrbitStateVector{Tepoch, T}};
         kwargs...
     ) where {Tepoch <: Number, T <: Number} -> <Mean elements>, <Covariance>
@@ -54,11 +54,16 @@ of position vectors `vr_i` [m] and a set of velocity vectors `vv_i` [m / s] obta
 instants in the array `vjd` [Julian Day], or an array of `OrbitStateVector` `vsv` [SI],
 containing the same information. The keywords `kwargs` depend on the propagator type.
 
+The optional parameter `sink` selects the representation of the mean elements for the
+propagators that support more than one. SGP4 accepts `TLE` and `OrbitMeanElementsMessage`,
+defaulting to the latter.
+
 # Returns
 
 - `<Mean elements>`: Set of mean elements used to initialize the `propagator`. The concrete
     type depends on the propagator, and it is `KeplerianElements{MeanAnomaly}` for every
-    propagator except SGP4, which returns a `TLE`.
+    propagator except SGP4, which returns an `OrbitMeanElementsMessage` or a `TLE` selected
+    by `sink`.
 - `<Covariance>`: Final covariance matrix of the least-square algorithm. It is a
     `SMatrix{6, 6}` for every propagator except SGP4, which returns a `SMatrix{7, 7}`
     because it also fits the B* parameter.
@@ -75,18 +80,28 @@ function fit_mean_elements(
     return fit_mean_elements(prop, vjd, vr_i, vv_i; kwargs...)
 end
 
+function fit_mean_elements(
+    sink::Type, prop::Val, vsv::AbstractVector{OrbitStateVector{Tepoch, T}}; kwargs...
+) where {Tepoch <: Number, T <: Number}
+    vjd  = map(x -> x.epoch, vsv)
+    vr_i = map(x -> x.r, vsv)
+    vv_i = map(x -> x.v, vsv)
+
+    return fit_mean_elements(sink, prop, vjd, vr_i, vv_i; kwargs...)
+end
+
 """
     fit_mean_elements!(
         orbp::OrbitPropagator,
         vjd::AbstractVector{Tjd},
         vr_i::AbstractVector{Tv},
-        vv_i::AbstractVector{Tv};
+        vv_i::AbstractVector{Tv}[, sink::Type];
         kwargs...
     ) where {Tjd <: Number, Tv <: AbstractVector} -> <Mean elements>, <Covariance>
 
     fit_mean_elements!(
         orbp::OrbitPropagator,
-        vsv::AbstractVector{OrbitStateVector{Tepoch, T}};
+        vsv::AbstractVector{OrbitStateVector{Tepoch, T}}[, sink::Type];
         kwargs...
     ) where {Tepoch <: Number, T <: Number} -> <Mean elements>, <Covariance>
 
@@ -96,13 +111,18 @@ of position vectors `vr_i` [m] and a set of velocity vectors `vv_i` [m / s] obta
 instants in the array `vjd` [Julian Day], or an array of `OrbitStateVector` `vsv` [SI],
 containing the same information. The keywords `kwargs` depend on the propagator type.
 
+The optional parameter `sink` selects the representation of the mean elements for the
+propagators that support more than one. SGP4 accepts `TLE` and `OrbitMeanElementsMessage`,
+defaulting to the latter.
+
 This function also initializes `orbp` with the fitted mean elements.
 
 # Returns
 
 - `<Mean elements>`: Set of mean elements used to initialize `orbp`. The concrete type
     depends on the propagator, and it is `KeplerianElements{MeanAnomaly}` for every
-    propagator except SGP4, which returns a `TLE`.
+    propagator except SGP4, which returns an `OrbitMeanElementsMessage` or a `TLE` selected
+    by `sink`.
 - `<Covariance>`: Final covariance matrix of the least-square algorithm. It is a
     `SMatrix{6, 6}` for every propagator except SGP4, which returns a `SMatrix{7, 7}`
     because it also fits the B* parameter.
@@ -117,6 +137,19 @@ function fit_mean_elements!(
     vv_i = map(x -> x.v, vsv)
 
     return fit_mean_elements!(orbp, vjd, vr_i, vv_i; kwargs...)
+end
+
+function fit_mean_elements!(
+    orbp::OrbitPropagator,
+    vsv::AbstractVector{OrbitStateVector{Tepoch, T}},
+    sink::Type;
+    kwargs...,
+) where {Tepoch <: Number, T <: Number}
+    vjd  = map(x -> x.epoch, vsv)
+    vr_i = map(x -> x.r, vsv)
+    vv_i = map(x -> x.v, vsv)
+
+    return fit_mean_elements!(orbp, vjd, vr_i, vv_i, sink; kwargs...)
 end
 
 """

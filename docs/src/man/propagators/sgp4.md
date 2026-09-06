@@ -30,22 +30,21 @@ which creates a SGP4/SDP4 propagator structure [`OrbitPropagatorSgp4`](@ref) wit
 The following keyword selects the gravitational constants for the propagation algorithm:
 
 - `sgp4c::Sgp4Constants`: SGP4 orbit propagator constants (see `Sgp4Constants`).
-    (**Default**: `sgp4c_wgs84`)
+    (**Default**: `SGP4C_WGS84`)
 
-The package [**SatelliteToolboxSgp4.jl**] contains some pre-build constants for this
+The package [**SatelliteToolboxSgp4.jl**] contains some pre-built constants for this
 propagator:
 
 | **SGP4/SDP4 Propagator Constants** | **Description**           | **Type**  |
 |-----------------------------------:|:--------------------------|:----------|
-|                      `sgp4c_wgs84` | Constants based on WGS-84 | `Float64` |
-|                  `sgp4c_wgs84_f32` | Constants based on WGS-84 | `Float32` |
-|                      `sgp4c_wgs72` | Constants based on WGS-72 | `Float64` |
-|                  `sgp4c_wgs72_f32` | Constants based on WGS-72 | `Float32` |
+|                      `SGP4C_WGS84` | Constants based on WGS-84 | `Float64` |
+|                      `SGP4C_WGS72` | Constants based on WGS-72 | `Float64` |
 
 !!! note
 
     The type used in the propagation will be the same as used to define the constants in the
-    structure `sgp4c`.
+    structure `sgp4c`. The constants in another number type can be obtained with the
+    converting constructor, e.g. `Sgp4Constants{Float32}(SGP4C_WGS84)`.
 
 !!! note
 
@@ -124,27 +123,30 @@ omm = parse_omm(
 Propagators.init(Val(:SGP4), omm)
 ```
 
-## Fitting TLEs
+## Fitting Mean Elements
 
 We can use the function:
 
 ```julia
-Propagators.fit_mean_elements(::Val{:SGP4}, vjd::AbstractVector{Tjd}, vr_teme::AbstractVector{Tv}, vv_teme::AbstractVector{Tv}; kwargs...) -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
+Propagators.fit_mean_elements([sink::Type, ]::Val{:SGP4}, vjd::AbstractVector{Tjd}, vr_teme::AbstractVector{Tv}, vv_teme::AbstractVector{Tv}; kwargs...) -> sink, SMatrix{7, 7, Float64}
 ```
 
-to fit a Two-Line Element set (`TLE`) for the SGP4 orbit propagator using the osculating
-elements represented by a set of position vectors `vr_teme` [m] and a set of velocity
-vectors `vv_teme` [m / s] represented in the True-Equator, Mean-Equinox reference frame
-(TEME) at instants in the array `vjd` [Julian Day].
+to fit a set of SGP4 mean elements using the osculating elements represented by a set of
+position vectors `vr_teme` [m] and a set of velocity vectors `vv_teme` [m / s] represented
+in the True-Equator, Mean-Equinox reference frame (TEME) at instants in the array `vjd`
+[Julian Day, UTC]. The mean elements are returned as an object of type `sink`, which can be
+a `TLE` or an `OrbitMeanElementsMessage`. If `sink` is omitted, an `OrbitMeanElementsMessage`
+is returned.
 
-It returns the fitted TLE and the final covariance matrix of the least-square algorithm.
+It returns the fitted mean elements and the final covariance matrix of the least-square
+algorithm.
 
 This algorithm was based on **[4]**.
 
 !!! note
 
     This algorithm version will allocate a new SGP4 propagator with the default constants
-    `sgp4c_wgs84`. If another set of constants are required, use the function
+    `SGP4C_WGS84`. If another set of constants are required, use the function
     [`Propagators.fit_mean_elements!`](@ref) instead.
 
 The following keywords are available to configure the fitting process:
@@ -157,14 +159,21 @@ The following keywords are available to configure the fitting process:
     `rtol`, the computation loop stops.
     (**Default**: 2e-4)
 - `estimate_bstar::Bool`: If `true`, the algorithm will try to estimate the B* parameter.
-    Otherwise, it will be set to 0 or to the value in the initial guess (see section **Initial
-    Guess**).
-    (**Default**: true)
-- `initial_guess::Union{Nothing, AbstractVector, TLE}`: Initial guess for the TLE fitting
-    process. If it is `nothing`, the algorithm will obtain an initial estimate from the
-    osculating elements in `vr_teme` and `vv_teme`. For more information, see the section
-    **Initial Guess**.
-    (**Default**: nothing)
+    Otherwise, it will be set to 0 or to the value in the initial guess.
+    (**Default**: `true`)
+- `include_covariance::Bool`: If `true`, the covariance of the mean position and velocity
+    obtained by the least-square algorithm is stored in the covariance matrix section of
+    the output, represented in the TEME reference frame. It is only used when `sink` is
+    `OrbitMeanElementsMessage`.
+    (**Default**: `true`)
+- `initial_guess::Union{Nothing, AbstractVector, TLE, OrbitMeanElementsMessage}`: Initial
+    guess for the fitting process. If it is `nothing`, the algorithm will obtain an initial
+    estimate from the osculating elements in `vr_teme` and `vv_teme`.
+    (**Default**: `nothing`)
+- `jacobian_method::AbstractJacobianMethod`: Method used to compute the Jacobian matrix. It
+    can be `FiniteDiffJacobian()` for finite differences or `ForwardDiffJacobian()` for
+    **ForwardDiff.jl** automatic differentiation.
+    (**Default**: `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
     finite-difference when calculating the Jacobian matrix.
     (**Default**: 1e-3)
@@ -175,26 +184,21 @@ The following keywords are available to configure the fitting process:
     (**Default**: 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
     (**Default**: 50)
-- `mean_elements_epoch::Number`: Epoch for the fitted TLE.
-    (**Default**: vjd[end])
+- `mean_elements_epoch::Number`: Epoch of the fitted mean elements [Julian Day, UTC].
+    (**Default**: `vjd[end]`)
+- `template::Union{Nothing, sink, NamedTuple}`: Source of the metadata of the output. If it
+    is an object of type `sink`, its metadata is copied. If it is a `NamedTuple`, its
+    entries are passed as keywords to the constructor of `sink` on top of the default
+    metadata, e.g. `(; name = "AMAZONIA 1", satellite_number = 47699)` for a `TLE` or
+    `(; object_name = "AMAZONIA 1", object_id = "2021-015A", norad_cat_id = 47699)` for
+    an `OrbitMeanElementsMessage`.
+    (**Default**: `nothing`)
 - `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default**: true)
+    (**Default**: `true`)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
     `weight_vector` at its diagonal.
     (**Default**: `@SVector(ones(Bool, 6))`)
-- `classification::Char`: Satellite classification character for the output TLE.
-    (**Default**: 'U')
-- `element_set_number::Int`: Element set number for the output TLE.
-    (**Default**: 0)
-- `international_designator::String`: International designator string for the output TLE.
-    (**Default**: "999999")
-- `name::String`: Satellite name for the output TLE.
-    (**Default**: "UNDEFINED")
-- `revolution_number::Int`: Revolution number for the output TLE.
-    (**Default**: 0)
-- `satellite_number::Int`: Satellite number for the output TLE.
-    (**Default**: 9999)
 
 ```@repl sgp4
 vr_teme = [
@@ -212,7 +216,11 @@ vjd = [
     2.460028190050782e6
 ];
 
-tle, P = Propagators.fit_mean_elements(Val(:SGP4), vjd, vr_teme, vv_teme; estimate_bstar = false)
+omm, P = Propagators.fit_mean_elements(Val(:SGP4), vjd, vr_teme, vv_teme; estimate_bstar = false)
+
+omm
+
+tle, P = Propagators.fit_mean_elements(TLE, Val(:SGP4), vjd, vr_teme, vv_teme; estimate_bstar = false)
 
 tle
 ```

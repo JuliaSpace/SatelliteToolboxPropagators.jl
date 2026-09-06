@@ -60,7 +60,7 @@ PrecompileTools.@setup_workload begin
                 (:J2osc, (; j2c = J2C_EGM2008_F32)),
                 (:J4, (; j4c = J4C_EGM2008_F32)),
                 (:J4osc, (; j4c = J4C_EGM2008_F32)),
-                (:SGP4, (; sgp4c = sgp4c_wgs84_f32)),
+                (:SGP4, (; sgp4c = Sgp4Constants{Float32}(SGP4C_WGS84))),
                 (:TwoBody, (; m0 = TBC_M0_F32)),
             )
                 mean_elements = prop != :SGP4 ? orb : tle
@@ -238,7 +238,9 @@ PrecompileTools.@setup_workload begin
             Propagators.propagate!(orbp, 0.0)
             Propagators.init!(orbp, omm)
 
-            orbp = Propagators.init(Val(:SGP4), omm; sgp4c = sgp4c_wgs84_f32)
+            orbp = Propagators.init(
+                Val(:SGP4), omm; sgp4c = Sgp4Constants{Float32}(SGP4C_WGS84)
+            )
             Propagators.propagate!(orbp, 0.0f0)
         end
     end

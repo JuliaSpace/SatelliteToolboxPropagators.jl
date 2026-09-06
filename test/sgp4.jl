@@ -93,16 +93,18 @@
         orbp = Propagators.init(Val(:SGP4), tle)
         @test Propagators.name(orbp) == "SGP4 Orbit Propagator"
 
+        # The mean elements at the epoch are recovered by updating the TLE epoch by zero,
+        # which reproduces the initial elements up to the floating-point precision.
         orbk = Propagators.mean_elements(orbp)
         @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float64}
         @test orbk.epoch == Propagators.epoch(orbp)
-        @test orbk.semi_major_axis ==
+        @test orbk.semi_major_axis ≈
             (orbp.sgp4d.sgp4c.XKE / orbp.sgp4d.n₀)^(2 / 3) * (1000 * orbp.sgp4d.sgp4c.R0)
-        @test orbk.eccentricity == orbp.sgp4d.e₀
-        @test orbk.inclination == orbp.sgp4d.i₀
-        @test orbk.raan == orbp.sgp4d.Ω₀
-        @test orbk.argument_of_periapsis == orbp.sgp4d.ω₀
-        @test orbk.anomaly == orbp.sgp4d.M₀
+        @test orbk.eccentricity ≈ orbp.sgp4d.e₀
+        @test orbk.inclination ≈ orbp.sgp4d.i₀
+        @test orbk.raan ≈ orbp.sgp4d.Ω₀
+        @test orbk.argument_of_periapsis ≈ orbp.sgp4d.ω₀
+        @test orbk.anomaly ≈ orbp.sgp4d.M₀
     end
 
     # == Float64 ===========================================================================
@@ -112,7 +114,7 @@
 
         # -- Initialization Using TLE ------------------------------------------------------
 
-        orbp = Propagators.init(Val(:SGP4), tle; sgp4c = sgp4c_wgs72)
+        orbp = Propagators.init(Val(:SGP4), tle; sgp4c = SGP4C_WGS72)
 
         for k in size(expected_results)[1]
             r_teme, v_teme = Propagators.propagate!(orbp, 60 * expected_results[k, 1])
@@ -147,9 +149,7 @@
         end
 
         # Test in-place initialization.
-        orbp = OrbitPropagatorSgp4(Sgp4Propagator{Float64, T}())
-        orbp.sgp4d.sgp4c = sgp4c_wgs72
-        orbp.sgp4d.sgp4ds = SatelliteToolboxSgp4.Sgp4DeepSpace{T}()
+        orbp = OrbitPropagatorSgp4(Sgp4Propagator{Float64}(SGP4C_WGS72))
         Propagators.init!(orbp, tle)
 
         for k in size(expected_results)[1]
@@ -167,7 +167,7 @@
 
         # Test simultaneous initialization and propagation.
         r_teme, v_teme, orbp = Propagators.propagate(
-            Val(:SGP4), 60 * expected_results[end, 1], tle; sgp4c = sgp4c_wgs72
+            Val(:SGP4), 60 * expected_results[end, 1], tle; sgp4c = SGP4C_WGS72
         )
 
         @test Propagators.last_instant(orbp) == 60 * expected_results[end, 1]
@@ -180,7 +180,7 @@
         @test v_teme[3] ≈ 1000 * expected_results[end, 7] atol = 1e-6
 
         r_teme, v_teme, orbp = Propagators.propagate_to_epoch(
-            Val(:SGP4), jd₀ + expected_results[end, 1] / 1440, tle; sgp4c = sgp4c_wgs72
+            Val(:SGP4), jd₀ + expected_results[end, 1] / 1440, tle; sgp4c = SGP4C_WGS72
         )
 
         @test Propagators.last_instant(orbp) == 60 * expected_results[end, 1]
@@ -204,7 +204,7 @@
             tle.argument_of_perigee |> deg2rad,
             tle.mean_anomaly |> deg2rad,
             tle.bstar;
-            sgp4c = sgp4c_wgs72,
+            sgp4c = SGP4C_WGS72,
         )
 
         for k in size(expected_results)[1]
@@ -240,9 +240,7 @@
         end
 
         # Test in-place initialization.
-        orbp = OrbitPropagatorSgp4(Sgp4Propagator{Float64, T}())
-        orbp.sgp4d.sgp4c = sgp4c_wgs72
-        orbp.sgp4d.sgp4ds = SatelliteToolboxSgp4.Sgp4DeepSpace{T}()
+        orbp = OrbitPropagatorSgp4(Sgp4Propagator{Float64}(SGP4C_WGS72))
         Propagators.init!(
             orbp,
             tle_epoch(tle),
@@ -280,7 +278,7 @@
             tle.argument_of_perigee |> deg2rad,
             tle.mean_anomaly |> deg2rad,
             tle.bstar;
-            sgp4c = sgp4c_wgs72,
+            sgp4c = SGP4C_WGS72,
         )
 
         @test Propagators.last_instant(orbp) == 60 * expected_results[end, 1]
@@ -303,7 +301,7 @@
             tle.argument_of_perigee |> deg2rad,
             tle.mean_anomaly |> deg2rad,
             tle.bstar;
-            sgp4c = sgp4c_wgs72,
+            sgp4c = SGP4C_WGS72,
         )
 
         @test Propagators.last_instant(orbp) == 60 * expected_results[end, 1]
@@ -323,7 +321,9 @@
 
         # -- Initialization Using TLE ------------------------------------------------------
 
-        orbp = Propagators.init(Val(:SGP4), tle; sgp4c = sgp4c_wgs72_f32)
+        orbp = Propagators.init(
+            Val(:SGP4), tle; sgp4c = Sgp4Constants{Float32}(SGP4C_WGS72)
+        )
 
         for k in size(expected_results)[1]
             r_teme, v_teme = Propagators.propagate!(orbp, 60 * expected_results[k, 1])
@@ -358,9 +358,9 @@
         end
 
         # Test in-place initialization.
-        orbp = OrbitPropagatorSgp4(Sgp4Propagator{Float64, T}())
-        orbp.sgp4d.sgp4c = sgp4c_wgs72_f32
-        orbp.sgp4d.sgp4ds = SatelliteToolboxSgp4.Sgp4DeepSpace{T}()
+        orbp = OrbitPropagatorSgp4(
+            Sgp4Propagator{Float64}(Sgp4Constants{Float32}(SGP4C_WGS72))
+        )
         Propagators.init!(orbp, tle)
 
         for k in size(expected_results)[1]
@@ -378,7 +378,10 @@
 
         # Test simultaneous initialization and propagation.
         r_teme, v_teme, orbp = Propagators.propagate(
-            Val(:SGP4), 60 * expected_results[end, 1], tle; sgp4c = sgp4c_wgs72_f32
+            Val(:SGP4),
+            60 * expected_results[end, 1],
+            tle;
+            sgp4c = Sgp4Constants{Float32}(SGP4C_WGS72),
         )
 
         @test Propagators.last_instant(orbp) == 60 * expected_results[end, 1]
@@ -391,7 +394,10 @@
         @test v_teme[3] ≈ 1000 * expected_results[end, 7] atol = 8e-1
 
         r_teme, v_teme, orbp = Propagators.propagate_to_epoch(
-            Val(:SGP4), jd₀ + expected_results[end, 1] / 1440, tle; sgp4c = sgp4c_wgs72_f32
+            Val(:SGP4),
+            jd₀ + expected_results[end, 1] / 1440,
+            tle;
+            sgp4c = Sgp4Constants{Float32}(SGP4C_WGS72),
         )
 
         @test Propagators.last_instant(orbp) == 60 * expected_results[end, 1]
@@ -415,7 +421,7 @@
             tle.argument_of_perigee |> deg2rad,
             tle.mean_anomaly |> deg2rad,
             tle.bstar;
-            sgp4c = sgp4c_wgs72_f32,
+            sgp4c = Sgp4Constants{Float32}(SGP4C_WGS72),
         )
 
         for k in size(expected_results)[1]
@@ -451,9 +457,9 @@
         end
 
         # Test in-place initialization.
-        orbp = OrbitPropagatorSgp4(Sgp4Propagator{Float64, T}())
-        orbp.sgp4d.sgp4c = sgp4c_wgs72_f32
-        orbp.sgp4d.sgp4ds = SatelliteToolboxSgp4.Sgp4DeepSpace{T}()
+        orbp = OrbitPropagatorSgp4(
+            Sgp4Propagator{Float64}(Sgp4Constants{Float32}(SGP4C_WGS72))
+        )
         Propagators.init!(
             orbp,
             tle_epoch(tle),
@@ -491,7 +497,7 @@
             tle.argument_of_perigee |> deg2rad,
             tle.mean_anomaly |> deg2rad,
             tle.bstar;
-            sgp4c = sgp4c_wgs72_f32,
+            sgp4c = Sgp4Constants{Float32}(SGP4C_WGS72),
         )
 
         @test Propagators.last_instant(orbp) == 60 * expected_results[end, 1]
@@ -514,7 +520,7 @@
             tle.argument_of_perigee |> deg2rad,
             tle.mean_anomaly |> deg2rad,
             tle.bstar;
-            sgp4c = sgp4c_wgs72_f32,
+            sgp4c = Sgp4Constants{Float32}(SGP4C_WGS72),
         )
 
         @test Propagators.last_instant(orbp) == 60 * expected_results[end, 1]
@@ -557,7 +563,8 @@ end
         """,
     )
 
-    for (T, sgp4c) in ((Float64, sgp4c_wgs72), (Float32, sgp4c_wgs72_f32))
+    for (T, sgp4c) in
+        ((Float64, SGP4C_WGS72), (Float32, Sgp4Constants{Float32}(SGP4C_WGS72)))
         @testset "$T" begin
             orbp_ref = Propagators.init(
                 Val(:SGP4),
@@ -591,9 +598,7 @@ end
 
             # == In-Place Initialization ===================================================
 
-            orbp              = OrbitPropagatorSgp4(Sgp4Propagator{Float64, T}())
-            orbp.sgp4d.sgp4c  = sgp4c
-            orbp.sgp4d.sgp4ds = SatelliteToolboxSgp4.Sgp4DeepSpace{T}()
+            orbp = OrbitPropagatorSgp4(Sgp4Propagator{Float64}(sgp4c))
             Propagators.init!(orbp, omm)
 
             @test Propagators.epoch(orbp) == epoch
@@ -623,8 +628,8 @@ end
     end
 end
 
-@testset "Fitting Mean Elements for the SGP4 Osculating Orbit Propagator" verbose = true begin
-    # The algorithm is already heavily testes in SatelliteToolboxSgp4.jl. Hence, we will
+@testset "Fitting Mean Elements for the SGP4 Orbit Propagator" verbose = true begin
+    # The algorithm is already heavily tested in SatelliteToolboxSgp4.jl. Hence, we will
     # perform just an interface test here with a simple case.
 
     tle_input = tle"""
@@ -640,77 +645,140 @@ end
     vv_teme = last.(ret)
     vjd     = Propagators.epoch(orbp) .+ (0:10:12_000) ./ 86400
 
-    tle, ~ = Propagators.fit_mean_elements(
-        Val(:SGP4),
-        vjd,
-        vr_teme,
-        vv_teme;
-        atol                     = 1e-10,
-        rtol                     = 1e-10,
+    kwargs = (;
+        atol                = 1e-10,
+        rtol                = 1e-10,
+        mean_elements_epoch = vjd[begin],
+        max_iterations      = 1000,
+        verbose             = false,
+    )
+
+    # The fitted TLE must match the input one, whose metadata is provided by the template.
+    function test_tle(tle)
+        @test tle isa TLE
+        @test tle.classification == tle_input.classification
+        @test tle.element_set_number == tle_input.element_set_number
+        @test tle.epoch_year == tle_input.epoch_year
+        @test tle.international_designator == tle_input.international_designator
+        @test tle.name == tle_input.name
+        @test tle.revolution_number == tle_input.revolution_number
+        @test tle.satellite_number == tle_input.satellite_number
+
+        @test tle.bstar ≈ tle_input.bstar atol = 1e-6
+        @test tle.eccentricity ≈ tle_input.eccentricity atol = 1e-7
+        @test tle.epoch_day ≈ tle_input.epoch_day atol = 1e-8
+        @test tle.inclination ≈ tle_input.inclination atol = 1e-4
+        @test tle.mean_anomaly ≈ tle_input.mean_anomaly atol = 1e-4
+        @test tle.mean_motion ≈ tle_input.mean_motion atol = 1e-7
+        @test tle.raan ≈ tle_input.raan atol = 1e-4
+        @test tle.argument_of_perigee ≈ tle_input.argument_of_perigee atol = 1e-4
+        return nothing
+    end
+
+    template = (;
         element_set_number       = 999,
         international_designator = "21015A",
-        mean_elements_epoch      = vjd[begin],
         name                     = "AMAZONIA 1",
         revolution_number        = 3043,
         satellite_number         = 47699,
-        max_iterations           = 1000,
-        verbose                  = false,
     )
 
-    @test tle.classification == tle_input.classification
-    @test tle.element_set_number == tle_input.element_set_number
-    @test tle.epoch_year == tle_input.epoch_year
-    @test tle.international_designator == tle_input.international_designator
-    @test tle.name == tle_input.name
-    @test tle.revolution_number == tle_input.revolution_number
-    @test tle.satellite_number == tle_input.satellite_number
+    @testset "TLE Sink" begin
+        tle, P = Propagators.fit_mean_elements(
+            TLE, Val(:SGP4), vjd, vr_teme, vv_teme; template = template, kwargs...
+        )
+        test_tle(tle)
+        @test P isa SMatrix{7, 7, Float64}
 
-    @test tle.bstar ≈ tle_input.bstar atol = 1e-6
-    @test tle.eccentricity ≈ tle_input.eccentricity atol = 1e-7
-    @test tle.epoch_day ≈ tle_input.epoch_day atol = 1e-8
-    @test tle.inclination ≈ tle_input.inclination atol = 1e-4
-    @test tle.mean_anomaly ≈ tle_input.mean_anomaly atol = 1e-4
-    @test tle.mean_motion ≈ tle_input.mean_motion atol = 1e-7
-    @test tle.raan ≈ tle_input.raan atol = 1e-4
-    @test tle.argument_of_perigee ≈ tle_input.argument_of_perigee atol = 1e-4
+        tle, P = Propagators.fit_mean_elements!(
+            orbp, vjd, vr_teme, vv_teme, TLE; template = template, kwargs...
+        )
+        test_tle(tle)
+        @test P isa SMatrix{7, 7, Float64}
 
-    tle, ~ = Propagators.fit_mean_elements!(
-        orbp,
-        vjd,
-        vr_teme,
-        vv_teme;
-        atol                     = 1e-10,
-        rtol                     = 1e-10,
-        element_set_number       = 999,
-        international_designator = "21015A",
-        mean_elements_epoch      = vjd[begin],
-        name                     = "AMAZONIA 1",
-        revolution_number        = 3043,
-        satellite_number         = 47699,
-        max_iterations           = 1000,
-        verbose                  = false,
+        # The propagator must be initialized with the fitted elements.
+        @test Propagators.epoch(orbp) ≈ vjd[begin]
+    end
+
+    # The OMM is the default sink, and its mean elements must match the input TLE.
+    function test_omm(omm)
+        @test omm isa OrbitMeanElementsMessage
+        @test ODM.object_name(omm) == "AMAZONIA 1"
+        @test ODM.norad_cat_id(omm) == 47699
+        @test ODM.mean_element_theory(omm) == "SGP4"
+        @test ODM.eccentricity(omm) ≈ tle_input.eccentricity atol = 1e-7
+        @test ODM.inclination(omm) ≈ tle_input.inclination atol = 1e-4
+        @test ODM.mean_motion(omm) ≈ tle_input.mean_motion atol = 1e-7
+        @test ODM.raan(omm) ≈ tle_input.raan atol = 1e-4
+        @test ODM.arg_of_pericenter(omm) ≈ tle_input.argument_of_perigee atol = 1e-4
+        @test ODM.mean_anomaly(omm) ≈ tle_input.mean_anomaly atol = 1e-4
+        return nothing
+    end
+
+    omm_template = (;
+        object_name = "AMAZONIA 1", object_id = "2021-015A", norad_cat_id = 47699
     )
 
-    @test tle.classification == tle_input.classification
-    @test tle.element_set_number == tle_input.element_set_number
-    @test tle.epoch_year == tle_input.epoch_year
-    @test tle.international_designator == tle_input.international_designator
-    @test tle.name == tle_input.name
-    @test tle.revolution_number == tle_input.revolution_number
-    @test tle.satellite_number == tle_input.satellite_number
+    @testset "OMM Sink" begin
+        omm, P = Propagators.fit_mean_elements(
+            Val(:SGP4), vjd, vr_teme, vv_teme; template = omm_template, kwargs...
+        )
+        test_omm(omm)
+        @test P isa SMatrix{7, 7, Float64}
 
-    @test tle.bstar ≈ tle_input.bstar atol = 1e-6
-    @test tle.eccentricity ≈ tle_input.eccentricity atol = 1e-7
-    @test tle.epoch_day ≈ tle_input.epoch_day atol = 1e-8
-    @test tle.inclination ≈ tle_input.inclination atol = 1e-4
-    @test tle.mean_anomaly ≈ tle_input.mean_anomaly atol = 1e-4
-    @test tle.mean_motion ≈ tle_input.mean_motion atol = 1e-7
-    @test tle.raan ≈ tle_input.raan atol = 1e-4
-    @test tle.argument_of_perigee ≈ tle_input.argument_of_perigee atol = 1e-4
+        omm, P = Propagators.fit_mean_elements(
+            OrbitMeanElementsMessage,
+            Val(:SGP4),
+            vjd,
+            vr_teme,
+            vv_teme;
+            template = omm_template,
+            kwargs...,
+        )
+        test_omm(omm)
+
+        omm, P = Propagators.fit_mean_elements!(
+            orbp, vjd, vr_teme, vv_teme; template = omm_template, kwargs...
+        )
+        test_omm(omm)
+        @test Propagators.epoch(orbp) ≈ vjd[begin]
+
+        omm, P = Propagators.fit_mean_elements!(
+            orbp,
+            vjd,
+            vr_teme,
+            vv_teme,
+            OrbitMeanElementsMessage;
+            template = omm_template,
+            kwargs...,
+        )
+        test_omm(omm)
+    end
+
+    # The sink must also be accepted with the `OrbitStateVector` input.
+    @testset "OrbitStateVector Input" begin
+        vsv = [OrbitStateVector(vjd[k], vr_teme[k], vv_teme[k]) for k in eachindex(vjd)]
+
+        tle, ~ = Propagators.fit_mean_elements(
+            TLE, Val(:SGP4), vsv; template = template, kwargs...
+        )
+        test_tle(tle)
+
+        omm, ~ = Propagators.fit_mean_elements(
+            Val(:SGP4), vsv; template = omm_template, kwargs...
+        )
+        test_omm(omm)
+
+        tle, ~ = Propagators.fit_mean_elements!(
+            orbp, vsv, TLE; template = template, kwargs...
+        )
+        test_tle(tle)
+    end
 end
 
 @testset "Copying Structure" verbose = true begin
-    for (T, sgp4c) in ((Float64, sgp4c_wgs84), (Float32, sgp4c_wgs84_f32))
+    for (T, sgp4c) in
+        ((Float64, SGP4C_WGS84), (Float32, Sgp4Constants{Float32}(SGP4C_WGS84)))
         @testset "$T" begin
             tle = tle"""
                 AMAZONIA 1
@@ -723,7 +791,6 @@ end
             new_orbp = copy(orbp)
 
             for f in fieldnames(typeof(orbp.sgp4d))
-                f == :sgp4ds && continue
                 @test getfield(new_orbp.sgp4d, f) == getfield(orbp.sgp4d, f)
             end
 
