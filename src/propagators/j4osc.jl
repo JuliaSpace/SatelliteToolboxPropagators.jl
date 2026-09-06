@@ -412,7 +412,7 @@ end
     update_j4osc_mean_elements_epoch(
         orb::KeplerianElements,
         new_epoch::Union{Number, DateTime}
-    ) -> KeplerianElements
+    ) -> KeplerianElements{MeanAnomaly}
 
 Update the epoch of the mean elements `orb` using a J4 osculating orbit propagator to
 `new_epoch`, which can be represented by a Julian Day or a `DateTime`.
@@ -476,7 +476,7 @@ end
         j4oscd::J4OsculatingPropagator,
         orb::KeplerianElements,
         new_epoch::Union{Number, DateTime}
-    ) -> KeplerianElements
+    ) -> KeplerianElements{MeanAnomaly}
 
 Update the epoch of the mean elements `orb` using the propagator `j4oscd` to `new_epoch`,
 which can be represented by a Julian Day or a `DateTime`.

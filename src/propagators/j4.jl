@@ -570,7 +570,7 @@ function fit_j4_mean_elements!(
 end
 
 """
-    update_j4_mean_elements_epoch(orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KeplerianElements
+    update_j4_mean_elements_epoch(orb::KeplerianElements, new_epoch::Union{Number, DateTime}) -> KeplerianElements{MeanAnomaly}
 
 Update the epoch of the mean elements `orb` using a J4 orbit propagator to `new_epoch`,
 which can be represented by a Julian Day or a `DateTime`.
@@ -630,7 +630,7 @@ end
         j4d::J4Propagator,
         orb::KeplerianElements,
         new_epoch::Union{Number, DateTime}
-    ) -> KeplerianElements
+    ) -> KeplerianElements{MeanAnomaly}
 
 Update the epoch of the mean elements `orb` using the propagator `j4d` to `new_epoch`, which
 can be represented by a Julian Day or a `DateTime`.

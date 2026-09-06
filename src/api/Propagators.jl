@@ -150,7 +150,7 @@ Return the last propagation instant [s] measured from the epoch.
 function last_instant end
 
 """
-    mean_elements(orbp::OrbitPropagator) -> Union{Nothing, KeplerianElements}
+    mean_elements(orbp::OrbitPropagator) -> Union{Nothing, KeplerianElements{MeanAnomaly}}
 
 Return the mean elements using the structure `KeplerianElements{MeanAnomaly}` of the latest
 propagation performed by `orbp`. This is an optional function in the API. It will return
