@@ -17,6 +17,17 @@ Version 2.0.0
   `KeplerianElements{MeanAnomaly}`, and `Propagators.mean_elements` returns
   `KeplerianElements{MeanAnomaly}` for every propagator, including SGP4, which returned the
   true anomaly.
+- ![BREAKING][badge-breaking] Require **SatelliteToolboxSgp4.jl** v3. The SGP4 constants
+  are now `SGP4C_WGS84` and `SGP4C_WGS72`, and their `Float32` variants are obtained with
+  `Sgp4Constants{Float32}(SGP4C_WGS84)`. An uninitialized SGP4 propagator is created with
+  `Sgp4Propagator{Float64}(SGP4C_WGS84)`, which also sets the deep space data.
+- ![BREAKING][badge-breaking] The SGP4 fitting functions `Propagators.fit_mean_elements`
+  and `Propagators.fit_mean_elements!` return an `OrbitMeanElementsMessage` by default. The
+  representation is selected by the new sink argument, which can be `TLE` or
+  `OrbitMeanElementsMessage`, placed before the propagator tag in the non-mutating function
+  and after the measurements in the mutating one. The metadata of the output is provided by
+  the keyword `template` instead of the six TLE-specific keywords, and a diverging fit
+  throws `Sgp4FitDivergenceError` instead of an `ErrorException`.
 - ![Feature][badge-feature] Initialize the SGP4 orbit propagator with an Orbit
   Mean-Elements Message (OMM) using `Propagators.init(Val(:SGP4), omm)` and
   `Propagators.init!(orbp, omm)`, where `omm` is an `OrbitMeanElementsMessage` from
