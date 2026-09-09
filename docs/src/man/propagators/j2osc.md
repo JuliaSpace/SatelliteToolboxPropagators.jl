@@ -147,7 +147,7 @@ vjd = [
     2.460028190050782e6
 ];
 
-orb, P, stats = Propagators.fit_mean_elements(Val(:J2), vjd, vr_i, vv_i)
+orb, P, stats = Propagators.fit_mean_elements(Val(:J2osc), vjd, vr_i, vv_i)
 
 orb
 

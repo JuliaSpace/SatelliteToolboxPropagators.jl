@@ -92,12 +92,15 @@ This algorithm was based on **[1]**.
 
 !!! note
 
-    This algorithm version will allocate a new SGP4 propagator with the default constants
-    `SGP4C_WGS84`. If another set of constants are required, use the function
+    This algorithm version will allocate a new SGP4 propagator with the constants `sgp4c`.
+    If the allocation must be avoided, use the function
     [`Propagators.fit_mean_elements!`](@ref) instead.
 
 # Keywords
 
+- `sgp4c::Sgp4Constants`: SGP4 orbit propagator constants (see `Sgp4Constants`), whose
+    number type `T` is used in the fitting.
+    (**Default**: `SGP4C_WGS84`)
 - `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
     `atol` at any iteration, the computation loop stops.
     (**Default**: 2e-4)
