@@ -19,7 +19,7 @@ Propagators.propagator_data(orbp::OrbitPropagatorJ2Osculating) = orbp.j2oscd
         vr_i::AbstractVector{Tv},
         vv_i::AbstractVector{Tv};
         kwargs...
-    ) -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
+    ) -> KeplerianElements{MeanAnomaly, Float64, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the J2 osculating orbit propagator using the
 osculating elements represented by a set of position vectors `vr_i` [m] and a set of
@@ -28,12 +28,15 @@ the array `vjd` [Julian Day].
 
 !!! note
 
-    This algorithm version will allocate a new J2 osculating propagator with the default
-    constants `J2C_EGM2008`. If another set of constants are required, use the function
+    This algorithm version will allocate a new J2 osculating propagator with the constants
+    `j2c`. If the allocation must be avoided, use the function
     [`Propagators.fit_mean_elements!`](@ref) instead.
 
 # Keywords
 
+- `j2c::J2PropagatorConstants{T}`: J2 orbit propagator constants (see
+    [`J2PropagatorConstants`](@ref)), whose number type `T` is used in the fitting.
+    (**Default**: `J2C_EGM2008`)
 - `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
     `atol` at any iteration, the computation loop stops.
     (**Default**: 2e-4)
@@ -70,8 +73,8 @@ the array `vjd` [Julian Day].
 
 # Returns
 
-- `KeplerianElements{MeanAnomaly, Float64, Float64}`: Fitted Keplerian elements.
-- `SMatrix{6, 6, Float64}`: Final covariance matrix of the least-square algorithm.
+- `KeplerianElements{MeanAnomaly, Float64, T}`: Fitted Keplerian elements.
+- `SMatrix{6, 6, T}`: Final covariance matrix of the least-square algorithm.
 """
 function Propagators.fit_mean_elements(
     ::Val{:J2osc},

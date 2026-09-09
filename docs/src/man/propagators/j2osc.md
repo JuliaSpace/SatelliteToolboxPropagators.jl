@@ -72,7 +72,7 @@ orbp = Propagators.init(Val(:J2osc), orb)
 We can use the function:
 
 ```julia
-Propagators.fit_mean_elements(::Val{:J2osc}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
+Propagators.fit_mean_elements(::Val{:J2osc}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) -> KeplerianElements{MeanAnomaly, Float64, T}, SMatrix{6, 6, T}
 ```
 
 to fit a set of mean Keplerian elements for the J2 osculating orbit propagator using the
@@ -85,12 +85,15 @@ algorithm.
 
 !!! note
 
-    This algorithm version will allocate a new J2 propagator with the default constants
-    `J2C_EGM2008`. If another set of constants are required, use the function
+    This algorithm version will allocate a new J2 propagator with the constants `j2c`. If
+    the allocation must be avoided, use the function
     [`Propagators.fit_mean_elements!`](@ref) instead.
 
 The following keywords are available to configure the fitting process:
 
+- `j2c::J2PropagatorConstants{T}`: J2 orbit propagator constants (see
+    [`J2PropagatorConstants`](@ref)), whose number type `T` is used in the fitting.
+    (**Default**: `J2C_EGM2008`)
 - `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
     `atol` at any iteration, the computation loop stops.
     (**Default**: 2e-4)

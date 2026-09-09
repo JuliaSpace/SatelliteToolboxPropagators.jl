@@ -22,7 +22,7 @@ Propagators.propagator_data(orbp::OrbitPropagatorTwoBody) = orbp.tbd
     ) where {
         Tjd <: Number,
         Tv <: AbstractVector
-    } -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
+    } -> KeplerianElements{MeanAnomaly, Float64, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the two-body orbit propagator using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
@@ -31,12 +31,15 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 
 !!! note
 
-    This algorithm version will allocate a new two-body propagator with the default
-    gravitational parameter `TBC_M0`. If another value is required, use the function
+    This algorithm version will allocate a new two-body propagator with the gravitational
+    parameter `m0`. If the allocation must be avoided, use the function
     [`Propagators.fit_mean_elements!`](@ref) instead.
 
 # Keywords
 
+- `m0::T`: Standard gravitational parameter of the central body [m³ / s²], whose
+    number type `T` is used in the fitting.
+    (**Default**: `TBC_M0`)
 - `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
     `atol` at any iteration, the computation loop stops.
     (**Default**: 2e-4)
@@ -74,8 +77,8 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 
 # Returns
 
-- `KeplerianElements{MeanAnomaly, Float64, Float64}`: Fitted Keplerian elements.
-- `SMatrix{6, 6, Float64}`: Final covariance matrix of the least-square algorithm.
+- `KeplerianElements{MeanAnomaly, Float64, T}`: Fitted Keplerian elements.
+- `SMatrix{6, 6, T}`: Final covariance matrix of the least-square algorithm.
 """
 function Propagators.fit_mean_elements(
     ::Val{:TwoBody},

@@ -38,6 +38,11 @@ Version 2.0.0
   `update_twobody_mean_elements_epoch`, `update_twobody_mean_elements_epoch!`, and the
   methods of `Propagators.fit_mean_elements` and `Propagators.fit_mean_elements!` for
   `Val(:TwoBody)`.
+- ![Feature][badge-feature] The allocating functions that fit the mean elements and that
+  update their epoch, `fit_*_mean_elements`, `update_*_mean_elements_epoch`, and
+  `Propagators.fit_mean_elements`, accept the propagator constants with the same keyword of
+  the initialization functions (`j2c`, `j4c`, and `m0`), whose number type selects the type
+  of the fit, as `sgp4c` does in **SatelliteToolboxSgp4.jl**.
 - ![Feature][badge-feature] Add the optional API functions `Propagators.propagator_data`,
   which returns the structure of the propagation theory wrapped by an `OrbitPropagator`,
   and `Propagators.is_initialized`, which tells whether a propagator created without

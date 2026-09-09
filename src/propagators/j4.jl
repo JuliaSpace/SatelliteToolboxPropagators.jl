@@ -325,7 +325,7 @@ end
     ) where {
         Tjd <: Number,
         Tv <: AbstractVector
-    } -> KeplerianElements{MeanAnomaly, Float64, Float64}, SMatrix{6, 6, Float64}
+    } -> KeplerianElements{MeanAnomaly, Float64, T}, SMatrix{6, 6, T}
 
 Fit a set of mean Keplerian elements for the J4 orbit propagator using the osculating
 elements represented by a set of position vectors `vr_i` [m] and a set of velocity vectors
@@ -334,12 +334,15 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 
 !!! note
 
-    This algorithm version will allocate a new J4 propagator with the default constants
-    `J4C_EGM2008`. If another set of constants are required, use the function
-    [`fit_j4_mean_elements!`](@ref) instead.
+    This algorithm version will allocate a new J4 propagator with the constants `j4c`. If
+    the allocation must be avoided, use the function [`fit_j4_mean_elements!`](@ref)
+    instead.
 
 # Keywords
 
+- `j4c::J4PropagatorConstants{T}`: J4 orbit propagator constants (see
+    [`J4PropagatorConstants`](@ref)), whose number type `T` is used in the fitting.
+    (**Default**: `J4C_EGM2008`)
 - `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
     `atol` at any iteration, the computation loop stops.
     (**Default**: 2e-4)
@@ -377,8 +380,8 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 
 # Returns
 
-- `KeplerianElements{MeanAnomaly, Float64, Float64}`: Fitted Keplerian elements.
-- `SMatrix{6, 6, Float64}`: Final covariance matrix of the least-square algorithm.
+- `KeplerianElements{MeanAnomaly, Float64, T}`: Fitted Keplerian elements.
+- `SMatrix{6, 6, T}`: Final covariance matrix of the least-square algorithm.
 
 # Examples
 
@@ -430,13 +433,16 @@ KeplerianElements{MeanAnomaly, Float64, Float64}:
 ```
 """
 function fit_j4_mean_elements(
-    vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...
-) where {Tjd <: Number, Tv <: AbstractVector}
-    # Allocate the J4 propagator structure that will propagate the mean elements.
-    j4d = J4Propagator{Float64, Float64}()
-
-    # Assign the constants, which are used in the initialization.
-    j4d.j4c = J4C_EGM2008
+    vjd::AbstractVector{Tjd},
+    vr_i::AbstractVector{Tv},
+    vv_i::AbstractVector{Tv};
+    j4c::J4PropagatorConstants{T} = J4C_EGM2008,
+    kwargs...,
+) where {Tjd <: Number, Tv <: AbstractVector, T <: Number}
+    # Allocate the J4 propagator structure that will propagate the mean elements and assign
+    # the constants, which are used in the initialization.
+    j4d = J4Propagator{Float64, T}()
+    j4d.j4c = j4c
 
     return fit_j4_mean_elements!(j4d, vjd, vr_i, vv_i; kwargs...)
 end
@@ -572,7 +578,8 @@ end
 """
     update_j4_mean_elements_epoch(
         orb::KeplerianElements,
-        new_epoch::Union{Number, DateTime}
+        new_epoch::Union{Number, DateTime};
+        kwargs...
     ) -> KeplerianElements{MeanAnomaly}
 
 Update the epoch of the mean elements `orb` using a J4 orbit propagator to `new_epoch`,
@@ -580,9 +587,15 @@ which can be represented by a Julian Day or a `DateTime`.
 
 !!! note
 
-    This algorithm version will allocate a new J4 propagator with the default constants
-    `J4C_EGM2008`. If another set of constants are required, use the function
+    This algorithm version will allocate a new J4 propagator with the constants `j4c`. If
+    the allocation must be avoided, use the function
     [`update_j4_mean_elements_epoch!`](@ref) instead.
+
+# Keywords
+
+- `j4c::J4PropagatorConstants`: J4 orbit propagator constants (see
+    [`J4PropagatorConstants`](@ref)), converted to the element type of `orb`.
+    (**Default**: `J4C_EGM2008`)
 
 # Examples
 
@@ -617,13 +630,14 @@ KeplerianElements{MeanAnomaly, Float64, Float64}:
 ```
 """
 function update_j4_mean_elements_epoch(
-    orb::KeplerianElements{Tanomaly, Tepoch, T}, new_epoch::Union{Number, DateTime}
+    orb::KeplerianElements{Tanomaly, Tepoch, T},
+    new_epoch::Union{Number, DateTime};
+    j4c::J4PropagatorConstants = J4C_EGM2008,
 ) where {Tanomaly <: AbstractAnomaly, Tepoch <: Number, T <: Number}
-    # Allocate the J4 propagator structure that will propagate the mean elements.
+    # Allocate the J4 propagator structure that will propagate the mean elements and assign
+    # the constants, which are used in the initialization.
     j4d = J4Propagator{Tepoch, T}()
-
-    # Assign the constants, which are used in the initialization.
-    j4d.j4c = J4C_EGM2008
+    j4d.j4c = convert(J4PropagatorConstants{T}, j4c)
 
     return update_j4_mean_elements_epoch!(j4d, orb, new_epoch)
 end

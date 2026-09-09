@@ -527,6 +527,26 @@ end
         @test orb.Ω ≈ orb_input.Ω + deg2rad(0.9856002605) atol = 4e-5
     end
 
+    @testset "Constants Keyword" begin
+        # The number type of the constants selects the type of the fit.
+        orb, P = redirect_stdout(devnull) do
+            Propagators.fit_mean_elements(Val(:J4osc), vjd, vr_i, vv_i; j4c = J4C_EGM2008_F32)
+        end
+
+        @test orb isa KeplerianElements{MeanAnomaly, Float64, Float32}
+        @test P isa SMatrix{6, 6, Float32}
+        @test orb.a ≈ orb_input.a rtol = 1e-3
+
+        # The allocating function must use the selected constants, leading to the same
+        # result obtained with a propagator initialized with them.
+        orb_alt, P_alt = fit_j4osc_mean_elements(vjd, vr_i, vv_i; j4c = J4C_JGM03, verbose = false)
+        pd = j4osc_init(orb_input; j4c = J4C_JGM03)
+        orb_ref, P_ref = fit_j4osc_mean_elements!(pd, vjd, vr_i, vv_i; verbose = false)
+
+        @test orb_alt == orb_ref
+        @test P_alt == P_ref
+    end
+
     @testset "Errors" begin
         # == Wrong dimensions in the input vectors =========================================
 
@@ -627,6 +647,15 @@ end
     # The input orbit is the nominal orbit for the Amazonia-1 satellite, which is Sun
     # synchronous. Thus, the RAAN moves approximately 0.9856002605° per day.
     @test orb.Ω ≈ orb_input.Ω + deg2rad(0.9856002605) atol = 4e-5
+    # The keyword selects the constants, leading to the same result obtained with a
+    # propagator initialized with them.
+    new_epoch = DateTime("2023-01-02")
+    orb_alt   = update_j4osc_mean_elements_epoch(orb_input, new_epoch; j4c = J4C_JGM03)
+    pd        = j4osc_init(orb_input; j4c = J4C_JGM03)
+
+    @test orb_alt == update_j4osc_mean_elements_epoch!(pd, orb_input, new_epoch)
+    @test orb_alt != update_j4osc_mean_elements_epoch(orb_input, new_epoch)
+
 end
 
 @testset "Copying Structure" verbose = true begin

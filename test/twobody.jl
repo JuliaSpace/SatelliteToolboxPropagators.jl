@@ -427,6 +427,26 @@ end
         @test orb.anomaly ≈ M₁ atol = 1e-6
     end
 
+    @testset "Constants Keyword" begin
+        # The number type of the constants selects the type of the fit.
+        orb, P = redirect_stdout(devnull) do
+            Propagators.fit_mean_elements(Val(:TwoBody), vjd, vr_i, vv_i; m0 = TBC_M0_F32)
+        end
+
+        @test orb isa KeplerianElements{MeanAnomaly, Float64, Float32}
+        @test P isa SMatrix{6, 6, Float32}
+        @test orb.a ≈ orb_input.a rtol = 1e-3
+
+        # The allocating function must use the selected constants, leading to the same
+        # result obtained with a propagator initialized with them.
+        orb_alt, P_alt = fit_twobody_mean_elements(vjd, vr_i, vv_i; m0 = 3.986e14, verbose = false)
+        pd = twobody_init(orb_input; m0 = 3.986e14)
+        orb_ref, P_ref = fit_twobody_mean_elements!(pd, vjd, vr_i, vv_i; verbose = false)
+
+        @test orb_alt == orb_ref
+        @test P_alt == P_ref
+    end
+
     @testset "Errors" begin
         @test_throws ArgumentError Propagators.fit_mean_elements(
             Val(:TwoBody), vjd[1:(end - 1)], vr_i, vv_i
@@ -484,4 +504,13 @@ end
 
     @test orb_f32 isa KeplerianElements{MeanAnomaly, Float64, Float32}
     @test orb_f32.anomaly ≈ M₁ atol = 1e-3
+    # The keyword selects the constants, leading to the same result obtained with a
+    # propagator initialized with them.
+    new_epoch = DateTime("2023-01-02")
+    orb_alt   = update_twobody_mean_elements_epoch(orb_input, new_epoch; m0 = 3.986e14)
+    pd        = twobody_init(orb_input; m0 = 3.986e14)
+
+    @test orb_alt == update_twobody_mean_elements_epoch!(pd, orb_input, new_epoch)
+    @test orb_alt != update_twobody_mean_elements_epoch(orb_input, new_epoch)
+
 end
