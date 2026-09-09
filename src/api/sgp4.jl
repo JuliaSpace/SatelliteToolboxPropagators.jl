@@ -17,57 +17,47 @@ Propagators.propagator_data(orbp::OrbitPropagatorSgp4) = orbp.sgp4d
     ) where {Tepoch <: Number, T <: Number} -> KeplerianElements{MeanAnomaly, Tepoch, T}
 
 Return the mean Keplerian elements [SI units] of the SGP4 orbit propagator `orbp` at the
-last propagation instant. The initial TLE is rebuilt from the propagator and its epoch is
-updated to that instant, which fails for epochs outside the years a TLE can represent.
-
-# Extended help
-
-## Throws
-
-- `ArgumentError`: If the epoch year is outside the interval [1976, 2075].
+last propagation instant. The initial mean elements are assembled into an Orbit
+Mean-Elements Message (OMM) whose epoch is updated to that instant with
+`update_sgp4_mean_elements_epoch!` of **SatelliteToolboxSgp4.jl**, which fits a new set of
+mean elements using a copy of the propagator. The epoch stored in the message is truncated
+to milliseconds.
 """
 function Propagators.mean_elements(orbp::OrbitPropagatorSgp4)
-    # We need to copy the propagator because updating the TLE epoch modifies it.
+    # We need to copy the propagator because updating the epoch of the mean elements
+    # initializes it with the result.
     sgp4d = copy(orbp.sgp4d)
     sgp4c = sgp4d.sgp4c
 
-    # First, we need to create a TLE based on the initial parameters.
-    dt  = julian2datetime(Propagators.epoch(orbp))
-    dt₀ = DateTime(Year(dt))
-
-    # A TLE stores the epoch year with two digits, which are interpreted as 1900 + y if
-    # y > 75 and as 2000 + y otherwise. Hence, only the years between 1976 and 2075 can be
-    # represented.
-    dt_year = year(dt)
-
-    if (dt_year < 1976) || (dt_year > 2075)
-        throw(
-            ArgumentError(
-                "The epoch year $dt_year cannot be represented in a TLE, which only supports " *
-                "the years between 1976 and 2075.",
-            ),
-        )
-    end
-
-    epoch_year = mod(dt_year, 100)
-    epoch_day  = (dt - dt₀).value / 1000 / 86400 + 1
-
-    tle = TLE(;
-        epoch_year          = epoch_year,
-        epoch_day           = epoch_day,
-        bstar               = sgp4d.bstar,
-        inclination         = sgp4d.i₀ |> rad2deg,
-        raan                = sgp4d.Ω₀ |> rad2deg,
-        eccentricity        = sgp4d.e₀,
-        argument_of_perigee = sgp4d.ω₀ |> rad2deg,
-        mean_anomaly        = sgp4d.M₀ |> rad2deg,
-        mean_motion         = 720 * sgp4d.n₀ / π,
+    # Assemble an OMM with the initial mean elements. Unlike a TLE, it stores the complete
+    # epoch, so any year can be represented. The metadata is not used by the epoch update,
+    # and the message must contain the derivatives of the mean motion when the drag term is
+    # set. The message stores the elements as `Float64`.
+    omm = OrbitMeanElementsMessage(;
+        creation_date       = NanoDate(now(UTC)),
+        originator          = "SatelliteToolboxPropagators.jl",
+        object_name         = "UNDEFINED",
+        object_id           = "UNDEFINED",
+        center_name         = "EARTH",
+        ref_frame           = "TEME",
+        time_system         = "UTC",
+        mean_element_theory = "SGP4",
+        epoch               = NanoDate(julian2datetime(Propagators.epoch(orbp))),
+        mean_motion         = Float64(720 * sgp4d.n₀ / π),
+        eccentricity        = Float64(sgp4d.e₀),
+        inclination         = Float64(sgp4d.i₀ |> rad2deg),
+        raan                = Float64(sgp4d.Ω₀ |> rad2deg),
+        arg_of_pericenter   = Float64(sgp4d.ω₀ |> rad2deg),
+        mean_anomaly        = Float64(sgp4d.M₀ |> rad2deg),
+        bstar               = Float64(sgp4d.bstar),
+        mean_motion_dot     = 0.0,
+        mean_motion_ddot    = 0.0,
     )
 
-    # Now, we update the TLE epoch to the current propagation instant, which also
-    # initializes the copied propagator with the updated mean elements.
+    # Now, we update the epoch of the mean elements to the current propagation instant,
+    # which also initializes the copied propagator with the updated mean elements.
     new_epoch = Propagators.epoch(orbp) + Propagators.last_instant(orbp) / 86400
-    update_sgp4_mean_elements_epoch!(sgp4d, tle, new_epoch; verbose = false)
+    update_sgp4_mean_elements_epoch!(sgp4d, omm, new_epoch; verbose = false)
 
     # Create and return the Keplerian elements storing the mean anomaly. The semi-major axis
     # is recovered from the mean motion using the SGP4 constants, converting it to meters.

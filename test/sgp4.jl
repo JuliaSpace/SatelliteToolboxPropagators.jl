@@ -812,34 +812,21 @@ end
     end
 end
 
-@testset "Mean Elements Epoch Year Encoding" verbose = true begin
+@testset "Mean Elements Epoch Years" begin
     tle = tle"""
         CBERS 2
         1 28057U 03049A   06177.78615833  .00000060  00000-0  35940-4 0  1836
         2 28057  98.4283 247.6961 0000884  88.1964 271.9322 14.35478080140550
         """
 
-    # `Propagators.mean_elements` builds an intermediate TLE, which stores the epoch year
-    # with two digits. The encoding must round-trip for every year a TLE can represent.
-    @testset "Representable Years" begin
-        for y in (1976, 1980, 1990, 1999, 2000, 2006, 2023, 2075)
-            orbp = Propagators.init(Val(:SGP4), tle)
-            orbp.sgp4d.epoch = datetime2julian(DateTime(y, 6, 15, 12, 0, 0))
+    # `Propagators.mean_elements` builds an intermediate OMM, which stores the complete
+    # epoch. Hence, every year must round-trip, including those a TLE cannot represent.
+    for y in (1957, 1975, 1976, 1980, 1999, 2000, 2006, 2023, 2075, 2076, 2100)
+        orbp = Propagators.init(Val(:SGP4), tle)
+        orbp.sgp4d.epoch = datetime2julian(DateTime(y, 6, 15, 12, 0, 0))
 
-            orbk = Propagators.mean_elements(orbp)
+        orbk = Propagators.mean_elements(orbp)
 
-            @test year(julian2datetime(orbk.t)) == y
-        end
-    end
-
-    # The years outside that range cannot be encoded, so they must be rejected instead of
-    # silently returning an epoch in the wrong century.
-    @testset "Unrepresentable Years" begin
-        for y in (1975, 1957, 2076)
-            orbp = Propagators.init(Val(:SGP4), tle)
-            orbp.sgp4d.epoch = datetime2julian(DateTime(y, 6, 15, 12, 0, 0))
-
-            @test_throws ArgumentError Propagators.mean_elements(orbp)
-        end
+        @test year(julian2datetime(orbk.t)) == y
     end
 end

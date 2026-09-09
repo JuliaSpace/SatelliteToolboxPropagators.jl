@@ -64,6 +64,9 @@ Version 2.0.0
   which returns the structure of the propagation theory wrapped by an `OrbitPropagator`,
   and `Propagators.is_initialized`, which tells whether a propagator created without
   initial elements has been initialized.
+- ![Enhancement][badge-enhancement] `Propagators.mean_elements` of the SGP4 orbit
+  propagator updates the epoch of an Orbit Mean-Elements Message instead of a TLE, so it
+  supports every epoch year instead of only those between 1976 and 2075.
 - ![Enhancement][badge-enhancement] The empty constructors of the propagators of mean
   elements set the field `Δt` to `NaN`, which marks the structure as not initialized until
   an initialization function assigns its fields. The osculating propagators are marked by

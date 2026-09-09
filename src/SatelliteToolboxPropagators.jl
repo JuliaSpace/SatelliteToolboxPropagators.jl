@@ -13,6 +13,7 @@ using StaticArrays
 @reexport using SatelliteToolboxBase
 @reexport using SatelliteToolboxSgp4
 
+import NanoDates: NanoDate
 import PrecompileTools
 import SatelliteToolboxBase: PrintedField, PrintedSection, epoch_string, format_value
 import SatelliteToolboxBase: print_compact, print_status, print_tree, print_tree_body
