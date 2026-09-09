@@ -170,7 +170,8 @@ fails if the residual diverges.
     (**Default**: 1e-7)
 - `max_iterations::Int`: Maximum number of iterations.
     (**Default**: 50)
-- `mean_elements_epoch::Number`: Epoch of the fitted mean elements [Julian Day].
+- `mean_elements_epoch::Union{Number, DateTime}`: Epoch of the fitted mean elements,
+    represented by a Julian Day [UTC] or a `DateTime` [UTC].
     (**Default**: `vjd[end]`)
 - `verbose::Bool`: If `true`, the algorithm prints its progress to `stdout`.
     (**Default**: `true`)
@@ -216,7 +217,7 @@ function _fit_mean_elements!(
     jacobian_perturbation::Number                    = 1e-3,
     jacobian_perturbation_tol::Number                = 1e-7,
     max_iterations::Int                              = 50,
-    mean_elements_epoch::Number                      = vjd[end],
+    mean_elements_epoch::Union{Number, DateTime}     = vjd[end],
     verbose::Bool                                    = true,
     weight_vector::AbstractVector                    = @SVector(ones(Bool, 6)),
 ) where {T <: Number, Tepoch <: Number, Tjd <: Number, Tv <: AbstractVector}
@@ -238,6 +239,9 @@ function _fit_mean_elements!(
         throw(ArgumentError("The maximum number of iterations must be at least 1."))
     end
 
+    # Desired epoch of the fitted mean elements [Julian Day].
+    desired_epoch = _julian_day(mean_elements_epoch)
+
     # Check once if `stdout` supports colors, which selects the decorated strings printed by
     # the algorithm when `verbose` is `true`.
     has_color = get(stdout, :color, false)::Bool
@@ -257,7 +261,7 @@ function _fit_mean_elements!(
     #
     # NOTE: x₁ is the previous estimate and x₂ is the current estimate.
     if !isnothing(initial_guess)
-        epoch = Tepoch(mean_elements_epoch)
+        epoch = Tepoch(desired_epoch)
 
         # First, we need to update the mean elements to the desired epoch.
         verbose && _fit_print_action(
@@ -271,10 +275,10 @@ function _fit_mean_elements!(
     else
         # In this case, we must find the closest osculating vector to the desired epoch.
         id = firstindex(vjd)
-        v  = abs(vjd[id] - mean_elements_epoch)
+        v  = abs(vjd[id] - desired_epoch)
 
         for k in eachindex(vjd)
-            vk = abs(vjd[k] - mean_elements_epoch)
+            vk = abs(vjd[k] - desired_epoch)
             if vk < v
                 id = k
                 v  = vk
@@ -478,12 +482,12 @@ function _fit_mean_elements!(
     )
 
     # Update the epoch of the fitted mean elements to match the desired one.
-    if abs(epoch - mean_elements_epoch) > 0.001 / 86400
+    if abs(epoch - desired_epoch) > 0.001 / 86400
         verbose && _fit_print_action(
             has_color,
             "Updating the epoch of the fitted mean elements to match the desired one.",
         )
-        orb = _update_mean_elements_epoch!(pd, orb, mean_elements_epoch)
+        orb = _update_mean_elements_epoch!(pd, orb, desired_epoch)
     end
 
     # Initialize the propagator with the mean elements.
@@ -563,6 +567,14 @@ stored as its first element.
 function _fit_decorated(versions::Tuple{String, String}, has_color::Bool)
     return versions[has_color ? 2 : 1]
 end
+
+"""
+    _julian_day(epoch::Union{Number, DateTime}) -> Number
+
+Return the `epoch` as a Julian Day, converting it if it is a `DateTime` [UTC].
+"""
+_julian_day(epoch::Number)   = epoch
+_julian_day(epoch::DateTime) = datetime2julian(epoch)
 
 """
     _dual_type(::Type{T}) where {T <: Number} -> Type

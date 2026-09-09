@@ -1097,6 +1097,56 @@ end
     end
 end
 
+@testset "DateTime Epoch When Fitting Mean Elements" verbose = true begin
+    jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
+    dt₀ = julian2datetime(jd₀)
+
+    orb = KeplerianElements(
+        jd₀,
+        7130.982e3,
+        0.001111,
+        98.405 |> deg2rad,
+        90.0   |> deg2rad,
+        200.0  |> deg2rad,
+        45.0   |> deg2rad,
+    )
+
+    vt  = collect(0.0:60:6000)
+    vjd = jd₀ .+ vt ./ 86400
+
+    @testset "$prop" for prop in (:J2, :J2osc, :J4, :J4osc, :TwoBody)
+        orbp = Propagators.init(Val(prop), orb)
+        ret  = [Propagators.propagate!(orbp, t) for t in vt]
+        vr_i = first.(ret)
+        vv_i = last.(ret)
+
+        # The epoch can be provided as a `DateTime`, leading to the same result obtained
+        # with the equivalent Julian Day. The comparison uses a tolerance because the
+        # keyword type selects a different specialization of the algorithm, which can
+        # contract the multiplications and additions differently.
+        orb_jd, P_jd, stats_jd = Propagators.fit_mean_elements(
+            Val(prop), vjd, vr_i, vv_i; mean_elements_epoch = jd₀, verbose = false
+        )
+        orb_dt, P_dt, stats_dt = Propagators.fit_mean_elements(
+            Val(prop), vjd, vr_i, vv_i; mean_elements_epoch = dt₀, verbose = false
+        )
+
+        @test orb_dt.t == jd₀
+        @test orb_dt.a ≈ orb_jd.a rtol = 1e-9
+        @test orb_dt.e ≈ orb_jd.e atol = 1e-9
+        @test orb_dt.i ≈ orb_jd.i rtol = 1e-9
+        @test orb_dt.Ω ≈ orb_jd.Ω rtol = 1e-9
+        @test orb_dt.ω ≈ orb_jd.ω rtol = 1e-9
+        @test orb_dt.anomaly ≈ orb_jd.anomaly rtol = 1e-9
+        @test P_dt ≈ P_jd rtol = 1e-6
+        @test stats_dt.converged == stats_jd.converged
+        @test stats_dt.iterations == stats_jd.iterations
+        @test stats_dt.position_rmse ≈ stats_jd.position_rmse rtol = 1e-6
+        @test stats_dt.velocity_rmse ≈ stats_jd.velocity_rmse rtol = 1e-6
+        @test stats_dt.total_rmse ≈ stats_jd.total_rmse rtol = 1e-6
+    end
+end
+
 @testset "Initialization With Invalid Orbit Elements" verbose = true begin
     jd₀ = date_to_jd(2023, 1, 1, 0, 0, 0)
 

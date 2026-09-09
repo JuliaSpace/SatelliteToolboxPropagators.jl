@@ -54,6 +54,9 @@ Version 2.0.0
   `Propagators.fit_mean_elements`, accept the propagator constants with the same keyword of
   the initialization functions (`j2c`, `j4c`, and `m0`), whose number type selects the type
   of the fit, as `sgp4c` does in **SatelliteToolboxSgp4.jl**.
+- ![Feature][badge-feature] The keyword `mean_elements_epoch` of every fitting function
+  accepts a `DateTime` [UTC] besides a Julian Day, as `new_epoch` of the epoch update
+  functions already did.
 - ![Feature][badge-feature] Add the optional API functions `Propagators.propagator_data`,
   which returns the structure of the propagation theory wrapped by an `OrbitPropagator`,
   and `Propagators.is_initialized`, which tells whether a propagator created without

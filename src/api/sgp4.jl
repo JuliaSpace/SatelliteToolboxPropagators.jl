@@ -144,7 +144,8 @@ This algorithm was based on **[1]**.
     (**Default**: 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
     (**Default**: 50)
-- `mean_elements_epoch::Number`: Epoch of the fitted mean elements [Julian Day, UTC].
+- `mean_elements_epoch::Union{Number, DateTime}`: Epoch of the fitted mean elements,
+    represented by a Julian Day [UTC] or a `DateTime` [UTC].
     (**Default**: `vjd[end]`)
 - `template::Union{Nothing, sink, NamedTuple}`: Source of the metadata of the output. If it
     is an object of type `sink`, its metadata is copied, e.g. the satellite name and number
