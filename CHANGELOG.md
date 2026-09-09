@@ -103,6 +103,13 @@ Version 2.0.0
 - ![Info][badge-info] Declare Aqua, JET, and AllocCheck as test dependencies instead of
   adding them to the test environment at run time. The quality checks moved to
   `test/quality.jl` and run on every stable Julia release.
+- ![Info][badge-info] **SatelliteToolboxTle.jl** is no longer a direct dependency, since
+  `TLE` is obtained through the re-export of **SatelliteToolboxSgp4.jl**, whereas
+  **NanoDates.jl** became one to build the epoch of the Orbit Mean-Elements Message used by
+  `Propagators.mean_elements`. The compat of **SatelliteToolboxOrbitDataMessages.jl** was
+  bumped to v0.2.
+- ![Info][badge-info] Fix the manual pages of the osculating propagators, whose fitting
+  examples used the tag of the propagators of mean elements.
 
 Version 1.2.0
 -------------
