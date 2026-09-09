@@ -947,7 +947,7 @@ end
     @test e.residue == 1.5e12
     @test sprint(showerror, e) ==
         "MeanElementsFitDivergenceError: The least-square iterations diverged at " *
-        "iteration 7 with a total RMSE of 1.5e12."
+          "iteration 7 with a total RMSE of 1.5e12."
 end
 
 @testset "Default Functions in the API" begin
@@ -1106,9 +1106,9 @@ end
         7130.982e3,
         0.001111,
         98.405 |> deg2rad,
-        90.0   |> deg2rad,
-        200.0  |> deg2rad,
-        45.0   |> deg2rad,
+        90.0 |> deg2rad,
+        200.0 |> deg2rad,
+        45.0 |> deg2rad,
     )
 
     vt  = collect(0.0:60:6000)

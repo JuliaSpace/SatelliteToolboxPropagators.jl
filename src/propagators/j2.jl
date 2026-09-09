@@ -737,9 +737,7 @@ function _j2_mean_elements!(
     M_k = mod(M₀ + n̄ * Δt, T(2π))
 
     # Assemble the current mean elements.
-    orbk = KeplerianElements{MeanAnomaly}(
-        epoch_k, a₀, e₀, i₀, Ω_k, ω_k, M_k
-    )
+    orbk = KeplerianElements{MeanAnomaly}(epoch_k, a₀, e₀, i₀, Ω_k, ω_k, M_k)
 
     # Update the J2 orbit propagator structure.
     j2d.Δt   = Δt

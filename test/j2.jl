@@ -545,7 +545,9 @@ end
 
         # The allocating function must use the selected constants, leading to the same
         # result obtained with a propagator initialized with them.
-        orb_alt, P_alt = fit_j2_mean_elements(vjd, vr_i, vv_i; j2c = J2C_JGM03, verbose = false)
+        orb_alt, P_alt = fit_j2_mean_elements(
+            vjd, vr_i, vv_i; j2c = J2C_JGM03, verbose = false
+        )
         pd = j2_init(orb_input; j2c = J2C_JGM03)
         orb_ref, P_ref = fit_j2_mean_elements!(pd, vjd, vr_i, vv_i; verbose = false)
 
@@ -692,7 +694,6 @@ end
 
     @test orb_alt == update_j2_mean_elements_epoch!(pd, orb_input, new_epoch)
     @test orb_alt != update_j2_mean_elements_epoch(orb_input, new_epoch)
-
 end
 
 @testset "J2 Propagator Constants Conversion" begin

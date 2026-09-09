@@ -358,9 +358,7 @@
         end
 
         # Test in-place initialization.
-        orbp = OrbitPropagatorSgp4(
-            Sgp4Propagator(Sgp4Constants{Float32}(SGP4C_WGS72))
-        )
+        orbp = OrbitPropagatorSgp4(Sgp4Propagator(Sgp4Constants{Float32}(SGP4C_WGS72)))
         Propagators.init!(orbp, tle)
 
         for k in size(expected_results)[1]
@@ -457,9 +455,7 @@
         end
 
         # Test in-place initialization.
-        orbp = OrbitPropagatorSgp4(
-            Sgp4Propagator(Sgp4Constants{Float32}(SGP4C_WGS72))
-        )
+        orbp = OrbitPropagatorSgp4(Sgp4Propagator(Sgp4Constants{Float32}(SGP4C_WGS72)))
         Propagators.init!(
             orbp,
             tle_epoch(tle),

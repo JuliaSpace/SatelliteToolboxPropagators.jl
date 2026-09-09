@@ -542,7 +542,9 @@ end
     @testset "Constants Keyword" begin
         # The number type of the constants selects the type of the fit.
         orb, P, stats = redirect_stdout(devnull) do
-            Propagators.fit_mean_elements(Val(:J4osc), vjd, vr_i, vv_i; j4c = J4C_EGM2008_F32)
+            Propagators.fit_mean_elements(
+                Val(:J4osc), vjd, vr_i, vv_i; j4c = J4C_EGM2008_F32
+            )
         end
 
         @test orb isa KeplerianElements{MeanAnomaly, Float64, Float32}
@@ -552,7 +554,9 @@ end
 
         # The allocating function must use the selected constants, leading to the same
         # result obtained with a propagator initialized with them.
-        orb_alt, P_alt = fit_j4osc_mean_elements(vjd, vr_i, vv_i; j4c = J4C_JGM03, verbose = false)
+        orb_alt, P_alt = fit_j4osc_mean_elements(
+            vjd, vr_i, vv_i; j4c = J4C_JGM03, verbose = false
+        )
         pd = j4osc_init(orb_input; j4c = J4C_JGM03)
         orb_ref, P_ref = fit_j4osc_mean_elements!(pd, vjd, vr_i, vv_i; verbose = false)
 
@@ -674,7 +678,6 @@ end
 
     @test orb_alt == update_j4osc_mean_elements_epoch!(pd, orb_input, new_epoch)
     @test orb_alt != update_j4osc_mean_elements_epoch(orb_input, new_epoch)
-
 end
 
 @testset "Copying Structure" verbose = true begin
