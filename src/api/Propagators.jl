@@ -2,7 +2,7 @@ module Propagators
 
 using Dates
 
-import Base: copy, eltype, length, iterate, show
+import Base: eltype, length, iterate, show
 import SatelliteToolboxBase: @maybe_threads, get_partition, OrbitStateVector
 import SatelliteToolboxBase: PrintedField, PrintedSection, epoch_string, format_value
 import SatelliteToolboxBase: print_compact, print_status, print_tree, type_name
@@ -858,22 +858,22 @@ function _propagate_vector!(
 
     len_vt == 1 && return vr, vv
 
-    inds = eachindex(vt)
-
-    # We need to store the first index offset of `vt` to allow filling the output vectors
-    # correctly.
-    Δi = firstindex(vt) - 1
-
-    # The first and the last instants are propagated separately. Hence, only `len_vt - 2`
-    # instants are partitioned among the tasks. We must not create more tasks than that,
-    # otherwise the surplus tasks would be assigned the same partition and would write
-    # concurrently to the same output elements. We also must have at least one task,
-    # otherwise no instant would be propagated at all.
-    num_tasks = max(min(Int(ntasks), len_vt - 2), 1)
-
     # If we have only two instants in the time vector, we will not spawn any threads,
     # because the first and the last instants are propagated separately.
     if len_vt > 2
+        inds = eachindex(vt)
+
+        # We need to store the first index offset of `vt` to allow filling the output
+        # vectors correctly.
+        Δi = firstindex(vt) - 1
+
+        # The first and the last instants are propagated separately. Hence, only
+        # `len_vt - 2` instants are partitioned among the tasks. We must not create more
+        # tasks than that, otherwise the surplus tasks would be assigned the same partition
+        # and would write concurrently to the same output elements. We also must have at
+        # least one task, otherwise no instant would be propagated at all.
+        num_tasks = max(min(Int(ntasks), len_vt - 2), 1)
+
         # The propagation usually modifies the structure. Hence, we need one propagator per
         # task. We copy them here because `orbp` is mutated by the task that uses it, and
         # copying inside the loop would race with that mutation.

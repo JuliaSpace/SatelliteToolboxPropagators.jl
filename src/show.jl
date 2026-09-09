@@ -45,7 +45,7 @@ function print_tree_body(io::IO, pd::PropagatorData)
     end
 
     sections = _sections(pd)
-    push!(sections, "Propagation" => _propagation_fields(_last_instant(pd), "s"))
+    push!(sections, "Propagation" => _propagation_fields(_last_instant(pd)))
 
     print_tree_body(io, PrintedField[], sections)
 
@@ -120,13 +120,13 @@ propagator structure `pd`.
 _initial_epoch(pd::PropagatorData) = _initial_elements(pd).epoch
 
 """
-    _propagation_fields(Δt::Number, unit::String) -> Vector{PrintedField}
+    _propagation_fields(Δt::Number) -> Vector{PrintedField}
 
-Return the fields of the section that prints the last propagation instant `Δt`, measured
-from the epoch of the initial mean elements in the `unit` given as a string.
+Return the fields of the section that prints the last propagation instant `Δt` [s],
+measured from the epoch of the initial mean elements.
 """
-function _propagation_fields(Δt::Number, unit::String)
-    return PrintedField[("Last Instant", format_value(Δt), unit)]
+function _propagation_fields(Δt::Number)
+    return PrintedField[("Last Instant", format_value(Δt), "s")]
 end
 
 """
