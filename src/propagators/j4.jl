@@ -46,43 +46,43 @@ export update_j4_mean_elements_epoch, update_j4_mean_elements_epoch!
 # EGM-08 gravitational constants.
 const J4C_EGM2008 = J4PropagatorConstants(
     6378137.0,
-    sqrt(3.986004415e14 / 6378137.0^3),
+    √(3.986004415e14 / 6378137.0^3),
     0.0010826261738522227,
     -1.6198975999169731e-6,
 )
 
 const J4C_EGM2008_F32 = J4PropagatorConstants{Float32}(
     6378137.0,
-    sqrt(3.986004415e14 / 6378137.0^3),
+    √(3.986004415e14 / 6378137.0^3),
     0.0010826261738522227,
     -1.6198975999169731e-6,
 )
 
 # EGM-96 gravitational constants.
 const J4C_EGM1996 = J4PropagatorConstants(
-    6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826266835531513, -1.619621591367e-6
+    6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826266835531513, -1.619621591367e-6
 )
 
 const J4C_EGM1996_F32 = J4PropagatorConstants{Float32}(
-    6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826266835531513, -1.619621591367e-6
+    6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826266835531513, -1.619621591367e-6
 )
 
 # JGM-02 gravitational constants.
 const J4C_JGM02 = J4PropagatorConstants(
-    6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826269256388149, -1.62042999e-6
+    6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826269256388149, -1.62042999e-6
 )
 
 const J4C_JGM02_F32 = J4PropagatorConstants{Float32}(
-    6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826269256388149, -1.62042999e-6
+    6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826269256388149, -1.62042999e-6
 )
 
 # JGM-03 gravitational constants.
 const J4C_JGM03 = J4PropagatorConstants(
-    6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826360229829945, -1.619331205071e-6
+    6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826360229829945, -1.619331205071e-6
 )
 
 const J4C_JGM03_F32 = J4PropagatorConstants{Float32}(
-    6378136.3, sqrt(3.986004415e14 / 6378136.3^3), 0.0010826360229829945, -1.619331205071e-6
+    6378136.3, √(3.986004415e14 / 6378136.3^3), 0.0010826360229829945, -1.619331205071e-6
 )
 
 ############################################################################################
@@ -93,7 +93,7 @@ const J4C_JGM03_F32 = J4PropagatorConstants{Float32}(
     j4_init(orb₀::KeplerianElements; kwargs...) -> J4Propagator
 
 Create and initialize the J4 orbit propagator structure using the mean Keplerian elements
-`orb₀`.
+`orb₀` [SI units].
 
 !!! note
 
@@ -126,7 +126,8 @@ end
 """
     j4_init!(j4d::J4Propagator, orb₀::KeplerianElements) -> Nothing
 
-Initialize the J4 orbit propagator structure `j4d` using the mean Keplerian elements `orb₀`.
+Initialize the J4 orbit propagator structure `j4d` using the mean Keplerian elements
+`orb₀` [SI units].
 
 !!! warning
 
@@ -283,10 +284,10 @@ end
 """
     j4!(
         j4d::J4Propagator{Tepoch, T},
-        t::Number
+        Δt::Number
     ) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
 
-Propagate the orbit defined in `j4d` (see [`J4Propagator`](@ref)) to `t` [s] after the
+Propagate the orbit defined in `j4d` (see [`J4Propagator`](@ref)) to `Δt` [s] after the
 epoch of the input mean elements in `j4d`.
 
 !!! note
@@ -306,8 +307,8 @@ The inertial frame in which the output is represented depends on which frame was
 generate the orbit parameters. Notice that the perturbation theory requires an inertial
 frame with true equator.
 """
-function j4!(j4d::J4Propagator{Tepoch, T}, t::Number) where {Tepoch <: Number, T <: Number}
-    orbk = _j4_mean_elements!(j4d, t)
+function j4!(j4d::J4Propagator{Tepoch, T}, Δt::Number) where {Tepoch <: Number, T <: Number}
+    orbk = _j4_mean_elements!(j4d, Δt)
 
     # Compute the position and velocity vectors given the orbital elements.
     r_i_k, v_i_k = kepler_to_rv(orbk)
@@ -353,10 +354,10 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 - `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
     the osculating elements in `vr_i` and `vv_i`.
-    (**Default**: nothing)
-- `jacobian_method::Union{FiniteDiffJacobian, ForwardDiffJacobian}`: Method used to compute
-    the Jacobian matrix. Use `FiniteDiffJacobian()` for finite differences or
-    `ForwardDiffJacobian()` for `ForwardDiff.jl` automatic differentiation.
+    (**Default**: `nothing`)
+- `jacobian_method::AbstractJacobianMethod`: Method used to compute the Jacobian matrix. It
+    can be `FiniteDiffJacobian()` for finite differences or `ForwardDiffJacobian()` for
+    **ForwardDiff.jl** automatic differentiation.
     (**Default**: `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
     finite-difference when calculating the Jacobian matrix. Only used with
@@ -371,9 +372,9 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
     (**Default**: 50)
 - `mean_elements_epoch::Union{Number, DateTime}`: Epoch of the fitted mean elements,
     represented by a Julian Day [UTC] or a `DateTime` [UTC].
-    (**Default**: vjd[end])
+    (**Default**: `vjd[end]`)
 - `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default**: true)
+    (**Default**: `true`)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
     `weight_vector` at its diagonal.
@@ -495,41 +496,8 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 
 # Keywords
 
-- `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
-    `atol` at any iteration, the computation loop stops.
-    (**Default**: 2e-4)
-- `rtol::Number`: Tolerance for the relative difference between the residuals. If the
-    relative difference between the residuals in two consecutive iterations is lower than
-    `rtol`, the computation loop stops.
-    (**Default**: 2e-4)
-- `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
-    fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
-    the osculating elements in `vr_i` and `vv_i`.
-    (**Default**: nothing)
-- `jacobian_method::Union{FiniteDiffJacobian, ForwardDiffJacobian}`: Method used to compute
-    the Jacobian matrix. Use `FiniteDiffJacobian()` for finite differences or
-    `ForwardDiffJacobian()` for `ForwardDiff.jl` automatic differentiation.
-    (**Default**: `FiniteDiffJacobian()`)
-- `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix. Only used with
-    `FiniteDiffJacobian()`.
-    (**Default**: 1e-3)
-- `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
-    the Jacobian matrix. If the computed perturbation is lower than
-    `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
-    `jacobian_perturbation_tol`. Only used with `FiniteDiffJacobian()`.
-    (**Default**: 1e-7)
-- `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
-    (**Default**: 50)
-- `mean_elements_epoch::Union{Number, DateTime}`: Epoch of the fitted mean elements,
-    represented by a Julian Day [UTC] or a `DateTime` [UTC].
-    (**Default**: vjd[end])
-- `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default**: true)
-- `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
-    algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
-    `weight_vector` at its diagonal.
-    (**Default**: `@SVector(ones(Bool, 6))`)
+The keywords are the same as in [`fit_j4_mean_elements`](@ref), except for `j4c`, since the
+constants are those in `j4d`.
 
 # Returns
 
@@ -775,16 +743,16 @@ end
 """
     _j4_mean_elements!(
         j4d::J4Propagator{Tepoch, T},
-        t::Number
+        Δt::Number
     ) where {Tepoch <: Number, T <: Number} -> KeplerianElements{MeanAnomaly, Tepoch, T}
 
-Propagate the mean elements of `j4d` to the instant `t` [s] measured from the epoch of the
+Propagate the mean elements of `j4d` to the instant `Δt` [s] measured from the epoch of the
 initial elements, update the propagator structure, and return the mean elements [SI units].
 The osculating propagator uses this function directly to avoid computing a state vector from
 the mean elements that it would discard.
 """
 function _j4_mean_elements!(
-    j4d::J4Propagator{Tepoch, T}, t::Number
+    j4d::J4Propagator{Tepoch, T}, Δt::Number
 ) where {Tepoch <: Number, T <: Number}
     # Unpack the variables.
     orb₀  = j4d.orb₀
@@ -799,8 +767,10 @@ function _j4_mean_elements!(
     ω₀    = orb₀.argument_of_periapsis
     M₀    = mean_anomaly(orb₀)
 
-    # Time elapsed since epoch.
-    Δt = T(t)
+    # Epoch of the propagated elements [Julian Day], computed before converting the time
+    # from epoch to the element type of the propagator.
+    epoch_k = epoch + Tepoch(Δt) / 86400
+    Δt      = T(Δt)
 
     # Propagate the orbital elements.
     Ω_k = mod(Ω₀ + ∂Ω * Δt, T(2π))
@@ -809,7 +779,7 @@ function _j4_mean_elements!(
 
     # Assemble the current mean elements.
     orbk = KeplerianElements{MeanAnomaly}(
-        epoch + Tepoch(t) / 86400, a₀, e₀, i₀, Ω_k, ω_k, M_k
+        epoch_k, a₀, e₀, i₀, Ω_k, ω_k, M_k
     )
 
     # Update the J4 orbit propagator structure.

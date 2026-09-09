@@ -528,10 +528,10 @@ end
 """
     Propagators.propagate!(
         orbp::OrbitPropagatorSgp4{Tepoch, T},
-        t::Number
+        Δt::Number
     ) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
 
-Propagate the orbit of the SGP4 orbit propagator `orbp` to `t` [s] after the epoch of the
+Propagate the orbit of the SGP4 orbit propagator `orbp` to `Δt` [s] after the epoch of the
 TLE, updating the internal state of `orbp`. The SGP4 kernel works in minutes and kilometers,
 so the instant and the output are converted to SI units here.
 
@@ -541,8 +541,8 @@ so the instant and the output are converted to SI units here.
 - `SVector{3, T}`: Velocity vector [m / s] represented in the TEME frame at propagation
     instant.
 """
-function Propagators.propagate!(orbp::OrbitPropagatorSgp4, t::Number)
-    r_teme, v_teme = sgp4!(orbp.sgp4d, t / 60)
+function Propagators.propagate!(orbp::OrbitPropagatorSgp4, Δt::Number)
+    r_teme, v_teme = sgp4!(orbp.sgp4d, Δt / 60)
     return 1000r_teme, 1000v_teme
 end
 

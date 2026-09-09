@@ -105,22 +105,27 @@ The following keywords are available to configure the fitting process:
 - `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
     the osculating elements in `vr_i` and `vv_i`.
-    (**Default**: nothing)
+    (**Default**: `nothing`)
+- `jacobian_method::AbstractJacobianMethod`: Method used to compute the Jacobian matrix. It
+    can be `FiniteDiffJacobian()` for finite differences or `ForwardDiffJacobian()` for
+    **ForwardDiff.jl** automatic differentiation.
+    (**Default**: `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix.
+    finite-difference when calculating the Jacobian matrix. Only used with
+    `FiniteDiffJacobian()`.
     (**Default**: 1e-3)
 - `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
     the Jacobian matrix. If the computed perturbation is lower than
     `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
-    `jacobian_perturbation_tol`.
+    `jacobian_perturbation_tol`. Only used with `FiniteDiffJacobian()`.
     (**Default**: 1e-7)
 - `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
     (**Default**: 50)
 - `mean_elements_epoch::Union{Number, DateTime}`: Epoch of the fitted mean elements,
     represented by a Julian Day [UTC] or a `DateTime` [UTC].
-    (**Default**: vjd[end])
+    (**Default**: `vjd[end]`)
 - `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default**: true)
+    (**Default**: `true`)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
     `weight_vector` at its diagonal.

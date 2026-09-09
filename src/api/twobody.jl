@@ -40,41 +40,8 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
 - `m0::T`: Standard gravitational parameter of the central body [m³ / s²], whose
     number type `T` is used in the fitting.
     (**Default**: `TBC_M0`)
-- `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
-    `atol` at any iteration, the computation loop stops.
-    (**Default**: 2e-4)
-- `rtol::Number`: Tolerance for the relative difference between the residuals. If the
-    relative difference between the residuals in two consecutive iterations is lower than
-    `rtol`, the computation loop stops.
-    (**Default**: 2e-4)
-- `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
-    fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
-    the osculating elements in `vr_i` and `vv_i`.
-    (**Default**: `nothing`)
-- `jacobian_method::Union{FiniteDiffJacobian, ForwardDiffJacobian}`: Method used to compute
-    the Jacobian matrix. Use `FiniteDiffJacobian()` for finite differences or
-    `ForwardDiffJacobian()` for **ForwardDiff.jl** automatic differentiation.
-    (**Default**: `FiniteDiffJacobian()`)
-- `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix. Only used with
-    `FiniteDiffJacobian()`.
-    (**Default**: 1e-3)
-- `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
-    the Jacobian matrix. If the computed perturbation is lower than
-    `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
-    `jacobian_perturbation_tol`. Only used with `FiniteDiffJacobian()`.
-    (**Default**: 1e-7)
-- `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
-    (**Default**: 50)
-- `mean_elements_epoch::Union{Number, DateTime}`: Epoch of the fitted mean elements,
-    represented by a Julian Day [UTC] or a `DateTime` [UTC].
-    (**Default**: `vjd[end]`)
-- `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default**: `true`)
-- `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
-    algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
-    `weight_vector` at its diagonal.
-    (**Default**: `@SVector(ones(Bool, 6))`)
+
+The other keywords are the same as in [`fit_twobody_mean_elements`](@ref).
 
 # Returns
 
@@ -135,41 +102,8 @@ the array `vjd` [Julian Day].
 
 # Keywords
 
-- `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
-    `atol` at any iteration, the computation loop stops.
-    (**Default**: 2e-4)
-- `rtol::Number`: Tolerance for the relative difference between the residuals. If the
-    relative difference between the residuals in two consecutive iterations is lower than
-    `rtol`, the computation loop stops.
-    (**Default**: 2e-4)
-- `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
-    fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
-    the osculating elements in `vr_i` and `vv_i`.
-    (**Default**: `nothing`)
-- `jacobian_method::Union{FiniteDiffJacobian, ForwardDiffJacobian}`: Method used to compute
-    the Jacobian matrix. Use `FiniteDiffJacobian()` for finite differences or
-    `ForwardDiffJacobian()` for **ForwardDiff.jl** automatic differentiation.
-    (**Default**: `FiniteDiffJacobian()`)
-- `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix. Only used with
-    `FiniteDiffJacobian()`.
-    (**Default**: 1e-3)
-- `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
-    the Jacobian matrix. If the computed perturbation is lower than
-    `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
-    `jacobian_perturbation_tol`. Only used with `FiniteDiffJacobian()`.
-    (**Default**: 1e-7)
-- `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
-    (**Default**: 50)
-- `mean_elements_epoch::Union{Number, DateTime}`: Epoch of the fitted mean elements,
-    represented by a Julian Day [UTC] or a `DateTime` [UTC].
-    (**Default**: `vjd[end]`)
-- `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default**: `true`)
-- `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
-    algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
-    `weight_vector` at its diagonal.
-    (**Default**: `@SVector(ones(Bool, 6))`)
+The keywords are the same as in [`fit_twobody_mean_elements`](@ref), except for `m0`, since
+the gravitational parameter is that in `orbp`.
 
 # Returns
 
@@ -214,7 +148,7 @@ end
     ) -> OrbitPropagatorTwoBody
 
 Create and initialize the two-body orbit propagator structure using the mean Keplerian
-elements `orb₀`.
+elements `orb₀` [SI units].
 
 !!! note
 
@@ -235,7 +169,7 @@ end
     Propagators.init!(orbp::OrbitPropagatorTwoBody, orb₀::KeplerianElements) -> Nothing
 
 Initialize the two-body orbit propagator structure `orbp` using the mean Keplerian elements
-`orb₀`.
+`orb₀` [SI units].
 
 !!! warning
 
@@ -254,10 +188,10 @@ end
 """
     Propagators.propagate!(
         orbp::OrbitPropagatorTwoBody{Tepoch, T},
-        t::Number
+        Δt::Number
     ) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
 
-Propagate the orbit of the two-body orbit propagator `orbp` to `t` [s] after the epoch of
+Propagate the orbit of the two-body orbit propagator `orbp` to `Δt` [s] after the epoch of
 the initial mean elements, updating the internal state of `orbp`.
 
 # Returns
@@ -271,8 +205,8 @@ the initial mean elements, updating the internal state of `orbp`.
 
 The output is represented in the inertial reference frame of the input elements.
 """
-function Propagators.propagate!(orbp::OrbitPropagatorTwoBody, t::Number)
-    return twobody!(orbp.tbd, t)
+function Propagators.propagate!(orbp::OrbitPropagatorTwoBody, Δt::Number)
+    return twobody!(orbp.tbd, Δt)
 end
 
 ############################################################################################

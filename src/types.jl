@@ -375,7 +375,8 @@ end
 function Base.showerror(io::IO, e::MeanElementsFitDivergenceError)
     print(
         io,
-        "MeanElementsFitDivergenceError: The least-square iterations diverged at iteration ",
+        "MeanElementsFitDivergenceError: The least-square iterations diverged at ",
+        "iteration ",
         e.iteration,
         " with a total RMSE of ",
         e.residue,

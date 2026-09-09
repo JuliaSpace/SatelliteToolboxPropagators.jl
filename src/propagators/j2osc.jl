@@ -125,10 +125,10 @@ end
 """
     j2osc!(
         j2oscd::J2OsculatingPropagator{Tepoch, T},
-        t::Number
-    ) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+        Δt::Number
+    ) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
 
-Propagate the orbit defined in `j2oscd` (see [`J2OsculatingPropagator`](@ref)) to `t` [s]
+Propagate the orbit defined in `j2oscd` (see [`J2OsculatingPropagator`](@ref)) to `Δt` [s]
 after the epoch of the input mean elements in `j2oscd`.
 
 !!! note
@@ -149,12 +149,12 @@ generate the orbit parameters. Notice that the perturbation theory requires an i
 frame with true equator.
 """
 function j2osc!(
-    j2oscd::J2OsculatingPropagator{Tepoch, T}, t::Number
+    j2oscd::J2OsculatingPropagator{Tepoch, T}, Δt::Number
 ) where {Tepoch <: Number, T <: Number}
     # First, we need to propagate the mean elements since they are necessary to compute the
     # short-periodic perturbations.
     j2d = j2oscd.j2d
-    mean_orbk = _j2_mean_elements!(j2d, t)
+    mean_orbk = _j2_mean_elements!(j2d, Δt)
 
     # Unpack the propagator constants.
     j2c = j2d.j2c
@@ -168,7 +168,7 @@ function j2osc!(
     r_i_k, v_i_k = kepler_to_rv(orbk)
 
     # Update the J2 orbit propagator structure.
-    j2oscd.Δt   = T(t)
+    j2oscd.Δt   = T(Δt)
     j2oscd.orbk = orbk
 
     return r_i_k, v_i_k
@@ -211,10 +211,10 @@ the array `vjd` [Julian Day].
 - `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
     the osculating elements in `vr_i` and `vv_i`.
-    (**Default**: nothing)
-- `jacobian_method::Union{FiniteDiffJacobian, ForwardDiffJacobian}`: Method used to compute
-    the Jacobian matrix. Use `FiniteDiffJacobian()` for finite differences or
-    `ForwardDiffJacobian()` for `ForwardDiff.jl` automatic differentiation.
+    (**Default**: `nothing`)
+- `jacobian_method::AbstractJacobianMethod`: Method used to compute the Jacobian matrix. It
+    can be `FiniteDiffJacobian()` for finite differences or `ForwardDiffJacobian()` for
+    **ForwardDiff.jl** automatic differentiation.
     (**Default**: `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
     finite-difference when calculating the Jacobian matrix. Only used with
@@ -229,9 +229,9 @@ the array `vjd` [Julian Day].
     (**Default**: 50)
 - `mean_elements_epoch::Union{Number, DateTime}`: Epoch of the fitted mean elements,
     represented by a Julian Day [UTC] or a `DateTime` [UTC].
-    (**Default**: vjd[end])
+    (**Default**: `vjd[end]`)
 - `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default**: true)
+    (**Default**: `true`)
 - `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
     algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
     `weight_vector` at its diagonal.
@@ -345,41 +345,8 @@ the array `vjd` [Julian Day].
 
 # Keywords
 
-- `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
-    `atol` at any iteration, the computation loop stops.
-    (**Default**: 2e-4)
-- `rtol::Number`: Tolerance for the relative difference between the residuals. If the
-    relative difference between the residuals in two consecutive iterations is lower than
-    `rtol`, the computation loop stops.
-    (**Default**: 2e-4)
-- `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
-    fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
-    the osculating elements in `vr_i` and `vv_i`.
-    (**Default**: nothing)
-- `jacobian_method::Union{FiniteDiffJacobian, ForwardDiffJacobian}`: Method used to compute
-    the Jacobian matrix. Use `FiniteDiffJacobian()` for finite differences or
-    `ForwardDiffJacobian()` for `ForwardDiff.jl` automatic differentiation.
-    (**Default**: `FiniteDiffJacobian()`)
-- `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix. Only used with
-    `FiniteDiffJacobian()`.
-    (**Default**: 1e-3)
-- `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
-    the Jacobian matrix. If the computed perturbation is lower than
-    `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
-    `jacobian_perturbation_tol`. Only used with `FiniteDiffJacobian()`.
-    (**Default**: 1e-7)
-- `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
-    (**Default**: 50)
-- `mean_elements_epoch::Union{Number, DateTime}`: Epoch of the fitted mean elements,
-    represented by a Julian Day [UTC] or a `DateTime` [UTC].
-    (**Default**: vjd[end])
-- `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default**: true)
-- `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
-    algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
-    `weight_vector` at its diagonal.
-    (**Default**: `@SVector(ones(Bool, 6))`)
+The keywords are the same as in [`fit_j2osc_mean_elements`](@ref), except for `j2c`, since
+the constants are those in `j2oscd`.
 
 # Returns
 

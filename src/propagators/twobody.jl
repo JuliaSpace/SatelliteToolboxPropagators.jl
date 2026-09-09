@@ -33,7 +33,7 @@ const TBC_M0_F32 = 3.986004415f14
     twobody_init(orb₀::KeplerianElements; kwargs...) -> TwoBodyPropagator
 
 Create and initialize the two-body propagator structure using the mean Keplerian elements
-`orb₀`.
+`orb₀` [SI units].
 
 !!! note
 
@@ -64,7 +64,8 @@ end
 """
     twobody_init!(tbd::TwoBodyPropagator, orb₀::KeplerianElements) -> Nothing
 
-Initialize the two-body propagator structure `tbd` using the mean Keplerian elements `orb₀`.
+Initialize the two-body propagator structure `tbd` using the mean Keplerian elements
+`orb₀` [SI units].
 
 !!! warning
 
@@ -152,10 +153,10 @@ end
 """
     twobody!(
         tbd::TwoBodyPropagator{Tepoch, T},
-        t::Number
-    ) where {Tepoch, T} -> SVector{3, T}, SVector{3, T}
+        Δt::Number
+    ) where {Tepoch <: Number, T <: Number} -> SVector{3, T}, SVector{3, T}
 
-Propagate the orbit defined in `tbd` (see [`TwoBodyPropagator`](@ref)) to `t` [s] after the
+Propagate the orbit defined in `tbd` (see [`TwoBodyPropagator`](@ref)) to `Δt` [s] after the
 epoch of the input mean elements in `tbd`.
 
 !!! note
@@ -175,7 +176,7 @@ The inertial frame in which the output is represented depends on which frame was
 generate the orbit parameters.
 """
 function twobody!(
-    tbd::TwoBodyPropagator{Tepoch, T}, t::Number
+    tbd::TwoBodyPropagator{Tepoch, T}, Δt::Number
 ) where {Tepoch <: Number, T <: Number}
     # Unpack.
     orb₀ = tbd.orb₀
@@ -186,16 +187,17 @@ function twobody!(
     ω₀   = orb₀.argument_of_periapsis
     M₀   = mean_anomaly(orb₀)
 
-    # Time elapsed since epoch.
-    epoch = orb₀.epoch
-    Δt    = T(t)
+    # Epoch of the propagated elements [Julian Day], computed before converting the time
+    # from epoch to the element type of the propagator.
+    epoch_k = orb₀.epoch + Tepoch(Δt) / 86400
+    Δt      = T(Δt)
 
     # Propagate the orbital elements.
     M_k = mod(M₀ + tbd.n₀ * Δt, T(2π))
 
     # Assemble the current mean elements.
     orbk = KeplerianElements{MeanAnomaly}(
-        epoch + Tepoch(t) / 86400, a₀, e₀, i₀, Ω₀, ω₀, M_k
+        epoch_k, a₀, e₀, i₀, Ω₀, ω₀, M_k
     )
 
     # Compute the position and velocity vectors given the orbital elements.
@@ -248,9 +250,9 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
     fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
     the osculating elements in `vr_i` and `vv_i`.
     (**Default**: `nothing`)
-- `jacobian_method::Union{FiniteDiffJacobian, ForwardDiffJacobian}`: Method used to compute
-    the Jacobian matrix. Use `FiniteDiffJacobian()` for finite differences or
-    `ForwardDiffJacobian()` for **ForwardDiff.jl** automatic differentiation.
+- `jacobian_method::AbstractJacobianMethod`: Method used to compute the Jacobian matrix. It
+    can be `FiniteDiffJacobian()` for finite differences or `ForwardDiffJacobian()` for
+    **ForwardDiff.jl** automatic differentiation.
     (**Default**: `FiniteDiffJacobian()`)
 - `jacobian_perturbation::Number`: Initial state perturbation to compute the
     finite-difference when calculating the Jacobian matrix. Only used with
@@ -377,41 +379,8 @@ the array `vjd` [Julian Day].
 
 # Keywords
 
-- `atol::Number`: Tolerance for the residual absolute value. If the residual is lower than
-    `atol` at any iteration, the computation loop stops.
-    (**Default**: 2e-4)
-- `rtol::Number`: Tolerance for the relative difference between the residuals. If the
-    relative difference between the residuals in two consecutive iterations is lower than
-    `rtol`, the computation loop stops.
-    (**Default**: 2e-4)
-- `initial_guess::Union{Nothing, KeplerianElements}`: Initial guess for the mean elements
-    fitting process. If it is `nothing`, the algorithm will obtain an initial estimate from
-    the osculating elements in `vr_i` and `vv_i`.
-    (**Default**: `nothing`)
-- `jacobian_method::Union{FiniteDiffJacobian, ForwardDiffJacobian}`: Method used to compute
-    the Jacobian matrix. Use `FiniteDiffJacobian()` for finite differences or
-    `ForwardDiffJacobian()` for **ForwardDiff.jl** automatic differentiation.
-    (**Default**: `FiniteDiffJacobian()`)
-- `jacobian_perturbation::Number`: Initial state perturbation to compute the
-    finite-difference when calculating the Jacobian matrix. Only used with
-    `FiniteDiffJacobian()`.
-    (**Default**: 1e-3)
-- `jacobian_perturbation_tol::Number`: Tolerance to accept the perturbation when calculating
-    the Jacobian matrix. If the computed perturbation is lower than
-    `jacobian_perturbation_tol`, we increase it until its absolute value is higher than
-    `jacobian_perturbation_tol`. Only used with `FiniteDiffJacobian()`.
-    (**Default**: 1e-7)
-- `max_iterations::Int`: Maximum number of iterations allowed for the least-square fitting.
-    (**Default**: 50)
-- `mean_elements_epoch::Union{Number, DateTime}`: Epoch of the fitted mean elements,
-    represented by a Julian Day [UTC] or a `DateTime` [UTC].
-    (**Default**: `vjd[end]`)
-- `verbose::Bool`: If `true`, the algorithm prints debugging information to `stdout`.
-    (**Default**: `true`)
-- `weight_vector::AbstractVector`: Vector with the measurements weights for the least-square
-    algorithm. We assemble the weight matrix `W` as a diagonal matrix with the elements in
-    `weight_vector` at its diagonal.
-    (**Default**: `@SVector(ones(Bool, 6))`)
+The keywords are the same as in [`fit_twobody_mean_elements`](@ref), except for `m0`, since
+the gravitational parameter is that in `tbd`.
 
 # Returns
 

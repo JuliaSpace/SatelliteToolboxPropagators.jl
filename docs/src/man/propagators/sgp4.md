@@ -135,8 +135,8 @@ to fit a set of SGP4 mean elements using the osculating elements represented by 
 position vectors `vr_teme` [m] and a set of velocity vectors `vv_teme` [m / s] represented
 in the True-Equator, Mean-Equinox reference frame (TEME) at instants in the array `vjd`
 [Julian Day, UTC]. The mean elements are returned as an object of type `sink`, which can be
-a `TLE` or an `OrbitMeanElementsMessage`. If `sink` is omitted, an `OrbitMeanElementsMessage`
-is returned.
+a `TLE` or an `OrbitMeanElementsMessage`. If `sink` is omitted, an
+`OrbitMeanElementsMessage` is returned.
 
 It returns the fitted mean elements, the final covariance matrix of the least-square
 algorithm, and a `NamedTuple` with its statistics: `converged`, `iterations`,

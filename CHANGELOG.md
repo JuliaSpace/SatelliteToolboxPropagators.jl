@@ -88,8 +88,9 @@ Version 2.0.0
 - ![Bugfix][badge-bugfix] Fix the docstring examples of the fitting functions, which
   initialized the dummy propagator with an integer epoch and failed with an `InexactError`.
 - ![Info][badge-info] Every function, including the private ones, now has a docstring, and
-  the sources follow the coding style. The private Jacobian functions were merged into
-  `_mean_elements_jacobian`.
+  the sources follow the coding style. The keywords of the fitting functions are documented
+  once per propagator, in `fit_*_mean_elements`, and the other fitting functions refer to
+  them. The private Jacobian functions were merged into `_mean_elements_jacobian`.
 - ![Info][badge-info] The propagator design description moved from `src/API.md` to the
   documentation, which now builds it as the page "API".
 - ![Info][badge-info] Declare Aqua, JET, and AllocCheck as test dependencies instead of
