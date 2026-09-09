@@ -141,7 +141,7 @@ _mean_elements_propagator(pd::TwoBodyPropagator)      = pd
         T <: Number,
         Tjd <: Number,
         Tv <: AbstractVector
-    } -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
+    } -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}, NamedTuple
 
 Fit a set of mean Keplerian elements for the propagator `pd` using the osculating elements
 represented by a set of position vectors `vr_i` [m] and a set of velocity vectors `vv_i`
@@ -182,6 +182,18 @@ fails if the residual diverges.
 
 - `KeplerianElements{MeanAnomaly, Tepoch, T}`: Fitted mean Keplerian elements [SI units].
 - `SMatrix{6, 6, T}`: Final covariance matrix of the least-square algorithm.
+- `NamedTuple`: Statistics of the least-square algorithm with the following fields:
+    - `converged::Bool`: `true` if the iterations stopped because the residue was lower
+        than `atol` or its relative variation was lower than `rtol`, or `false` if they
+        stopped by reaching `max_iterations`.
+    - `iterations::Int`: Number of iterations performed.
+    - `position_rmse::T`: RMSE of the position residue in the last iteration [m].
+    - `velocity_rmse::T`: RMSE of the velocity residue in the last iteration [m / s].
+    - `total_rmse::T`: Weighted RMSE of the residue in the last iteration.
+
+    The statistics refer to the fitting of the mean elements. If their epoch is updated
+    afterward to match `mean_elements_epoch`, the statistics of that update are not
+    returned.
 
 # Extended help
 
@@ -276,6 +288,13 @@ function _fit_mean_elements!(
     # Number of states in the input vector.
     num_states = 6
 
+    # Statistics returned after the iterations.
+    converged  = false
+    iterations = 0
+    σ_i        = T(0)
+    σp_i       = T(0)
+    σv_i       = T(0)
+
     # Variable to store the last residue.
     σ_i_₁ = T(0)
 
@@ -310,12 +329,13 @@ function _fit_mean_elements!(
     # avoid copies when slicing the static arrays.
     @inbounds @views for it in 1:max_iterations
         x₁ = x₂
+        iterations = it
 
         # Variables to store the summations to compute the least square fitting algorithm.
         ΣJ′WJ = @SMatrix zeros(T, num_states, num_states)
         ΣJ′Wb = @SVector zeros(T, num_states)
 
-        # Variable to store the RMS errors in this iteration.
+        # Variables to store the RMS errors in this iteration.
         σ_i  = T(0)
         σp_i = T(0)
         σv_i = T(0)
@@ -436,7 +456,10 @@ function _fit_mean_elements!(
             ((Δd ≥ 3) && (σ_i > 5e11)) && error("The iterations diverged.")
 
             # Check if the condition to stop has been reached.
-            ((abs(Δσ) < rtol) || (σ_i < atol) || (it ≥ max_iterations)) && break
+            if (abs(Δσ) < rtol) || (σ_i < atol)
+                converged = true
+                break
+            end
         end
 
         σ_i_₁ = σ_i
@@ -465,8 +488,16 @@ function _fit_mean_elements!(
     # Compute the final covariance.
     P = pinv(ΣJ′WJ)
 
-    # Return the mean elements and the covariance.
-    return orb, P
+    # Assemble the statistics of the fit.
+    stats = (;
+        converged,
+        iterations,
+        position_rmse = σp_i,
+        velocity_rmse = σv_i,
+        total_rmse    = σ_i,
+    )
+
+    return orb, P, stats
 end
 
 # == Helpers ===============================================================================

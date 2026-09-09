@@ -89,7 +89,7 @@ end
         vr_teme::AbstractVector{Tv},
         vv_teme::AbstractVector{Tv};
         kwargs...
-    ) where {Tjd <: Number, Tv <: AbstractVector} -> sink, SMatrix{7, 7, Float64}
+    ) where {Tjd <: Number, Tv <: AbstractVector} -> sink, SMatrix{7, 7, T}, NamedTuple
 
 Fit a set of SGP4 mean elements using the osculating elements represented by a set of
 position vectors `vr_teme` [m] and a set of velocity vectors `vv_teme` [m / s] represented
@@ -167,9 +167,22 @@ This algorithm was based on **[1]**.
 # Returns
 
 - `sink`: The fitted mean elements.
-- `SMatrix{7, 7, Float64}`: Final covariance matrix of the least-square algorithm, whose
-    state is the mean position [km], the mean velocity [km / s], and the drag term B*
-    [1 / er].
+- `SMatrix{7, 7, T}`: Final covariance matrix of the least-square algorithm, whose state is
+    the mean position [km], the mean velocity [km / s], and the drag term B* [1 / er].
+- `NamedTuple`: Statistics of the least-square algorithm with the following fields:
+    - `converged::Bool`: `true` if the iterations stopped because the residue was lower
+        than `atol` or its relative variation was lower than `rtol`, or `false` if they
+        stopped by reaching `max_iterations`.
+    - `iterations::Int`: Number of iterations performed.
+    - `position_rmse::T`: RMSE of the position residue in the last iteration [m].
+    - `velocity_rmse::T`: RMSE of the velocity residue in the last iteration [m / s].
+    - `total_rmse::T`: Weighted RMSE of the residue in the last iteration, scaled to SI
+        units.
+
+    The statistics refer to the fitting of the mean elements. If their epoch is updated
+    afterward to match `mean_elements_epoch`, the statistics of that update are not
+    returned. The RMSE values are computed by **SatelliteToolboxSgp4.jl** in kilometers
+    and converted here to SI units.
 
 # Initial Guess
 
@@ -236,7 +249,10 @@ function Propagators.fit_mean_elements(
     vv_teme::AbstractVector{Tv};
     kwargs...,
 ) where {S <: Union{TLE, OrbitMeanElementsMessage}, Tjd <: Number, Tv <: AbstractVector}
-    return fit_sgp4_mean_elements(S, vjd, vr_teme ./ 1000, vv_teme ./ 1000; kwargs...)
+    me, P, stats = fit_sgp4_mean_elements(
+        S, vjd, vr_teme ./ 1000, vv_teme ./ 1000; kwargs...
+    )
+    return me, P, _stats_to_si(stats)
 end
 
 """
@@ -251,7 +267,7 @@ end
         T <: Number,
         Tjd <: Number,
         Tv <: AbstractVector
-    } -> sink, SMatrix{7, 7, T}
+    } -> sink, SMatrix{7, 7, T}, NamedTuple
 
 Fit a set of SGP4 mean elements for the orbit propagator `orbp` using the osculating
 elements represented by a set of position vectors `vr_teme` [m] and a set of velocity
@@ -278,6 +294,20 @@ propagator.
 - `sink`: The fitted mean elements.
 - `SMatrix{7, 7, T}`: Final covariance matrix of the least-square algorithm, whose state is
     the mean position [km], the mean velocity [km / s], and the drag term B* [1 / er].
+- `NamedTuple`: Statistics of the least-square algorithm with the following fields:
+    - `converged::Bool`: `true` if the iterations stopped because the residue was lower
+        than `atol` or its relative variation was lower than `rtol`, or `false` if they
+        stopped by reaching `max_iterations`.
+    - `iterations::Int`: Number of iterations performed.
+    - `position_rmse::T`: RMSE of the position residue in the last iteration [m].
+    - `velocity_rmse::T`: RMSE of the velocity residue in the last iteration [m / s].
+    - `total_rmse::T`: Weighted RMSE of the residue in the last iteration, scaled to SI
+        units.
+
+    The statistics refer to the fitting of the mean elements. If their epoch is updated
+    afterward to match `mean_elements_epoch`, the statistics of that update are not
+    returned. The RMSE values are computed by **SatelliteToolboxSgp4.jl** in kilometers
+    and converted here to SI units.
 
 # References
 
@@ -313,9 +343,10 @@ function Propagators.fit_mean_elements!(
     ::Type{S};
     kwargs...,
 ) where {S <: Union{TLE, OrbitMeanElementsMessage}, Tjd <: Number, Tv <: AbstractVector}
-    return fit_sgp4_mean_elements!(
+    me, P, stats = fit_sgp4_mean_elements!(
         orbp.sgp4d, S, vjd, vr_teme ./ 1000, vv_teme ./ 1000; kwargs...
     )
+    return me, P, _stats_to_si(stats)
 end
 
 """
@@ -522,4 +553,25 @@ function Base.copy(
     orbp::OrbitPropagatorSgp4{Tepoch, T}
 ) where {Tepoch <: Number, T <: Number}
     return OrbitPropagatorSgp4{Tepoch, T}(copy(orbp.sgp4d))
+end
+
+############################################################################################
+#                                    Private Functions                                     #
+############################################################################################
+
+"""
+    _stats_to_si(stats::NamedTuple) -> NamedTuple
+
+Convert the statistics `stats` returned by the SGP4 fitting functions of
+**SatelliteToolboxSgp4.jl**, whose RMSE values are in kilometers and kilometers per second,
+to SI units.
+"""
+function _stats_to_si(stats::NamedTuple)
+    return (;
+        stats.converged,
+        stats.iterations,
+        position_rmse = 1000 * stats.position_rmse,
+        velocity_rmse = 1000 * stats.velocity_rmse,
+        total_rmse    = 1000 * stats.total_rmse,
+    )
 end

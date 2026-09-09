@@ -75,7 +75,7 @@ orbp = Propagators.init(Val(:TwoBody), orb)
 We can use the function:
 
 ```julia
-Propagators.fit_mean_elements(::Val{:TwoBody}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) -> KeplerianElements{MeanAnomaly, Float64, T}, SMatrix{6, 6, T}
+Propagators.fit_mean_elements(::Val{:TwoBody}, vjd::AbstractVector{Tjd}, vr_i::AbstractVector{Tv}, vv_i::AbstractVector{Tv}; kwargs...) -> KeplerianElements{MeanAnomaly, Float64, T}, SMatrix{6, 6, T}, NamedTuple
 ```
 
 to fit a set of mean Keplerian elements for the two-body orbit propagator using the
@@ -83,8 +83,9 @@ osculating elements represented by a set of position vectors `vr_i` [m] and a se
 velocity vectors `vv_i` [m / s] represented in an inertial reference frame at instants in
 the array `vjd` [Julian Day].
 
-It returns the fitted Keplerian elements and the final covariance matrix of the least-square
-algorithm.
+It returns the fitted Keplerian elements, the final covariance matrix of the least-square
+algorithm, and a `NamedTuple` with its statistics: `converged`, `iterations`,
+`position_rmse` [m], `velocity_rmse` [m / s], and `total_rmse`.
 
 !!! note
 
@@ -147,9 +148,11 @@ vjd = [
     2.460028190050782e6
 ];
 
-orb, P = Propagators.fit_mean_elements(Val(:TwoBody), vjd, vr_i, vv_i)
+orb, P, stats = Propagators.fit_mean_elements(Val(:TwoBody), vjd, vr_i, vv_i)
 
 orb
+
+stats
 ```
 
 ## References

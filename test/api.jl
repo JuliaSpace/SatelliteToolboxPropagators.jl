@@ -1066,7 +1066,7 @@ end
         vr_i = [SVector{3, Float32}(r) for r in first.(ret)]
         vv_i = [SVector{3, Float32}(v) for v in last.(ret)]
 
-        orbk, P = Propagators.fit_mean_elements!(
+        orbk, P, stats = Propagators.fit_mean_elements!(
             orbp,
             vjd,
             vr_i,
@@ -1077,6 +1077,11 @@ end
 
         @test orbk isa KeplerianElements{MeanAnomaly, Float64, Float32}
         @test P isa SMatrix{6, 6, Float32}
+        @test stats.converged isa Bool
+        @test stats.iterations isa Int
+        @test stats.position_rmse isa Float32
+        @test stats.velocity_rmse isa Float32
+        @test stats.total_rmse isa Float32
         @test orbk.t == vjd[begin]
     end
 end

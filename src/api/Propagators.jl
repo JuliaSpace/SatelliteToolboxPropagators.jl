@@ -41,13 +41,13 @@ const PropagationSink = Union{Type{Tuple}, Type{OrbitStateVector}}
         vr_i::AbstractVector{Tv},
         vv_i::AbstractVector{Tv};
         kwargs...
-    ) where {Tjd <: Number, Tv <: AbstractVector} -> <Mean elements>, <Covariance>
+    ) where {Tjd <: Number, Tv <: AbstractVector} -> <Mean elements>, <Covariance>, <Statistics>
 
     fit_mean_elements(
         [sink::Type, ]::Val{:propagator},
         vsv::AbstractVector{OrbitStateVector{Tepoch, T}};
         kwargs...
-    ) where {Tepoch <: Number, T <: Number} -> <Mean elements>, <Covariance>
+    ) where {Tepoch <: Number, T <: Number} -> <Mean elements>, <Covariance>, <Statistics>
 
 Fit a set of mean elements for the `propagator` using the osculating state vector
 represented in an inertial reference frame. The state vector can be represented using a set
@@ -68,6 +68,10 @@ defaulting to the latter.
 - `<Covariance>`: Final covariance matrix of the least-square algorithm. It is a
     `SMatrix{6, 6}` for every propagator except SGP4, which returns a `SMatrix{7, 7}`
     because it also fits the B* parameter.
+- `<Statistics>`: `NamedTuple` with the statistics of the least-square algorithm, with the
+    fields `converged::Bool`, `iterations::Int`, `position_rmse` [m], `velocity_rmse`
+    [m / s], and `total_rmse`. The propagators share the meaning of those fields, described
+    in the fitting functions of each propagator.
 """
 function fit_mean_elements end
 
@@ -98,13 +102,13 @@ end
         vr_i::AbstractVector{Tv},
         vv_i::AbstractVector{Tv}[, sink::Type];
         kwargs...
-    ) where {Tjd <: Number, Tv <: AbstractVector} -> <Mean elements>, <Covariance>
+    ) where {Tjd <: Number, Tv <: AbstractVector} -> <Mean elements>, <Covariance>, <Statistics>
 
     fit_mean_elements!(
         orbp::OrbitPropagator,
         vsv::AbstractVector{OrbitStateVector{Tepoch, T}}[, sink::Type];
         kwargs...
-    ) where {Tepoch <: Number, T <: Number} -> <Mean elements>, <Covariance>
+    ) where {Tepoch <: Number, T <: Number} -> <Mean elements>, <Covariance>, <Statistics>
 
 Fit a set of mean elements for the propagator `orbp` using the osculating state vector
 represented in an inertial reference frame. The state vector can be represented using a set
@@ -127,6 +131,10 @@ This function also initializes `orbp` with the fitted mean elements.
 - `<Covariance>`: Final covariance matrix of the least-square algorithm. It is a
     `SMatrix{6, 6}` for every propagator except SGP4, which returns a `SMatrix{7, 7}`
     because it also fits the B* parameter.
+- `<Statistics>`: `NamedTuple` with the statistics of the least-square algorithm, with the
+    fields `converged::Bool`, `iterations::Int`, `position_rmse` [m], `velocity_rmse`
+    [m / s], and `total_rmse`. The propagators share the meaning of those fields, described
+    in the fitting functions of each propagator.
 """
 function fit_mean_elements! end
 

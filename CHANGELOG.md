@@ -28,6 +28,12 @@ Version 2.0.0
   and after the measurements in the mutating one. The metadata of the output is provided by
   the keyword `template` instead of the six TLE-specific keywords, and a diverging fit
   throws `Sgp4FitDivergenceError` instead of an `ErrorException`.
+- ![BREAKING][badge-breaking] Every function that fits the mean elements
+  (`fit_*_mean_elements`, `fit_*_mean_elements!`, `Propagators.fit_mean_elements`, and
+  `Propagators.fit_mean_elements!`) returns a third value: a `NamedTuple` with the
+  statistics of the least-square algorithm, whose fields are `converged`, `iterations`,
+  `position_rmse` [m], `velocity_rmse` [m / s], and `total_rmse`, as in
+  **SatelliteToolboxSgp4.jl** v3. The SGP4 statistics are converted to SI units.
 - ![Feature][badge-feature] Initialize the SGP4 orbit propagator with an Orbit
   Mean-Elements Message (OMM) using `Propagators.init(Val(:SGP4), omm)` and
   `Propagators.init!(orbp, omm)`, where `omm` is an `OrbitMeanElementsMessage` from

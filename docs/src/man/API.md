@@ -231,8 +231,10 @@ Propagators.fit_mean_elements!(orbp::OrbitPropagator<Propagator name>, vjd::Abst
 where `T = Val(<Orbit propagator symbol>)`, `vr_i` and `vv_i` are a set of position [m] and
 velocity [m / s] vectors obtained at the instants in `vjd` [Julian Day]. Those functions
 must return the mean elements used to initialize the propagator in the function
-`Propagators.init` and the covariance matrix of the least-square algorithm. The propagators
-that use Keplerian elements return them as `KeplerianElements{MeanAnomaly}`.
+`Propagators.init`, the covariance matrix of the least-square algorithm, and a `NamedTuple`
+with its statistics, whose fields are `converged::Bool`, `iterations::Int`,
+`position_rmse` [m], `velocity_rmse` [m / s], and `total_rmse`. The propagators that use
+Keplerian elements return them as `KeplerianElements{MeanAnomaly}`.
 
 Each propagator type can define its own set of keyword arguments to configure the fitting
 process.

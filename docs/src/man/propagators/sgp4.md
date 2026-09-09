@@ -128,7 +128,7 @@ Propagators.init(Val(:SGP4), omm)
 We can use the function:
 
 ```julia
-Propagators.fit_mean_elements([sink::Type, ]::Val{:SGP4}, vjd::AbstractVector{Tjd}, vr_teme::AbstractVector{Tv}, vv_teme::AbstractVector{Tv}; kwargs...) -> sink, SMatrix{7, 7, Float64}
+Propagators.fit_mean_elements([sink::Type, ]::Val{:SGP4}, vjd::AbstractVector{Tjd}, vr_teme::AbstractVector{Tv}, vv_teme::AbstractVector{Tv}; kwargs...) -> sink, SMatrix{7, 7, T}, NamedTuple
 ```
 
 to fit a set of SGP4 mean elements using the osculating elements represented by a set of
@@ -138,8 +138,9 @@ in the True-Equator, Mean-Equinox reference frame (TEME) at instants in the arra
 a `TLE` or an `OrbitMeanElementsMessage`. If `sink` is omitted, an `OrbitMeanElementsMessage`
 is returned.
 
-It returns the fitted mean elements and the final covariance matrix of the least-square
-algorithm.
+It returns the fitted mean elements, the final covariance matrix of the least-square
+algorithm, and a `NamedTuple` with its statistics: `converged`, `iterations`,
+`position_rmse` [m], `velocity_rmse` [m / s], and `total_rmse`.
 
 This algorithm was based on **[4]**.
 
@@ -216,11 +217,13 @@ vjd = [
     2.460028190050782e6
 ];
 
-omm, P = Propagators.fit_mean_elements(Val(:SGP4), vjd, vr_teme, vv_teme; estimate_bstar = false)
+omm, P, stats = Propagators.fit_mean_elements(Val(:SGP4), vjd, vr_teme, vv_teme; estimate_bstar = false)
 
 omm
 
-tle, P = Propagators.fit_mean_elements(TLE, Val(:SGP4), vjd, vr_teme, vv_teme; estimate_bstar = false)
+stats
+
+tle, P, stats = Propagators.fit_mean_elements(TLE, Val(:SGP4), vjd, vr_teme, vv_teme; estimate_bstar = false)
 
 tle
 ```

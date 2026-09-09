@@ -684,17 +684,29 @@ end
     )
 
     @testset "TLE Sink" begin
-        tle, P = Propagators.fit_mean_elements(
+        tle, P, stats = Propagators.fit_mean_elements(
             TLE, Val(:SGP4), vjd, vr_teme, vv_teme; template = template, kwargs...
         )
         test_tle(tle)
         @test P isa SMatrix{7, 7, Float64}
 
-        tle, P = Propagators.fit_mean_elements!(
+        # The statistics are those of SatelliteToolboxSgp4.jl converted to SI units.
+        ~, ~, stats_km = fit_sgp4_mean_elements(
+            TLE, vjd, vr_teme ./ 1000, vv_teme ./ 1000; template = template, kwargs...
+        )
+
+        @test stats.converged === stats_km.converged === true
+        @test stats.iterations == stats_km.iterations
+        @test stats.position_rmse ≈ 1000 * stats_km.position_rmse
+        @test stats.velocity_rmse ≈ 1000 * stats_km.velocity_rmse
+        @test stats.total_rmse ≈ 1000 * stats_km.total_rmse
+
+        tle, P, stats! = Propagators.fit_mean_elements!(
             orbp, vjd, vr_teme, vv_teme, TLE; template = template, kwargs...
         )
         test_tle(tle)
         @test P isa SMatrix{7, 7, Float64}
+        @test stats! == stats
 
         # The propagator must be initialized with the fitted elements.
         @test Propagators.epoch(orbp) ≈ vjd[begin]

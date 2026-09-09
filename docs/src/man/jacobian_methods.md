@@ -33,13 +33,13 @@ vv_i = last.(ret)
 vjd  = Propagators.epoch(orbp) .+ (0:10:12_000) ./ 86400
 
 # Finite-difference Jacobian (default)
-orb_fd, P_fd = fit_j2_mean_elements(vjd, vr_i, vv_i;
+orb_fd, P_fd, stats_fd = fit_j2_mean_elements(vjd, vr_i, vv_i;
     mean_elements_epoch = vjd[begin],
     verbose = false,
 )
 
 # ForwardDiff Jacobian
-orb_ad, P_ad = fit_j2_mean_elements(vjd, vr_i, vv_i;
+orb_ad, P_ad, stats_ad = fit_j2_mean_elements(vjd, vr_i, vv_i;
     mean_elements_epoch = vjd[begin],
     jacobian_method     = ForwardDiffJacobian(),
     verbose = false,

@@ -183,7 +183,7 @@ end
     ) where {
         Tjd <: Number,
         Tv <: AbstractVector
-    } -> KeplerianElements{MeanAnomaly, Float64, T}, SMatrix{6, 6, T}
+    } -> KeplerianElements{MeanAnomaly, Float64, T}, SMatrix{6, 6, T}, NamedTuple
 
 Fit a set of mean Keplerian elements for the J2 osculating orbit propagator using the
 osculating elements represented by a set of position vectors `vr_i` [m] and a set of
@@ -240,6 +240,18 @@ the array `vjd` [Julian Day].
 
 - `KeplerianElements{MeanAnomaly, Float64, T}`: Fitted Keplerian elements.
 - `SMatrix{6, 6, T}`: Final covariance matrix of the least-square algorithm.
+- `NamedTuple`: Statistics of the least-square algorithm with the following fields:
+    - `converged::Bool`: `true` if the iterations stopped because the residue was lower
+        than `atol` or its relative variation was lower than `rtol`, or `false` if they
+        stopped by reaching `max_iterations`.
+    - `iterations::Int`: Number of iterations performed.
+    - `position_rmse::T`: RMSE of the position residue in the last iteration [m].
+    - `velocity_rmse::T`: RMSE of the velocity residue in the last iteration [m / s].
+    - `total_rmse::T`: Weighted RMSE of the residue in the last iteration.
+
+    The statistics refer to the fitting of the mean elements. If their epoch is updated
+    afterward to match `mean_elements_epoch`, the statistics of that update are not
+    returned.
 
 # Examples
 
@@ -259,13 +271,11 @@ julia> vjd = [
            2.460028190050782e6
        ];
 
-julia> orb, P = fit_j2osc_mean_elements(vjd, vr_i, vv_i)
+julia> orb, P, stats = fit_j2osc_mean_elements(vjd, vr_i, vv_i);
 ACTION:   Fitting the mean elements for the J2 osculating propagator.
            Iteration        Position RMSE        Velocity RMSE           Total RMSE       RMSE Variation
                                      [km]             [km / s]                  [ ]
 PROGRESS:          4          1.69072e-05           0.00260088              2.60093         -2.38817e-10 %
-
-(KeplerianElements{MeanAnomaly, Float64, Float64}: Epoch = 2.46003e6 (2023-03-24T16:33:40.388), [0.9999427807079662 -0.004901152245568996 … -0.00012021282775592569 -0.00011550583198160739; -0.004901152248513471 1.000732580069942 … 0.003266156907020634 3.8567169210589895e-5; … ; -0.00012021282776408784 0.0032661569070203842 … 2.2048267812548562e-5 5.3827666735694705e-8; -0.00011550583198608087 3.856716921258199e-5 … 5.382766674268047e-8 2.165742075903671e-5])
 
 julia> orb
 KeplerianElements{MeanAnomaly, Float64, Float64}:
@@ -276,6 +286,9 @@ KeplerianElements{MeanAnomaly, Float64, Float64}:
   RA of Asc. Node   : 162.1131669°
   Arg. of Periapsis : 64.92555131°
   Mean Anomaly      : 313.1984092°
+
+julia> stats
+(converged = true, iterations = 4, position_rmse = 0.01690717402027459, velocity_rmse = 2.6008770843982476, total_rmse = 2.6009320369208573)
 ```
 """
 function fit_j2osc_mean_elements(
@@ -309,7 +322,7 @@ end
         Tepoch <: Number,
         Tjd <: Number,
         Tv <: AbstractVector
-    } -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}
+    } -> KeplerianElements{MeanAnomaly, Tepoch, T}, SMatrix{6, 6, T}, NamedTuple
 
 Fit a set of mean Keplerian elements for the J2 osculating orbit propagator `j2oscd` using
 the osculating elements represented by a set of position vectors `vr_i` [m] and a set of
@@ -362,6 +375,18 @@ the array `vjd` [Julian Day].
 
 - `KeplerianElements{MeanAnomaly, Tepoch, T}`: Fitted Keplerian elements.
 - `SMatrix{6, 6, T}`: Final covariance matrix of the least-square algorithm.
+- `NamedTuple`: Statistics of the least-square algorithm with the following fields:
+    - `converged::Bool`: `true` if the iterations stopped because the residue was lower
+        than `atol` or its relative variation was lower than `rtol`, or `false` if they
+        stopped by reaching `max_iterations`.
+    - `iterations::Int`: Number of iterations performed.
+    - `position_rmse::T`: RMSE of the position residue in the last iteration [m].
+    - `velocity_rmse::T`: RMSE of the velocity residue in the last iteration [m / s].
+    - `total_rmse::T`: Weighted RMSE of the residue in the last iteration.
+
+    The statistics refer to the fitting of the mean elements. If their epoch is updated
+    afterward to match `mean_elements_epoch`, the statistics of that update are not
+    returned.
 
 # Examples
 
@@ -384,13 +409,11 @@ julia> vjd = [
            2.460028190050782e6
        ];
 
-julia> orb, P = fit_j2osc_mean_elements!(j2oscd, vjd, vr_i, vv_i)
+julia> orb, P, stats = fit_j2osc_mean_elements!(j2oscd, vjd, vr_i, vv_i);
 ACTION:   Fitting the mean elements for the J2 osculating propagator.
            Iteration        Position RMSE        Velocity RMSE           Total RMSE       RMSE Variation
                                      [km]             [km / s]                  [ ]
 PROGRESS:          4          1.69072e-05           0.00260088              2.60093         -2.38817e-10 %
-
-(KeplerianElements{MeanAnomaly, Float64, Float64}: Epoch = 2.46003e6 (2023-03-24T16:33:40.388), [0.9999427807079662 -0.004901152245568996 … -0.00012021282775592569 -0.00011550583198160739; -0.004901152248513471 1.000732580069942 … 0.003266156907020634 3.8567169210589895e-5; … ; -0.00012021282776408784 0.0032661569070203842 … 2.2048267812548562e-5 5.3827666735694705e-8; -0.00011550583198608087 3.856716921258199e-5 … 5.382766674268047e-8 2.165742075903671e-5])
 
 julia> orb
 KeplerianElements{MeanAnomaly, Float64, Float64}:
@@ -401,6 +424,9 @@ KeplerianElements{MeanAnomaly, Float64, Float64}:
   RA of Asc. Node   : 162.1131669°
   Arg. of Periapsis : 64.92555131°
   Mean Anomaly      : 313.1984092°
+
+julia> stats
+(converged = true, iterations = 4, position_rmse = 0.01690717402027459, velocity_rmse = 2.6008770843982476, total_rmse = 2.6009320369208573)
 ```
 """
 function fit_j2osc_mean_elements!(
