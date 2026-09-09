@@ -74,6 +74,10 @@ Version 2.0.0
   uninitialized propagator prints its status instead of undefined values.
 - ![Enhancement][badge-enhancement] Replace **Crayons.jl** with **StyledStrings**, which
   only emits the terminal decorations when the output supports colors.
+- ![Enhancement][badge-enhancement] The progress line of the fitting functions is only
+  updated in place using terminal escape sequences when the output supports colors.
+  Otherwise, every iteration prints a new line, keeping the output readable when it is
+  redirected to a file, as in **SatelliteToolboxSgp4.jl** v3.
 - ![Enhancement][badge-enhancement] Share the finite-difference and the ForwardDiff
   Jacobians, the epoch update, and the multi-threaded propagation of time vectors among the
   propagators, removing about 900 duplicated lines without changing the behavior or the

@@ -243,7 +243,8 @@ function _fit_mean_elements!(
     desired_epoch = _julian_day(mean_elements_epoch)
 
     # Check once if `stdout` supports colors, which selects the decorated strings printed by
-    # the algorithm when `verbose` is `true`.
+    # the algorithm when `verbose` is `true`. This flag also selects whether the progress
+    # line is updated in place using terminal escape sequences.
     has_color = get(stdout, :color, false)::Bool
 
     # Assemble the weight vector. Since the weight matrix is diagonal, we store only the
@@ -526,9 +527,9 @@ end
 """
     _fit_print_header(has_color::Bool) -> Nothing
 
-Print to `stdout` the header of the progress table of the fitting algorithm, followed by an
-empty line that the first progress line overwrites. The header is decorated if `has_color`
-is `true`.
+Print to `stdout` the header of the progress table of the fitting algorithm. The header is
+decorated if `has_color` is `true`. In this case, it is followed by an empty line that the
+first progress line overwrites.
 """
 # The helper is not inlined so that its allocation sites, which are only reachable when the
 # algorithm is verbose, are counted once regardless of the number of call sites.
@@ -538,8 +539,12 @@ is `true`.
         _fit_decorated(_FIT_HEADER, has_color),
         "\n          ",
         _fit_decorated(_FIT_UNITS, has_color),
-        "\n\n",
+        "\n",
     )
+
+    # The empty line is only required if the progress line is updated in place.
+    has_color && println()
+
     return nothing
 end
 
@@ -547,13 +552,16 @@ end
     _fit_print_progress(has_color::Bool, msg::AbstractString) -> Nothing
 
 Print to `stdout` the progress line `msg` of the fitting algorithm, prefixed by a
-`PROGRESS:` tag, which is highlighted if `has_color` is `true`. The previous line is erased
-first, so consecutive calls update the same terminal line.
+`PROGRESS:` tag. If `has_color` is `true`, the tag is highlighted and the previous line is
+erased first using terminal escape sequences, so consecutive calls update the same terminal
+line. Otherwise, each call prints a new line, keeping the output readable when it is
+redirected to a file.
 """
 # The helper is not inlined so that its allocation sites, which are only reachable when the
 # algorithm is verbose, are counted once regardless of the number of call sites.
 @noinline function _fit_print_progress(has_color::Bool, msg::AbstractString)
-    print("\x1b[A\x1b[2K\r", _fit_decorated(_FIT_PROGRESS_TAG, has_color), " ", msg, "\n")
+    has_color && print("\x1b[A\x1b[2K\r")
+    println(_fit_decorated(_FIT_PROGRESS_TAG, has_color), " ", msg)
     return nothing
 end
 
