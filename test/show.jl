@@ -284,7 +284,7 @@ end
                 "OrbitPropagatorTwoBody{Float64, Float64} (Two-Body Orbit Propagator)",
             ),
             (
-                OrbitPropagatorSgp4(Sgp4Propagator{Float64}(SGP4C_WGS84)),
+                OrbitPropagatorSgp4(Sgp4Propagator(SGP4C_WGS84)),
                 "OrbitPropagatorSgp4{Float64, Float64} (SGP4 Orbit Propagator)",
             ),
         )

@@ -6,7 +6,7 @@
 
 # Implement the `Propagators` API for the SGP4 orbit propagator.
 Propagators.epoch(orbp::OrbitPropagatorSgp4)           = orbp.sgp4d.epoch
-Propagators.is_initialized(orbp::OrbitPropagatorSgp4)  = sgp4_is_initialized(orbp.sgp4d)
+Propagators.is_initialized(orbp::OrbitPropagatorSgp4)  = _is_initialized(orbp.sgp4d)
 Propagators.last_instant(orbp::OrbitPropagatorSgp4)    = orbp.sgp4d.Δt * 60
 Propagators.name(orbp::OrbitPropagatorSgp4)            = "SGP4 Orbit Propagator"
 Propagators.propagator_data(orbp::OrbitPropagatorSgp4) = orbp.sgp4d
@@ -442,7 +442,7 @@ the message does not describe an SGP4 orbit.
 
     The propagation constants `sgp4c::Sgp4Constants` in `orbp.sgp4d` will not be changed.
     Hence, they must be initialized, e.g. by creating the structure with
-    `Sgp4Propagator{Float64}(SGP4C_WGS84)`.
+    `Sgp4Propagator(SGP4C_WGS84)`.
 
 # Arguments
 

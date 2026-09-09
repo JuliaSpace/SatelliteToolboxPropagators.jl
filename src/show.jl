@@ -131,11 +131,14 @@ end
 
 """
     _is_initialized(pd::PropagatorData) -> Bool
+    _is_initialized(sgp4d::Sgp4Propagator) -> Bool
 
-Return whether the propagator structure `pd` has been initialized. The empty constructors
-set the field `Δt` to `NaN`, which is replaced by the initialization functions.
+Return whether the propagator structure has been initialized. The empty constructors of the
+structures defined in this package set the field `Δt` to `NaN`, which is replaced by the
+initialization functions, whereas the SGP4 propagator provides its own predicate.
 """
-_is_initialized(pd::PropagatorData) = !isnan(pd.Δt)
+_is_initialized(pd::PropagatorData)     = !isnan(pd.Δt)
+_is_initialized(sgp4d::Sgp4Propagator) = SatelliteToolboxSgp4.is_initialized(sgp4d)
 
 """
     _mean_elements_fields(orb₀::KeplerianElements{MeanAnomaly}) -> Vector{PrintedField}

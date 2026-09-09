@@ -149,7 +149,7 @@
         end
 
         # Test in-place initialization.
-        orbp = OrbitPropagatorSgp4(Sgp4Propagator{Float64}(SGP4C_WGS72))
+        orbp = OrbitPropagatorSgp4(Sgp4Propagator(SGP4C_WGS72))
         Propagators.init!(orbp, tle)
 
         for k in size(expected_results)[1]
@@ -240,7 +240,7 @@
         end
 
         # Test in-place initialization.
-        orbp = OrbitPropagatorSgp4(Sgp4Propagator{Float64}(SGP4C_WGS72))
+        orbp = OrbitPropagatorSgp4(Sgp4Propagator(SGP4C_WGS72))
         Propagators.init!(
             orbp,
             tle_epoch(tle),
@@ -359,7 +359,7 @@
 
         # Test in-place initialization.
         orbp = OrbitPropagatorSgp4(
-            Sgp4Propagator{Float64}(Sgp4Constants{Float32}(SGP4C_WGS72))
+            Sgp4Propagator(Sgp4Constants{Float32}(SGP4C_WGS72))
         )
         Propagators.init!(orbp, tle)
 
@@ -458,7 +458,7 @@
 
         # Test in-place initialization.
         orbp = OrbitPropagatorSgp4(
-            Sgp4Propagator{Float64}(Sgp4Constants{Float32}(SGP4C_WGS72))
+            Sgp4Propagator(Sgp4Constants{Float32}(SGP4C_WGS72))
         )
         Propagators.init!(
             orbp,
@@ -598,7 +598,7 @@ end
 
             # == In-Place Initialization ===================================================
 
-            orbp = OrbitPropagatorSgp4(Sgp4Propagator{Float64}(sgp4c))
+            orbp = OrbitPropagatorSgp4(Sgp4Propagator(sgp4c))
             Propagators.init!(orbp, omm)
 
             @test Propagators.epoch(orbp) == epoch
@@ -703,15 +703,15 @@ end
     # The OMM is the default sink, and its mean elements must match the input TLE.
     function test_omm(omm)
         @test omm isa OrbitMeanElementsMessage
-        @test ODM.object_name(omm) == "AMAZONIA 1"
-        @test ODM.norad_cat_id(omm) == 47699
-        @test ODM.mean_element_theory(omm) == "SGP4"
-        @test ODM.eccentricity(omm) ≈ tle_input.eccentricity atol = 1e-7
-        @test ODM.inclination(omm) ≈ tle_input.inclination atol = 1e-4
-        @test ODM.mean_motion(omm) ≈ tle_input.mean_motion atol = 1e-7
-        @test ODM.raan(omm) ≈ tle_input.raan atol = 1e-4
-        @test ODM.arg_of_pericenter(omm) ≈ tle_input.argument_of_perigee atol = 1e-4
-        @test ODM.mean_anomaly(omm) ≈ tle_input.mean_anomaly atol = 1e-4
+        @test omm.object_name == "AMAZONIA 1"
+        @test omm.norad_cat_id == 47699
+        @test omm.mean_element_theory == "SGP4"
+        @test omm.eccentricity ≈ tle_input.eccentricity atol = 1e-7
+        @test omm.inclination ≈ tle_input.inclination atol = 1e-4
+        @test omm.mean_motion ≈ tle_input.mean_motion atol = 1e-7
+        @test omm.raan ≈ tle_input.raan atol = 1e-4
+        @test omm.arg_of_pericenter ≈ tle_input.argument_of_perigee atol = 1e-4
+        @test omm.mean_anomaly ≈ tle_input.mean_anomaly atol = 1e-4
         return nothing
     end
 

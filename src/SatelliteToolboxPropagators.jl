@@ -17,7 +17,6 @@ import PrecompileTools
 import SatelliteToolboxBase: PrintedField, PrintedSection, epoch_string, format_value
 import SatelliteToolboxBase: print_compact, print_status, print_tree, print_tree_body
 import SatelliteToolboxBase: type_name
-import SatelliteToolboxSgp4: sgp4_is_initialized
 
 ############################################################################################
 #                                           API                                            #
