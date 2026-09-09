@@ -122,9 +122,8 @@ which must be assigned before initializing a structure created with the empty co
 
 # Fields
 
-- `j2d::J2Propagator{Tepoch, T}`: J2 orbit propagator that propagates the mean elements.
-- `Δt::T`: Timespan from the initial elements' epoch [s], which is `NaN` until the structure
-    is initialized.
+- `j2d::J2Propagator{Tepoch, T}`: J2 orbit propagator that propagates the mean elements and
+    stores the timespan from the initial elements' epoch.
 - `orbk::KeplerianElements{TrueAnomaly, Tepoch, T}`: Current osculating orbit elements [SI
     units].
 
@@ -142,18 +141,15 @@ uninitialized structure prints the status `not initialized` instead.
 """
 mutable struct J2OsculatingPropagator{Tepoch <: Number, T <: Number}
     j2d::J2Propagator{Tepoch, T}
-    Δt::T
     orbk::KeplerianElements{TrueAnomaly, Tepoch, T}
 
     # == Constructors ======================================================================
 
+    # The structure is not initialized until `j2d` is assigned, so the empty constructor
+    # does not need to mark it.
     J2OsculatingPropagator{Tepoch, T}(args...) where {Tepoch <: Number, T <: Number} =
         new(args...)
-    function J2OsculatingPropagator{Tepoch, T}() where {Tepoch <: Number, T <: Number}
-        pd    = new()
-        pd.Δt = _uninitialized_instant(T)
-        return pd
-    end
+    J2OsculatingPropagator{Tepoch, T}() where {Tepoch <: Number, T <: Number} = new()
 end
 
 ############################################################################################
@@ -264,9 +260,8 @@ which must be assigned before initializing a structure created with the empty co
 
 # Fields
 
-- `j4d::J4Propagator{Tepoch, T}`: J4 orbit propagator that propagates the mean elements.
-- `Δt::T`: Timespan from the initial elements' epoch [s], which is `NaN` until the structure
-    is initialized.
+- `j4d::J4Propagator{Tepoch, T}`: J4 orbit propagator that propagates the mean elements and
+    stores the timespan from the initial elements' epoch.
 - `orbk::KeplerianElements{TrueAnomaly, Tepoch, T}`: Current osculating orbit elements [SI
     units].
 
@@ -284,18 +279,15 @@ uninitialized structure prints the status `not initialized` instead.
 """
 mutable struct J4OsculatingPropagator{Tepoch <: Number, T <: Number}
     j4d::J4Propagator{Tepoch, T}
-    Δt::T
     orbk::KeplerianElements{TrueAnomaly, Tepoch, T}
 
     # == Constructors ======================================================================
 
+    # The structure is not initialized until `j4d` is assigned, so the empty constructor
+    # does not need to mark it.
     J4OsculatingPropagator{Tepoch, T}(args...) where {Tepoch <: Number, T <: Number} =
         new(args...)
-    function J4OsculatingPropagator{Tepoch, T}() where {Tepoch <: Number, T <: Number}
-        pd    = new()
-        pd.Δt = _uninitialized_instant(T)
-        return pd
-    end
+    J4OsculatingPropagator{Tepoch, T}() where {Tepoch <: Number, T <: Number} = new()
 end
 
 ############################################################################################
@@ -568,11 +560,44 @@ end
     _uninitialized_instant(::Type{T}) where {T <: Number} -> T
 
 Return the propagation instant stored in the field `Δt` by the empty constructors of the
-propagator structures, `NaN` converted to `T`, which marks a structure as not initialized
-until an initialization function assigns its fields. Hence, `T` must be able to represent
+propagators of mean elements, `NaN` converted to `T`, which marks a structure as not
+initialized until an initialization function assigns its fields. Hence, `T` must be able to represent
 `NaN`, as every floating-point type and the dual numbers do.
 """
 _uninitialized_instant(::Type{T}) where {T <: Number} = T(NaN)
+
+"""
+    _is_initialized(pd::PropagatorData) -> Bool
+    _is_initialized(sgp4d::Sgp4Propagator) -> Bool
+
+Return whether the propagator structure has been initialized, which is marked by a `NaN`
+last propagation instant (see `_last_instant`) in the structures defined in this package,
+whereas the SGP4 propagator provides its own predicate.
+"""
+_is_initialized(pd::PropagatorData)     = !isnan(_last_instant(pd))
+_is_initialized(sgp4d::Sgp4Propagator) = SatelliteToolboxSgp4.is_initialized(sgp4d)
+
+"""
+    _last_instant(pd::PropagatorData{Tepoch, T}) where {Tepoch <: Number, T <: Number} -> T
+
+Return the last propagation instant [s] measured from the initial elements' epoch stored in
+the propagator structure `pd`, which is `NaN` until the structure is initialized. The
+osculating propagators read it from the propagator of mean elements they wrap, which is
+undefined until assigned.
+"""
+_last_instant(pd::Union{J2Propagator, J4Propagator, TwoBodyPropagator}) = pd.Δt
+
+function _last_instant(
+    pd::J2OsculatingPropagator{Tepoch, T}
+) where {Tepoch <: Number, T <: Number}
+    return isdefined(pd, :j2d) ? _last_instant(pd.j2d) : _uninitialized_instant(T)
+end
+
+function _last_instant(
+    pd::J4OsculatingPropagator{Tepoch, T}
+) where {Tepoch <: Number, T <: Number}
+    return isdefined(pd, :j4d) ? _last_instant(pd.j4d) : _uninitialized_instant(T)
+end
 
 """
     _copy_field(x) -> typeof(x)

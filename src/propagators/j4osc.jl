@@ -168,8 +168,8 @@ function j4osc!(
     # Compute the position and velocity considering the osculating elements.
     r_i_k, v_i_k = kepler_to_rv(orbk)
 
-    # Update the J4 orbit propagator structure.
-    j4oscd.Δt   = T(Δt)
+    # Update the J4 osculating orbit propagator structure. The propagation instant is
+    # stored by the J4 orbit propagator.
     j4oscd.orbk = orbk
 
     return r_i_k, v_i_k

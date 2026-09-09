@@ -167,8 +167,8 @@ function j2osc!(
     # Compute the position and velocity considering the osculating elements.
     r_i_k, v_i_k = kepler_to_rv(orbk)
 
-    # Update the J2 orbit propagator structure.
-    j2oscd.Δt   = T(Δt)
+    # Update the J2 osculating orbit propagator structure. The propagation instant is
+    # stored by the J2 orbit propagator.
     j2oscd.orbk = orbk
 
     return r_i_k, v_i_k

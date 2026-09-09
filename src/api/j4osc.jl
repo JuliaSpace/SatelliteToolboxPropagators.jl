@@ -7,7 +7,7 @@
 # Implement the `Propagators` API for the J4 osculating orbit propagator.
 Propagators.epoch(orbp::OrbitPropagatorJ4Osculating) = orbp.j4oscd.j4d.orb₀.epoch
 Propagators.is_initialized(orbp::OrbitPropagatorJ4Osculating) = _is_initialized(orbp.j4oscd)
-Propagators.last_instant(orbp::OrbitPropagatorJ4Osculating) = orbp.j4oscd.Δt
+Propagators.last_instant(orbp::OrbitPropagatorJ4Osculating) = _last_instant(orbp.j4oscd)
 Propagators.mean_elements(orbp::OrbitPropagatorJ4Osculating) = orbp.j4oscd.j4d.orbk
 Propagators.name(orbp::OrbitPropagatorJ4Osculating) = "J4 Osculating Orbit Propagator"
 Propagators.propagator_data(orbp::OrbitPropagatorJ4Osculating) = orbp.j4oscd

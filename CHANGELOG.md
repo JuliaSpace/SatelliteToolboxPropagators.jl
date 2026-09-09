@@ -39,6 +39,9 @@ Version 2.0.0
   the residue, when the least-square iterations diverge, instead of an `ErrorException`,
   and validate `max_iterations` with an `ArgumentError`, as **SatelliteToolboxSgp4.jl** v3
   does.
+- ![BREAKING][badge-breaking] Remove the field `Δt` of `J2OsculatingPropagator` and
+  `J4OsculatingPropagator`, which duplicated the propagation instant stored by the wrapped
+  propagator of mean elements. The positional constructors take the two remaining fields.
 - ![Feature][badge-feature] Initialize the SGP4 orbit propagator with an Orbit
   Mean-Elements Message (OMM) using `Propagators.init(Val(:SGP4), omm)` and
   `Propagators.init!(orbp, omm)`, where `omm` is an `OrbitMeanElementsMessage` from
@@ -61,9 +64,10 @@ Version 2.0.0
   which returns the structure of the propagation theory wrapped by an `OrbitPropagator`,
   and `Propagators.is_initialized`, which tells whether a propagator created without
   initial elements has been initialized.
-- ![Enhancement][badge-enhancement] The empty constructors of the propagator structures
-  set the field `Δt` to `NaN`, which marks the structure as not initialized until an
-  initialization function assigns its fields.
+- ![Enhancement][badge-enhancement] The empty constructors of the propagators of mean
+  elements set the field `Δt` to `NaN`, which marks the structure as not initialized until
+  an initialization function assigns its fields. The osculating propagators are marked by
+  the wrapped propagator, which is undefined until assigned.
 - ![Enhancement][badge-enhancement] Print the propagator structures `J2Propagator`,
   `J2OsculatingPropagator`, `J4Propagator`, `J4OsculatingPropagator`, and
   `TwoBodyPropagator` with the tree layout of **SatelliteToolboxBase.jl** v2.1, which

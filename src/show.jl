@@ -45,7 +45,7 @@ function print_tree_body(io::IO, pd::PropagatorData)
     end
 
     sections = _sections(pd)
-    push!(sections, "Propagation" => _propagation_fields(pd.Δt, "s"))
+    push!(sections, "Propagation" => _propagation_fields(_last_instant(pd), "s"))
 
     print_tree_body(io, PrintedField[], sections)
 
@@ -128,17 +128,6 @@ from the epoch of the initial mean elements in the `unit` given as a string.
 function _propagation_fields(Δt::Number, unit::String)
     return PrintedField[("Last Instant", format_value(Δt), unit)]
 end
-
-"""
-    _is_initialized(pd::PropagatorData) -> Bool
-    _is_initialized(sgp4d::Sgp4Propagator) -> Bool
-
-Return whether the propagator structure has been initialized. The empty constructors of the
-structures defined in this package set the field `Δt` to `NaN`, which is replaced by the
-initialization functions, whereas the SGP4 propagator provides its own predicate.
-"""
-_is_initialized(pd::PropagatorData)     = !isnan(pd.Δt)
-_is_initialized(sgp4d::Sgp4Propagator) = SatelliteToolboxSgp4.is_initialized(sgp4d)
 
 """
     _mean_elements_fields(orb₀::KeplerianElements{MeanAnomaly}) -> Vector{PrintedField}

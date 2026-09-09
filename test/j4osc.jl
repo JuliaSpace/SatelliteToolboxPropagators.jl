@@ -72,11 +72,11 @@
     @testset "Constructor" begin
         orb    = KeplerianElements{MeanAnomaly}(0.0, 8000.0e3, 0.0, 0.0, 0.0, 0.0, 0.0)
         j4d    = J4Propagator{Float64, Float64}(orb, orb, J4C_EGM2008, 0, 0, 0, 0)
-        j4oscd = J4OsculatingPropagator{Float64, Float64}(j4d, 0, orb)
+        j4oscd = J4OsculatingPropagator{Float64, Float64}(j4d, orb)
 
         # Test some random fields.
         @test j4oscd.j4d == j4d
-        @test j4oscd.Δt == 0
+        @test j4oscd.j4d.Δt == 0
         @test j4d.orbk == orb
 
         orb = KeplerianElements(0.0, 8_000_000, 0, 0, 0, 0, 0)
@@ -703,9 +703,6 @@ end
             for f in fieldnames(typeof(orbp.j4oscd.j4d))
                 @test getfield(new_orbp.j4oscd.j4d, f) == getfield(orbp.j4oscd.j4d, f)
             end
-
-            new_orbp.j4oscd.Δt = 1000
-            @test new_orbp.j4oscd.Δt != orbp.j4oscd.Δt
 
             new_orbp.j4oscd.j4d.Δt = 1000
             @test new_orbp.j4oscd.j4d.Δt != orbp.j4oscd.j4d.Δt

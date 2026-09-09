@@ -173,8 +173,14 @@ const SHOW_SGP4_BODY = join(
             J4OsculatingPropagator{Float64, Float32}(),
             TwoBodyPropagator{Float64, Float64}(),
         )
-            # The empty constructors mark the structure with a `NaN` propagation instant.
-            @test isnan(pd.Δt)
+            # The empty constructors mark the propagators of mean elements with a `NaN`
+            # propagation instant, whereas the osculating propagators are not initialized
+            # until the propagator they wrap is assigned.
+            if pd isa Union{J2OsculatingPropagator, J4OsculatingPropagator}
+                @test !isdefined(pd, first(fieldnames(typeof(pd))))
+            else
+                @test isnan(pd.Δt)
+            end
 
             name = string(nameof(typeof(pd)), "{", join(typeof(pd).parameters, ", "), "}")
             @test sprint(show, pd) == "$name (not initialized)"
