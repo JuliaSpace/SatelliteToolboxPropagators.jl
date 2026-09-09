@@ -578,6 +578,12 @@ end
         @test_throws ArgumentError Propagators.fit_mean_elements(
             Val(:J2osc), vjd, vr_i, vv_i; weight_vector = [1, 2, 3, 4, 5]
         )
+
+        # == Invalid maximum number of iterations ==========================================
+
+        @test_throws ArgumentError Propagators.fit_mean_elements(
+            Val(:J2osc), vjd, vr_i, vv_i; max_iterations = 0
+        )
     end
 end
 

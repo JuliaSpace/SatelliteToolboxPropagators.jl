@@ -34,6 +34,11 @@ Version 2.0.0
   statistics of the least-square algorithm, whose fields are `converged`, `iterations`,
   `position_rmse` [m], `velocity_rmse` [m / s], and `total_rmse`, as in
   **SatelliteToolboxSgp4.jl** v3. The SGP4 statistics are converted to SI units.
+- ![BREAKING][badge-breaking] The fitting functions of the analytical propagators throw the
+  new exported exception `MeanElementsFitDivergenceError`, which stores the iteration and
+  the residue, when the least-square iterations diverge, instead of an `ErrorException`,
+  and validate `max_iterations` with an `ArgumentError`, as **SatelliteToolboxSgp4.jl** v3
+  does.
 - ![Feature][badge-feature] Initialize the SGP4 orbit propagator with an Orbit
   Mean-Elements Message (OMM) using `Propagators.init(Val(:SGP4), omm)` and
   `Propagators.init!(orbp, omm)`, where `omm` is an `OrbitMeanElementsMessage` from

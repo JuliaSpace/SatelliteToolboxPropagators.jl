@@ -87,6 +87,14 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
     The statistics refer to the fitting of the mean elements. If their epoch is updated
     afterward to match `mean_elements_epoch`, the statistics of that update are not
     returned.
+
+# Extended help
+
+## Throws
+
+- `ArgumentError`: If `vjd`, `vr_i`, and `vv_i` do not have the same length, if
+    `weight_vector` does not have six elements, or if `max_iterations` is lower than 1.
+- `MeanElementsFitDivergenceError`: If the least-square iterations diverge.
 """
 function Propagators.fit_mean_elements(
     ::Val{:J2},
@@ -172,6 +180,14 @@ elements represented by a set of position vectors `vr_i` [m] and a set of veloci
     The statistics refer to the fitting of the mean elements. If their epoch is updated
     afterward to match `mean_elements_epoch`, the statistics of that update are not
     returned.
+
+# Extended help
+
+## Throws
+
+- `ArgumentError`: If `vjd`, `vr_i`, and `vv_i` do not have the same length, if
+    `weight_vector` does not have six elements, or if `max_iterations` is lower than 1.
+- `MeanElementsFitDivergenceError`: If the least-square iterations diverge.
 """
 function Propagators.fit_mean_elements!(
     orbp::OrbitPropagatorJ2,

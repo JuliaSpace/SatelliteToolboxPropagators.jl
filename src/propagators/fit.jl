@@ -199,10 +199,10 @@ fails if the residual diverges.
 
 ## Throws
 
-- `ArgumentError`: If `vjd`, `vr_i`, and `vv_i` do not have the same length, or if
-    `weight_vector` does not have six elements.
-- `ErrorException`: If the residual increases for three consecutive iterations and exceeds
-    5e11, indicating that the iterations diverged.
+- `ArgumentError`: If `vjd`, `vr_i`, and `vv_i` do not have the same length, if
+    `weight_vector` does not have six elements, or if `max_iterations` is lower than 1.
+- `MeanElementsFitDivergenceError`: If the residual increases for three consecutive
+    iterations and exceeds 5e11, indicating that the iterations diverged.
 """
 function _fit_mean_elements!(
     pd::AbstractMeanElementsPropagator{Tepoch, T},
@@ -232,6 +232,10 @@ function _fit_mean_elements!(
 
     if length(weight_vector) != 6
         throw(ArgumentError("The weight vector must have 6 elements."))
+    end
+
+    if max_iterations < 1
+        throw(ArgumentError("The maximum number of iterations must be at least 1."))
     end
 
     # Check once if `stdout` supports colors, which selects the decorated strings printed by
@@ -453,7 +457,7 @@ function _fit_mean_elements!(
 
             # If the RMSE increased by three iterations and its value is higher than 5e11,
             # we abort because the iterations are diverging.
-            ((Δd ≥ 3) && (σ_i > 5e11)) && error("The iterations diverged.")
+            ((Δd ≥ 3) && (σ_i > 5e11)) && throw(MeanElementsFitDivergenceError(it, σ_i))
 
             # Check if the condition to stop has been reached.
             if (abs(Δσ) < rtol) || (σ_i < atol)

@@ -7,6 +7,7 @@
 export J2PropagatorConstants, J2Propagator, J2OsculatingPropagator
 export J4PropagatorConstants, J4Propagator, J4OsculatingPropagator
 export TwoBodyPropagator
+export MeanElementsFitDivergenceError
 export OrbitPropagatorJ2
 export OrbitPropagatorJ2Osculating
 export OrbitPropagatorJ4
@@ -349,6 +350,38 @@ mutable struct TwoBodyPropagator{Tepoch <: Number, T <: Number}
         pd.Δt = _uninitialized_instant(T)
         return pd
     end
+end
+
+############################################################################################
+#                                        Exceptions                                        #
+############################################################################################
+
+"""
+    struct MeanElementsFitDivergenceError <: Exception
+
+Exception thrown when the least-square iterations used to fit the mean elements of the
+analytical propagators diverge.
+
+# Fields
+
+- `iteration::Int`: Iteration in which the divergence was detected.
+- `residue::Float64`: Total RMSE of the residue in that iteration.
+"""
+struct MeanElementsFitDivergenceError <: Exception
+    iteration::Int
+    residue::Float64
+end
+
+function Base.showerror(io::IO, e::MeanElementsFitDivergenceError)
+    print(
+        io,
+        "MeanElementsFitDivergenceError: The least-square iterations diverged at iteration ",
+        e.iteration,
+        " with a total RMSE of ",
+        e.residue,
+        ".",
+    )
+    return nothing
 end
 
 ############################################################################################

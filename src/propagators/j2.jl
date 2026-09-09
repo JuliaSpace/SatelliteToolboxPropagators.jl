@@ -404,6 +404,14 @@ KeplerianElements{MeanAnomaly, Float64, Float64}:
 julia> stats
 (converged = true, iterations = 4, position_rmse = 4341.303234165598, velocity_rmse = 5.400761345997574, total_rmse = 4341.306593549895)
 ```
+
+# Extended help
+
+## Throws
+
+- `ArgumentError`: If `vjd`, `vr_i`, and `vv_i` do not have the same length, if
+    `weight_vector` does not have six elements, or if `max_iterations` is lower than 1.
+- `MeanElementsFitDivergenceError`: If the least-square iterations diverge.
 """
 function fit_j2_mean_elements(
     vjd::AbstractVector{Tjd},
@@ -550,6 +558,14 @@ KeplerianElements{MeanAnomaly, Float64, Float64}:
 julia> stats
 (converged = true, iterations = 4, position_rmse = 4341.303234165598, velocity_rmse = 5.400761345997574, total_rmse = 4341.306593549895)
 ```
+
+# Extended help
+
+## Throws
+
+- `ArgumentError`: If `vjd`, `vr_i`, and `vv_i` do not have the same length, if
+    `weight_vector` does not have six elements, or if `max_iterations` is lower than 1.
+- `MeanElementsFitDivergenceError`: If the least-square iterations diverge.
 """
 function fit_j2_mean_elements!(
     j2d::J2Propagator{Tepoch, T},

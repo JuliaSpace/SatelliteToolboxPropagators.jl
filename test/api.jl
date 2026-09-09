@@ -939,6 +939,17 @@ end
     end
 end
 
+@testset "Mean Elements Fit Divergence Error" begin
+    e = MeanElementsFitDivergenceError(7, 1.5e12)
+
+    @test e isa Exception
+    @test e.iteration == 7
+    @test e.residue == 1.5e12
+    @test sprint(showerror, e) ==
+        "MeanElementsFitDivergenceError: The least-square iterations diverged at " *
+        "iteration 7 with a total RMSE of 1.5e12."
+end
+
 @testset "Default Functions in the API" begin
     orbp = DummyPropagator{Float64, Float64}()
     @test Propagators.name(orbp) == "DummyPropagator{Float64, Float64}"

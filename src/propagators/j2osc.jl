@@ -290,6 +290,14 @@ KeplerianElements{MeanAnomaly, Float64, Float64}:
 julia> stats
 (converged = true, iterations = 4, position_rmse = 0.01690717402027459, velocity_rmse = 2.6008770843982476, total_rmse = 2.6009320369208573)
 ```
+
+# Extended help
+
+## Throws
+
+- `ArgumentError`: If `vjd`, `vr_i`, and `vv_i` do not have the same length, if
+    `weight_vector` does not have six elements, or if `max_iterations` is lower than 1.
+- `MeanElementsFitDivergenceError`: If the least-square iterations diverge.
 """
 function fit_j2osc_mean_elements(
     vjd::AbstractVector{Tjd},
@@ -428,6 +436,14 @@ KeplerianElements{MeanAnomaly, Float64, Float64}:
 julia> stats
 (converged = true, iterations = 4, position_rmse = 0.01690717402027459, velocity_rmse = 2.6008770843982476, total_rmse = 2.6009320369208573)
 ```
+
+# Extended help
+
+## Throws
+
+- `ArgumentError`: If `vjd`, `vr_i`, and `vv_i` do not have the same length, if
+    `weight_vector` does not have six elements, or if `max_iterations` is lower than 1.
+- `MeanElementsFitDivergenceError`: If the least-square iterations diverge.
 """
 function fit_j2osc_mean_elements!(
     j2oscd::J2OsculatingPropagator{Tepoch, T},

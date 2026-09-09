@@ -326,6 +326,14 @@ KeplerianElements{MeanAnomaly, Float64, Float64}:
 julia> stats
 (converged = true, iterations = 3, position_rmse = 0.0016739746758051223, velocity_rmse = 1.4253086768036645, total_rmse = 1.425309659815378)
 ```
+
+# Extended help
+
+## Throws
+
+- `ArgumentError`: If `vjd`, `vr_i`, and `vv_i` do not have the same length, if
+    `weight_vector` does not have six elements, or if `max_iterations` is lower than 1.
+- `MeanElementsFitDivergenceError`: If the least-square iterations diverge.
 """
 function fit_twobody_mean_elements(
     vjd::AbstractVector{Tjd},
@@ -460,6 +468,14 @@ KeplerianElements{MeanAnomaly, Float64, Float64}:
 julia> stats
 (converged = true, iterations = 3, position_rmse = 0.0016739746758051223, velocity_rmse = 1.4253086768036645, total_rmse = 1.425309659815378)
 ```
+
+# Extended help
+
+## Throws
+
+- `ArgumentError`: If `vjd`, `vr_i`, and `vv_i` do not have the same length, if
+    `weight_vector` does not have six elements, or if `max_iterations` is lower than 1.
+- `MeanElementsFitDivergenceError`: If the least-square iterations diverge.
 """
 function fit_twobody_mean_elements!(
     tbd::TwoBodyPropagator{Tepoch, T},
