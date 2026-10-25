@@ -2,8 +2,8 @@ name = "SatelliteToolboxPropagators"
 uuid = "c2b69894-ea78-4e2b-9ba6-cedbbc3d14d7"
 license = "MIT"
 desc = "Orbit propagators for the SatelliteToolbox.jl ecosystem."
-authors = ["Ronan Arraes Jardim Chagas <ronisbr@gmail.com>"]
 version = "2.0.0"
+authors = ["Ronan Arraes Jardim Chagas <ronisbr@gmail.com>"]
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
@@ -24,7 +24,7 @@ AllocCheck = "0.2"
 Aqua = "0.8"
 Dates = "1"
 ForwardDiff = "1"
-JET = "0.9, 0.10, 0.11, 0.12"
+JET = "0.9, 0.10, 0.11, 0.12, 0.13"
 LinearAlgebra = "1"
 NanoDates = "1, 2"
 PrecompileTools = "1"
