@@ -1,19 +1,13 @@
 ## Description #############################################################################
 #
-# Performance tests using AllocCheck.jl.
+# Tests related to memory allocations.
 #
 ############################################################################################
 
 @testset "Allocation Check" begin
     _D = ForwardDiff.Dual{ForwardDiff.Tag{Nothing, Float64}, Float64, 6}
 
-    # The kernels and the Jacobians must not allocate on any Julia version. The fitting
-    # functions are checked against a maximum number of allocation sites, which are all in
-    # the verbose printing path. Julia 1.12 compiles that path with many more sites, so the
-    # limits below only hold on the previous releases.
-    check_fit_allocs = VERSION < v"1.12"
-    check_fit_allocs ||
-        @warn "The fitting allocation sites are only checked on Julia 1.10 and 1.11."
+    # The kernels and the Jacobians must not allocate on any Julia version.
 
     # == Two-Body ======================================================================
 
@@ -74,52 +68,6 @@
         ) == 0
     end
 
-    check_fit_allocs && @testset "fit_twobody_mean_elements! (FiniteDiffJacobian)" begin
-        @test length(
-            check_allocs(
-                (tbd, vjd, vr_i, vv_i) -> begin
-                    fit_twobody_mean_elements!(
-                        tbd,
-                        vjd,
-                        vr_i,
-                        vv_i;
-                        jacobian_method = FiniteDiffJacobian(),
-                        verbose = false,
-                    )
-                end,
-                (
-                    TwoBodyPropagator{Float64, Float64},
-                    Vector{Float64},
-                    Vector{SVector{3, Float64}},
-                    Vector{SVector{3, Float64}},
-                ),
-            ),
-        ) <= 14
-    end
-
-    check_fit_allocs && @testset "fit_twobody_mean_elements! (ForwardDiffJacobian)" begin
-        @test length(
-            check_allocs(
-                (tbd, vjd, vr_i, vv_i) -> begin
-                    fit_twobody_mean_elements!(
-                        tbd,
-                        vjd,
-                        vr_i,
-                        vv_i;
-                        jacobian_method = ForwardDiffJacobian(),
-                        verbose = false,
-                    )
-                end,
-                (
-                    TwoBodyPropagator{Float64, Float64},
-                    Vector{Float64},
-                    Vector{SVector{3, Float64}},
-                    Vector{SVector{3, Float64}},
-                ),
-            ),
-        ) <= 14
-    end
-
     # == J2 ============================================================================
 
     @testset "j2_init!" begin
@@ -175,52 +123,6 @@
                 ),
             ),
         ) == 0
-    end
-
-    check_fit_allocs && @testset "fit_j2_mean_elements! (FiniteDiffJacobian)" begin
-        @test length(
-            check_allocs(
-                (j2d, vjd, vr_i, vv_i) -> begin
-                    fit_j2_mean_elements!(
-                        j2d,
-                        vjd,
-                        vr_i,
-                        vv_i;
-                        jacobian_method = FiniteDiffJacobian(),
-                        verbose = false,
-                    )
-                end,
-                (
-                    J2Propagator{Float64, Float64},
-                    Vector{Float64},
-                    Vector{SVector{3, Float64}},
-                    Vector{SVector{3, Float64}},
-                ),
-            ),
-        ) <= 14
-    end
-
-    check_fit_allocs && @testset "fit_j2_mean_elements! (ForwardDiffJacobian)" begin
-        @test length(
-            check_allocs(
-                (j2d, vjd, vr_i, vv_i) -> begin
-                    fit_j2_mean_elements!(
-                        j2d,
-                        vjd,
-                        vr_i,
-                        vv_i;
-                        jacobian_method = ForwardDiffJacobian(),
-                        verbose = false,
-                    )
-                end,
-                (
-                    J2Propagator{Float64, Float64},
-                    Vector{Float64},
-                    Vector{SVector{3, Float64}},
-                    Vector{SVector{3, Float64}},
-                ),
-            ),
-        ) <= 14
     end
 
     # == J2 Osculating =================================================================
@@ -283,52 +185,6 @@
         ) == 0
     end
 
-    check_fit_allocs && @testset "fit_j2osc_mean_elements! (FiniteDiffJacobian)" begin
-        @test length(
-            check_allocs(
-                (j2oscd, vjd, vr_i, vv_i) -> begin
-                    fit_j2osc_mean_elements!(
-                        j2oscd,
-                        vjd,
-                        vr_i,
-                        vv_i;
-                        jacobian_method = FiniteDiffJacobian(),
-                        verbose = false,
-                    )
-                end,
-                (
-                    J2OsculatingPropagator{Float64, Float64},
-                    Vector{Float64},
-                    Vector{SVector{3, Float64}},
-                    Vector{SVector{3, Float64}},
-                ),
-            ),
-        ) <= 15
-    end
-
-    check_fit_allocs && @testset "fit_j2osc_mean_elements! (ForwardDiffJacobian)" begin
-        @test length(
-            check_allocs(
-                (j2oscd, vjd, vr_i, vv_i) -> begin
-                    fit_j2osc_mean_elements!(
-                        j2oscd,
-                        vjd,
-                        vr_i,
-                        vv_i;
-                        jacobian_method = ForwardDiffJacobian(),
-                        verbose = false,
-                    )
-                end,
-                (
-                    J2OsculatingPropagator{Float64, Float64},
-                    Vector{Float64},
-                    Vector{SVector{3, Float64}},
-                    Vector{SVector{3, Float64}},
-                ),
-            ),
-        ) <= 15
-    end
-
     # == J4 ============================================================================
 
     @testset "j4_init!" begin
@@ -384,52 +240,6 @@
                 ),
             ),
         ) == 0
-    end
-
-    check_fit_allocs && @testset "fit_j4_mean_elements! (FiniteDiffJacobian)" begin
-        @test length(
-            check_allocs(
-                (j4d, vjd, vr_i, vv_i) -> begin
-                    fit_j4_mean_elements!(
-                        j4d,
-                        vjd,
-                        vr_i,
-                        vv_i;
-                        jacobian_method = FiniteDiffJacobian(),
-                        verbose = false,
-                    )
-                end,
-                (
-                    J4Propagator{Float64, Float64},
-                    Vector{Float64},
-                    Vector{SVector{3, Float64}},
-                    Vector{SVector{3, Float64}},
-                ),
-            ),
-        ) <= 14
-    end
-
-    check_fit_allocs && @testset "fit_j4_mean_elements! (ForwardDiffJacobian)" begin
-        @test length(
-            check_allocs(
-                (j4d, vjd, vr_i, vv_i) -> begin
-                    fit_j4_mean_elements!(
-                        j4d,
-                        vjd,
-                        vr_i,
-                        vv_i;
-                        jacobian_method = ForwardDiffJacobian(),
-                        verbose = false,
-                    )
-                end,
-                (
-                    J4Propagator{Float64, Float64},
-                    Vector{Float64},
-                    Vector{SVector{3, Float64}},
-                    Vector{SVector{3, Float64}},
-                ),
-            ),
-        ) <= 14
     end
 
     # == J4 Osculating =================================================================
@@ -491,50 +301,61 @@
             ),
         ) == 0
     end
+end
 
-    check_fit_allocs && @testset "fit_j4osc_mean_elements! (FiniteDiffJacobian)" begin
-        @test length(
-            check_allocs(
-                (j4oscd, vjd, vr_i, vv_i) -> begin
-                    fit_j4osc_mean_elements!(
-                        j4oscd,
-                        vjd,
-                        vr_i,
-                        vv_i;
-                        jacobian_method = FiniteDiffJacobian(),
-                        verbose = false,
-                    )
-                end,
-                (
-                    J4OsculatingPropagator{Float64, Float64},
-                    Vector{Float64},
-                    Vector{SVector{3, Float64}},
-                    Vector{SVector{3, Float64}},
-                ),
-            ),
-        ) <= 15
+@testset "Fitting Allocations" begin
+    # The fitting allocates only a fixed set of workspaces. Hence, the number of allocations
+    # must not depend on the number of measurements or iterations. We check this at runtime
+    # because the static analysis of AllocCheck also follows the code paths used only when
+    # `verbose = true`, whose allocations inside Base I/O internals vary with the platform,
+    # the loaded packages, and the AllocCheck version.
+
+    orb_input = KeplerianElements(
+        DateTime("2023-01-01") |> datetime2julian,
+        7130.982e3,
+        0.001111,
+        98.405 |> deg2rad,
+        90 |> deg2rad,
+        200 |> deg2rad,
+        45 |> deg2rad,
+    )
+
+    function fit_allocations(
+        propagator::Val, jacobian_method, num_measurements, num_iterations
+    )
+        orbp = Propagators.init(propagator, orb_input)
+        vt   = range(0, 6000; length = num_measurements)
+        ret  = Propagators.propagate!.(orbp, vt)
+        vr_i = first.(ret)
+        vv_i = last.(ret)
+        vjd  = collect(orb_input.t .+ vt ./ 86400)
+
+        # Setting `atol` and `rtol` to 0 disables the convergence check, so the algorithm
+        # performs exactly `num_iterations` iterations.
+        fit!() = Propagators.fit_mean_elements!(
+            orbp,
+            vjd,
+            vr_i,
+            vv_i;
+            atol            = 0,
+            rtol            = 0,
+            jacobian_method = jacobian_method,
+            max_iterations  = num_iterations,
+            verbose         = false,
+        )
+
+        # Compile the function before measuring the allocations.
+        fit!()
+
+        return @allocations fit!()
     end
 
-    check_fit_allocs && @testset "fit_j4osc_mean_elements! (ForwardDiffJacobian)" begin
-        @test length(
-            check_allocs(
-                (j4oscd, vjd, vr_i, vv_i) -> begin
-                    fit_j4osc_mean_elements!(
-                        j4oscd,
-                        vjd,
-                        vr_i,
-                        vv_i;
-                        jacobian_method = ForwardDiffJacobian(),
-                        verbose = false,
-                    )
-                end,
-                (
-                    J4OsculatingPropagator{Float64, Float64},
-                    Vector{Float64},
-                    Vector{SVector{3, Float64}},
-                    Vector{SVector{3, Float64}},
-                ),
-            ),
-        ) <= 15
+    for propagator in (Val(:J2), Val(:J2osc), Val(:J4), Val(:J4osc), Val(:TwoBody)),
+        jacobian_method in (FiniteDiffJacobian(), ForwardDiffJacobian())
+
+        num_allocations = fit_allocations(propagator, jacobian_method, 50, 2)
+
+        @test fit_allocations(propagator, jacobian_method, 200, 2) == num_allocations
+        @test fit_allocations(propagator, jacobian_method, 50, 6) == num_allocations
     end
 end
